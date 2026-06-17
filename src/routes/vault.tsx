@@ -47,7 +47,7 @@ function VaultPage() {
       <section className="bg-card rounded-3xl p-5 border border-white/5">
         <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">Balance</p>
         <p className="font-display font-bold text-3xl mt-1">
-          {bal ? Number(bal.formatted).toFixed(4) : "0.0000"}{" "}
+          {bal ? (Number(bal.value) / 10 ** bal.decimals).toFixed(4) : "0.0000"}{" "}
           <span className="text-accent text-base">{bal?.symbol ?? "ETH"}</span>
         </p>
         <p className="text-[11px] text-white/40 font-mono mt-2 break-all">{address}</p>

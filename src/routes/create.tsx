@@ -124,24 +124,24 @@ function CoinForm() {
     try {
       setBusy(true);
       setStatus("Preparing deployment on Base…");
-      // Zora Coins SDK — real onchain create flow.
-      const { createCoin, DeployCurrency } = await import("@zoralabs/coins-sdk");
+      const { createCoin } = await import("@zoralabs/coins-sdk");
+      const uri = `data:application/json;utf8,${encodeURIComponent(
+        JSON.stringify({ name, description: `${name} coin on Base`, symbol }),
+      )}`;
       const res = await createCoin({
         call: {
+          creator: address,
           name,
           symbol: symbol.toUpperCase(),
-          // A minimal metadata URI placeholder — production would upload media to IPFS first.
-          uri: `data:application/json;utf8,${encodeURIComponent(
-            JSON.stringify({ name, description: `${name} coin on Base`, symbol }),
-          )}` as `data:application/json;utf8,${string}`,
-          payoutRecipient: address,
+          metadata: { type: "RAW_URI", uri },
+          currency: "ZORA",
           chainId: 8453,
-          currency: DeployCurrency.ZORA,
+          skipMetadataValidation: true,
         },
         walletClient,
         publicClient,
       });
-      setStatus(`Deployed! Coin: ${res.address.slice(0, 8)}…`);
+      setStatus(res.address ? `Deployed! Coin: ${res.address.slice(0, 10)}…` : `Tx sent: ${res.hash.slice(0, 10)}…`);
     } catch (e) {
       console.error(e);
       setStatus(e instanceof Error ? e.message : "Deploy failed.");
