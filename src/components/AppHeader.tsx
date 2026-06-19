@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { base } from "wagmi/chains";
 
 function shortAddr(a?: string) {
   if (!a) return "";
@@ -10,26 +12,30 @@ export function AppHeader() {
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending, error } = useConnect();
   const { disconnect } = useDisconnect();
+  const [connectMessage, setConnectMessage] = useState<string>();
 
-  const handleConnect = () => {
-    // Prefer Farcaster connector when running inside a Farcaster client,
-    // otherwise fall back to an injected browser wallet (MetaMask, Rabby, etc.).
+  const handleConnect = async () => {
+    setConnectMessage(undefined);
     const fc = connectors.find((c) => c.id === "farcasterMiniApp" || c.id === "farcaster");
     const inj = connectors.find((c) => c.type === "injected");
+
     const inFarcaster =
       typeof window !== "undefined" &&
-      (window.parent !== window || /Warpcast|Farcaster/i.test(navigator.userAgent));
-    const chosen = (inFarcaster && fc) || inj || fc || connectors[0];
+      (Boolean(window.ReactNativeWebView) || /Warpcast|Farcaster/i.test(navigator.userAgent));
+
+    const hasInjectedWallet = typeof window !== "undefined" && "ethereum" in window;
+    const chosen = inFarcaster ? fc : hasInjectedWallet ? inj : undefined;
+
     if (!chosen) {
-      alert("No wallet available. Install MetaMask or open this app inside Farcaster.");
+      setConnectMessage("Open in Farcaster, or install a browser wallet to connect here.");
       return;
     }
     connect(
-      { connector: chosen },
+      { connector: chosen, chainId: base.id },
       {
         onError: (e) => {
           console.error("wallet connect failed", e);
-          alert(e.message || "Could not connect wallet");
+          setConnectMessage(e.message || "Could not connect wallet");
         },
       }
     );
@@ -53,12 +59,17 @@ export function AppHeader() {
         <button
           onClick={handleConnect}
           disabled={isPending}
-          title={error?.message}
+          title={connectMessage || error?.message}
           className="px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider disabled:opacity-50"
         >
           {isPending ? "…" : "Connect"}
         </button>
       )}
+      {connectMessage ? (
+        <div className="absolute right-4 top-14 max-w-[260px] rounded-md border border-white/10 bg-black/95 px-3 py-2 text-[11px] leading-snug text-white/80 shadow-lg">
+          {connectMessage}
+        </div>
+      ) : null}
     </header>
   );
 }
