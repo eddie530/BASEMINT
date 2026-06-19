@@ -22,7 +22,7 @@ export function AppHeader() {
     let inFarcaster = false;
     try {
       const { sdk } = await import("@farcaster/miniapp-sdk");
-      inFarcaster = await sdk.isInMiniApp(500);
+      inFarcaster = await sdk.isInMiniApp();
     } catch {
       inFarcaster = false;
     }
