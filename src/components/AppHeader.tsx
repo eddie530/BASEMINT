@@ -19,13 +19,9 @@ export function AppHeader() {
     const fc = connectors.find((c) => c.id === "farcasterMiniApp" || c.id === "farcaster");
     const inj = connectors.find((c) => c.type === "injected");
 
-    let inFarcaster = false;
-    try {
-      const { sdk } = await import("@farcaster/miniapp-sdk");
-      inFarcaster = await sdk.isInMiniApp();
-    } catch {
-      inFarcaster = false;
-    }
+    const inFarcaster =
+      typeof window !== "undefined" &&
+      (Boolean(window.ReactNativeWebView) || /Warpcast|Farcaster/i.test(navigator.userAgent));
 
     const hasInjectedWallet = typeof window !== "undefined" && "ethereum" in window;
     const chosen = inFarcaster ? fc : hasInjectedWallet ? inj : undefined;
