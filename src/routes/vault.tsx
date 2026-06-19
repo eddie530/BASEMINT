@@ -7,8 +7,12 @@ export const Route = createFileRoute("/vault")({
   head: () => ({
     meta: [
       { title: "Vault · Basemint" },
-      { name: "description", content: "Your coins and NFTs on Base." },
+      { name: "description", content: "View your coins and collected NFTs on Base." },
+      { property: "og:title", content: "Vault · Basemint" },
+      { property: "og:description", content: "View your coins and collected NFTs on Base." },
+      { property: "og:url", content: "https://foxy-token-forge.lovable.app/vault" },
     ],
+    links: [{ rel: "canonical", href: "https://foxy-token-forge.lovable.app/vault" }],
   }),
   component: VaultPage,
 });

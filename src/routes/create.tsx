@@ -14,8 +14,12 @@ export const Route = createFileRoute("/create")({
   head: () => ({
     meta: [
       { title: "Create · Basemint" },
-      { name: "description", content: "Launch a coin or NFT on Base." },
+      { name: "description", content: "Launch a coin or NFT collection on Base in seconds." },
+      { property: "og:title", content: "Create · Basemint" },
+      { property: "og:description", content: "Launch a coin or NFT collection on Base in seconds." },
+      { property: "og:url", content: "https://foxy-token-forge.lovable.app/create" },
     ],
+    links: [{ rel: "canonical", href: "https://foxy-token-forge.lovable.app/create" }],
   }),
   component: CreatePage,
 });

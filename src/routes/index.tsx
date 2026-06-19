@@ -7,11 +7,13 @@ import { trendingFeed } from "@/lib/mock-data";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Basemint — Create coins & NFTs on Base" },
-      { name: "description", content: "A Farcaster mini app to launch ERC-20 coins and mint NFTs on Base in seconds." },
-      { property: "og:title", content: "Basemint" },
-      { property: "og:description", content: "Launch coins and NFTs on Base from Farcaster." },
+      { title: "Basemint — Mint on Base" },
+      { name: "description", content: "Mint on Base. Create coins and NFTs on Base in seconds." },
+      { property: "og:title", content: "Basemint — Mint on Base" },
+      { property: "og:description", content: "Mint on Base. Create coins and NFTs on Base in seconds." },
+      { property: "og:url", content: "https://foxy-token-forge.lovable.app/" },
     ],
+    links: [{ rel: "canonical", href: "https://foxy-token-forge.lovable.app/" }],
   }),
   component: FeedPage,
 });
