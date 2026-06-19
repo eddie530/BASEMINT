@@ -4,12 +4,19 @@ import { getItem } from "@/lib/mock-data";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/coin/$id")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Token ${params.id} · Basemint` },
-      { name: "description", content: "Token / NFT detail on Basemint." },
-    ],
-  }),
+  head: ({ params }) => {
+    const url = `https://foxy-token-forge.lovable.app/coin/${params.id}`;
+    return {
+      meta: [
+        { title: `Asset ${params.id} · Basemint` },
+        { name: "description", content: "Token / NFT detail on Basemint." },
+        { property: "og:title", content: `Asset ${params.id} · Basemint` },
+        { property: "og:description", content: "Token / NFT detail on Basemint." },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   loader: ({ params }) => {
     const item = getItem(params.id);
     if (!item) throw notFound();

@@ -78,12 +78,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Basemint — Create coins & NFTs on Base" },
-      { name: "description", content: "A Farcaster mini app to launch ERC-20 coins and mint NFTs on Base in seconds." },
       { name: "theme-color", content: "#000000" },
-      { property: "og:title", content: "Basemint" },
-      { property: "og:description", content: "Launch coins and NFTs on Base from Farcaster." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Basemint" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [
@@ -96,6 +93,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
     ],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: "Basemint",
+        url: "https://foxy-token-forge.lovable.app",
+        description: "Mint on Base. Create coins and NFTs on Base in seconds.",
+      }),
+    }],
   }),
   shellComponent: RootShell,
   component: RootComponent,
