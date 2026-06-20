@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          points_awarded: number
+          streak: number
+          wallet_address: string
+        }
+        Insert: {
+          checkin_date: string
+          created_at?: string
+          points_awarded?: number
+          streak?: number
+          wallet_address: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          points_awarded?: number
+          streak?: number
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       page_events: {
         Row: {
           created_at: string
@@ -44,6 +68,57 @@ export type Database = {
           session_id?: string
           visitor_hash?: string | null
           wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      point_balances: {
+        Row: {
+          lifetime: number
+          total: number
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          lifetime?: number
+          total?: number
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          lifetime?: number
+          total?: number
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      point_events: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          metadata: Json
+          points: number
+          ref_key: string | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          metadata?: Json
+          points: number
+          ref_key?: string | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json
+          points?: number
+          ref_key?: string | null
+          wallet_address?: string
         }
         Relationships: []
       }
@@ -80,6 +155,80 @@ export type Database = {
           updated_at?: string
           wallet_address?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      quest_progress: {
+        Row: {
+          completed_at: string | null
+          progress: number
+          quest_id: string
+          updated_at: string
+          wallet_address: string
+        }
+        Insert: {
+          completed_at?: string | null
+          progress?: number
+          quest_id: string
+          updated_at?: string
+          wallet_address: string
+        }
+        Update: {
+          completed_at?: string | null
+          progress?: number
+          quest_id?: string
+          updated_at?: string
+          wallet_address?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quests: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          ends_at: string | null
+          goal_count: number
+          goal_kind: string
+          id: string
+          points_reward: number
+          slug: string
+          starts_at: string | null
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description: string
+          ends_at?: string | null
+          goal_count?: number
+          goal_kind: string
+          id?: string
+          points_reward: number
+          slug: string
+          starts_at?: string | null
+          title: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          ends_at?: string | null
+          goal_count?: number
+          goal_kind?: string
+          id?: string
+          points_reward?: number
+          slug?: string
+          starts_at?: string | null
+          title?: string
         }
         Relationships: []
       }
