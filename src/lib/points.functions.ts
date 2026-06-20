@@ -31,7 +31,7 @@ export interface PointEventDTO {
   id: string;
   kind: PointKind;
   points: number;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, string | number | boolean | null>;
   created_at: string;
 }
 
@@ -80,7 +80,7 @@ async function awardInternal(args: {
   kind: PointKind;
   points: number;
   ref_key?: string | null;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, string | number | boolean | null>;
 }): Promise<{ awarded: boolean }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const row = {
