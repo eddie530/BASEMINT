@@ -1,0 +1,11 @@
+# Basemint
+
+> Mint on Base. Create coins and NFTs on Base in seconds.
+
+Basemint is a Farcaster-friendly mini app for launching ERC-20 tokens (via Zora Coins) and NFT editions on the Base network.
+
+## Pages
+
+- [Home](/): Trending coins and NFTs on Base, plus quick links to launch.
+- [Create](/create): Launch a coin or NFT collection on Base in seconds.
+- [Vault](/vault): View your coins and collected NFTs on Base.
