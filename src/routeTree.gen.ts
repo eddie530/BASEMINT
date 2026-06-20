@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as PointsRouteImport } from './routes/points'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +28,11 @@ const VaultRoute = VaultRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PointsRoute = PointsRouteImport.update({
+  id: '/points',
+  path: '/points',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/points': typeof PointsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/points': typeof PointsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/points': typeof PointsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/dashboard'
+    | '/points'
     | '/sitemap.xml'
     | '/vault'
     | '/coin/$id'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/dashboard'
+    | '/points'
     | '/sitemap.xml'
     | '/vault'
     | '/coin/$id'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/dashboard'
+    | '/points'
     | '/sitemap.xml'
     | '/vault'
     | '/coin/$id'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
+  PointsRoute: typeof PointsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/points': {
+      id: '/points'
+      path: '/points'
+      fullPath: '/points'
+      preLoaderRoute: typeof PointsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
+  PointsRoute: PointsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
