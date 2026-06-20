@@ -1,14 +1,28 @@
 {
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
   "frame": {
     "version": "1",
     "name": "Basemint",
-    "iconUrl": "https://placehold.co/512x512/0052FF/CCFF00?text=B",
-    "homeUrl": "/",
-    "splashImageUrl": "https://placehold.co/512x512/000000/CCFF00?text=BASEMINT",
+    "iconUrl": "https://foxy-token-forge.lovable.app/icon-512.png",
+    "homeUrl": "https://foxy-token-forge.lovable.app/",
+    "splashImageUrl": "https://foxy-token-forge.lovable.app/icon-512.png",
     "splashBackgroundColor": "#000000",
-    "subtitle": "Create coins & NFTs on Base",
-    "description": "A Farcaster mini app to launch ERC-20 coins and mint NFTs on Base in seconds.",
-    "primaryCategory": "finance",
-    "tags": ["base", "zora", "coins", "nft"]
+    "subtitle": "Mint on Base",
+    "description": "Create coins and NFTs on Base in seconds. Zora Coins under the hood.",
+    "primaryCategory": "social",
+    "tags": ["base", "zora", "mint", "coins", "nft"],
+    "heroImageUrl": "https://foxy-token-forge.lovable.app/icon-512.png",
+    "tagline": "Mint on Base",
+    "ogTitle": "Basemint — Mint on Base",
+    "ogDescription": "Create coins and NFTs on Base in seconds.",
+    "ogImageUrl": "https://foxy-token-forge.lovable.app/icon-512.png",
+    "buttonTitle": "Open Basemint"
+  },
+  "baseBuilder": {
+    "appId": "6a359ca4b5c7cf28ed894db2"
   }
 }
