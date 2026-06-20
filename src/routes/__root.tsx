@@ -79,6 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#000000" },
+      { name: "base:app_id", content: "6a359ca4b5c7cf28ed894db2" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Basemint" },
       { name: "twitter:card", content: "summary" },
