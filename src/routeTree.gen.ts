@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoinIdRouteImport } from './routes/coin.$id'
@@ -17,6 +18,11 @@ import { Route as CoinIdRouteImport } from './routes/coin.$id'
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
   path: '/vault',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateRoute = CreateRouteImport.update({
@@ -38,12 +44,14 @@ const CoinIdRoute = CoinIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/vault' | '/coin/$id'
+  fullPaths: '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/vault' | '/coin/$id'
-  id: '__root__' | '/' | '/create' | '/vault' | '/coin/$id'
+  to: '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
+  id: '__root__' | '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
 }
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/vault'
       fullPath: '/vault'
       preLoaderRoute: typeof VaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/create': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
 }

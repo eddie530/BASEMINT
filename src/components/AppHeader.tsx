@@ -43,9 +43,9 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between">
-      <Link to="/" className="flex items-center gap-2">
-        <div className="size-8 bg-primary rounded-full grid place-items-center font-bold text-xs text-white">B</div>
-        <h1 className="font-display font-bold text-lg tracking-tight">BASEMINT</h1>
+      <Link to="/" className="flex items-center gap-2" aria-label="Basemint — Mint on Base">
+        <div className="size-8 bg-primary rounded-full grid place-items-center font-bold text-xs text-white" aria-hidden="true">B</div>
+        <h1 className="font-display font-bold text-lg tracking-tight">Basemint — Mint on Base</h1>
       </Link>
 
       {isConnected ? (

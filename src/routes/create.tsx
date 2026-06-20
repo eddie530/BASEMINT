@@ -63,7 +63,7 @@ function MediaPicker({ onChange }: { onChange: (f: File | null) => void }) {
   return (
     <label className="block aspect-square rounded-3xl bg-white/5 border border-dashed border-white/15 relative overflow-hidden cursor-pointer hover:border-accent/40 transition">
       {preview ? (
-        <img src={preview} alt="preview" className="w-full h-full object-cover" />
+        <img src={preview} alt="Uploaded asset preview" className="w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 grid place-items-center text-white/40">
           <div className="flex flex-col items-center gap-2">
