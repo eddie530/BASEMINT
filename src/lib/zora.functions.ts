@@ -143,9 +143,10 @@ export const getHoldings = createServerFn({ method: "GET" })
     try {
       const { getProfileBalances } = await import("@zoralabs/coins-sdk");
       const res = await getProfileBalances({ identifier: data.address, count: data.count });
-      // @ts-expect-error shape varies
-      const edges = res?.data?.profile?.coinBalances?.edges ?? [];
-      return (edges as Array<{ node: { coin?: RawNode } }>)
+      const edges =
+        (res as { data?: { profile?: { coinBalances?: { edges?: Array<{ node: { coin?: RawNode } }> } } } })
+          ?.data?.profile?.coinBalances?.edges ?? [];
+      return edges
         .map((e) => e.node?.coin)
         .filter((c): c is RawNode => Boolean(c))
         .map(toDTO);
