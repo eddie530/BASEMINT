@@ -22,8 +22,8 @@ export type Database = {
           ref_code: string | null
           referrer: string | null
           session_id: string
-          user_id: string | null
           visitor_hash: string | null
+          wallet_address: string | null
         }
         Insert: {
           created_at?: string
@@ -32,8 +32,8 @@ export type Database = {
           ref_code?: string | null
           referrer?: string | null
           session_id: string
-          user_id?: string | null
           visitor_hash?: string | null
+          wallet_address?: string | null
         }
         Update: {
           created_at?: string
@@ -42,8 +42,8 @@ export type Database = {
           ref_code?: string | null
           referrer?: string | null
           session_id?: string
-          user_id?: string | null
           visitor_hash?: string | null
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -56,8 +56,7 @@ export type Database = {
           farcaster: string | null
           twitter: string | null
           updated_at: string
-          user_id: string
-          wallet_address: string | null
+          wallet_address: string
           website: string | null
         }
         Insert: {
@@ -68,8 +67,7 @@ export type Database = {
           farcaster?: string | null
           twitter?: string | null
           updated_at?: string
-          user_id: string
-          wallet_address?: string | null
+          wallet_address: string
           website?: string | null
         }
         Update: {
@@ -80,8 +78,7 @@ export type Database = {
           farcaster?: string | null
           twitter?: string | null
           updated_at?: string
-          user_id?: string
-          wallet_address?: string | null
+          wallet_address?: string
           website?: string | null
         }
         Relationships: []
@@ -90,17 +87,17 @@ export type Database = {
         Row: {
           code: string
           created_at: string
-          owner_user_id: string
+          owner_wallet: string
         }
         Insert: {
           code: string
           created_at?: string
-          owner_user_id: string
+          owner_wallet: string
         }
         Update: {
           code?: string
           created_at?: string
-          owner_user_id?: string
+          owner_wallet?: string
         }
         Relationships: []
       }
@@ -111,9 +108,9 @@ export type Database = {
           created_at: string
           event_type: string
           id: string
-          user_id: string | null
           value_wei: number | null
           visitor_hash: string | null
+          visitor_wallet: string | null
         }
         Insert: {
           code: string
@@ -121,9 +118,9 @@ export type Database = {
           created_at?: string
           event_type: string
           id?: string
-          user_id?: string | null
           value_wei?: number | null
           visitor_hash?: string | null
+          visitor_wallet?: string | null
         }
         Update: {
           code?: string
@@ -131,9 +128,9 @@ export type Database = {
           created_at?: string
           event_type?: string
           id?: string
-          user_id?: string | null
           value_wei?: number | null
           visitor_hash?: string | null
+          visitor_wallet?: string | null
         }
         Relationships: [
           {
