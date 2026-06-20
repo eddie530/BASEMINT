@@ -14,6 +14,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CoinIdRouteImport } from './routes/coin.$id'
+import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
@@ -40,6 +41,11 @@ const CoinIdRoute = CoinIdRouteImport.update({
   path: '/coin/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
+  id: '/api/public/track',
+  path: '/api/public/track',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
+  fullPaths:
+    | '/'
+    | '/create'
+    | '/sitemap.xml'
+    | '/vault'
+    | '/coin/$id'
+    | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
-  id: '__root__' | '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
+  to:
+    | '/'
+    | '/create'
+    | '/sitemap.xml'
+    | '/vault'
+    | '/coin/$id'
+    | '/api/public/track'
+  id:
+    | '__root__'
+    | '/'
+    | '/create'
+    | '/sitemap.xml'
+    | '/vault'
+    | '/coin/$id'
+    | '/api/public/track'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
+  ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoinIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/track': {
+      id: '/api/public/track'
+      path: '/api/public/track'
+      fullPath: '/api/public/track'
+      preLoaderRoute: typeof ApiPublicTrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,7 +161,18 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
+  ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
