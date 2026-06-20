@@ -48,6 +48,7 @@ function VaultPage() {
 
   return (
     <MiniAppShell>
+      <h1 className="sr-only">Your Vault</h1>
       <section className="bg-card rounded-3xl p-5 border border-white/5">
         <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">Balance</p>
         <p className="font-display font-bold text-3xl mt-1">
@@ -68,7 +69,7 @@ function VaultPage() {
         <div className="grid grid-cols-2 gap-3">
           {trendingFeed.slice(0, 2).map((i) => (
             <div key={i.id} className="bg-card border border-white/5 rounded-2xl p-3">
-              <img src={i.image} alt="" className="w-full aspect-square rounded-xl object-cover" />
+              <img src={i.image} alt={`${i.name} ${i.kind === "coin" ? "coin" : "edition"} artwork`} className="w-full aspect-square rounded-xl object-cover" />
               <p className="font-bold text-sm mt-2 truncate">{i.name}</p>
               <p className="text-[11px] text-white/40 font-mono">
                 {i.kind === "coin" ? `$${i.symbol}` : "Edition"}
