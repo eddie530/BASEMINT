@@ -146,7 +146,7 @@ function CoinForm() {
         publicClient,
       });
       setStatus(res.address ? `Deployed! Coin: ${res.address.slice(0, 10)}…` : `Tx sent: ${res.hash.slice(0, 10)}…`);
-      const { track } = await import("@/lib/analytics.client");
+      const { track } = await import("@/lib/analytics");
       void track("mint", { wallet_address: address, coin_address: res.address });
     } catch (e) {
       console.error(e);
