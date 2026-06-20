@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import basemintIcon from "@/assets/basemint-icon.png.asset.json";
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { base } from "wagmi/chains";
@@ -44,7 +45,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between">
       <Link to="/" className="flex items-center gap-2" aria-label="Basemint — Mint on Base">
-        <div className="size-8 bg-primary rounded-full grid place-items-center font-bold text-xs text-white" aria-hidden="true">B</div>
+        <img src={basemintIcon.url} alt="" className="size-8 rounded-full object-cover" aria-hidden="true" />
         <h1 className="font-display font-bold text-lg tracking-tight">Basemint — Mint on Base</h1>
       </Link>
 
