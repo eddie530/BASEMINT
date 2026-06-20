@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import basemintIcon from "@/assets/basemint-icon.png.asset.json";
 import { useState } from "react";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { base } from "wagmi/chains";
