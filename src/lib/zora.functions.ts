@@ -125,9 +125,10 @@ export const getCoinsByCreator = createServerFn({ method: "GET" })
     try {
       const { getProfileCoins } = await import("@zoralabs/coins-sdk");
       const res = await getProfileCoins({ identifier: data.address, count: data.count });
-      // @ts-expect-error shape varies; defensive read
-      const edges = res?.data?.profile?.createdCoins?.edges ?? [];
-      return (edges as Array<{ node: RawNode }>).map((e) => toDTO(e.node));
+      const edges =
+        (res as { data?: { profile?: { createdCoins?: { edges?: Array<{ node: RawNode }> } } } })
+          ?.data?.profile?.createdCoins?.edges ?? [];
+      return edges.map((e) => toDTO(e.node));
     } catch (err) {
       console.error("zora getProfileCoins failed", err);
       return [];
