@@ -14,7 +14,137 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      page_events: {
+        Row: {
+          created_at: string
+          id: string
+          path: string
+          ref_code: string | null
+          referrer: string | null
+          session_id: string
+          user_id: string | null
+          visitor_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          path: string
+          ref_code?: string | null
+          referrer?: string | null
+          session_id: string
+          user_id?: string | null
+          visitor_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          path?: string
+          ref_code?: string | null
+          referrer?: string | null
+          session_id?: string
+          user_id?: string | null
+          visitor_hash?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          farcaster: string | null
+          twitter: string | null
+          updated_at: string
+          user_id: string
+          wallet_address: string | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          farcaster?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_address?: string | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          farcaster?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_address?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          owner_user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          owner_user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          owner_user_id?: string
+        }
+        Relationships: []
+      }
+      referral_events: {
+        Row: {
+          code: string
+          coin_address: string | null
+          created_at: string
+          event_type: string
+          id: string
+          user_id: string | null
+          value_wei: number | null
+          visitor_hash: string | null
+        }
+        Insert: {
+          code: string
+          coin_address?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          user_id?: string | null
+          value_wei?: number | null
+          visitor_hash?: string | null
+        }
+        Update: {
+          code?: string
+          coin_address?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          user_id?: string | null
+          value_wei?: number | null
+          visitor_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_events_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
