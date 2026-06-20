@@ -1,30 +1,39 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { MiniAppShell } from "@/components/MiniAppShell";
-import { getItem } from "@/lib/mock-data";
+import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
+import { useAccount } from "wagmi";
+import { track } from "@/lib/analytics.client";
+
+const coinQO = (address: string) =>
+  queryOptions({
+    queryKey: ["coin", address.toLowerCase()],
+    queryFn: () => getCoinDetail({ data: { address, chainId: 8453 } }),
+    staleTime: 30_000,
+  });
 
 export const Route = createFileRoute("/coin/$id")({
   head: ({ params }) => {
     const url = `https://foxy-token-forge.lovable.app/coin/${params.id}`;
     return {
       meta: [
-        { title: `Asset ${params.id} · Basemint` },
-        { name: "description", content: "Token / NFT detail on Basemint." },
-        { property: "og:title", content: `Asset ${params.id} · Basemint` },
-        { property: "og:description", content: "Token / NFT detail on Basemint." },
+        { title: `${params.id.slice(0, 8)}… · Basemint` },
+        { name: "description", content: "Zora coin on Base. Trade, view stats and creator details." },
+        { property: "og:title", content: `Basemint · Coin ${params.id.slice(0, 10)}…` },
+        { property: "og:description", content: "Zora coin on Base. Trade, view stats and creator details." },
         { property: "og:url", content: url },
       ],
       links: [{ rel: "canonical", href: url }],
     };
   },
-  loader: ({ params }) => {
-    const item = getItem(params.id);
-    if (!item) throw notFound();
-    return { item };
+  loader: async ({ params, context }) => {
+    const data = await context.queryClient.ensureQueryData(coinQO(params.id));
+    if (!data) throw notFound();
   },
   notFoundComponent: () => (
     <MiniAppShell>
-      <p className="text-white/60">Asset not found.</p>
+      <p className="text-white/60">Coin not found on Base.</p>
     </MiniAppShell>
   ),
   errorComponent: ({ error }) => (
@@ -36,7 +45,14 @@ export const Route = createFileRoute("/coin/$id")({
 });
 
 function DetailPage() {
-  const { item } = Route.useLoaderData();
+  const { id } = Route.useParams();
+  const { data: item } = useSuspenseQuery(coinQO(id));
+  const { address } = useAccount();
+  if (!item) return null;
+
+  const delta = item.marketCapDelta24h;
+  const mc = item.marketCap;
+  const pct = mc && delta && mc - delta !== 0 ? (delta / Math.max(1, mc - delta)) * 100 : undefined;
 
   return (
     <MiniAppShell>
@@ -46,44 +62,55 @@ function DetailPage() {
 
       <div className="rounded-3xl overflow-hidden border border-white/5 bg-card">
         <div className="aspect-square">
-          <img src={item.image} alt={item.kind === "coin" ? item.name : item.name} className="w-full h-full object-cover" />
+          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
         </div>
         <div className="p-5 space-y-4">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
-              {item.kind === "coin" ? `$${item.symbol}` : "Edition"}
-            </p>
+            <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">${item.symbol}</p>
             <h1 className="font-display font-bold text-2xl mt-1">{item.name}</h1>
-            <p className="text-white/50 text-sm mt-0.5">by @{item.creator}</p>
+            {item.creatorAddress && (
+              <Link
+                to="/profile/$address"
+                params={{ address: item.creatorAddress }}
+                className="text-white/50 text-sm mt-0.5 inline-block hover:text-accent"
+              >
+                by {item.creatorHandle ? `@${item.creatorHandle}` : `${item.creatorAddress.slice(0, 6)}…${item.creatorAddress.slice(-4)}`}
+              </Link>
+            )}
           </div>
 
-          {item.kind === "coin" ? (
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <Stat label="Price" value={`$${item.priceUsd.toFixed(5)}`} />
-              <Stat label="24h" value={`${item.change24h >= 0 ? "+" : ""}${item.change24h}%`} accent={item.change24h >= 0} />
-              <Stat label="Holders" value={item.holders.toLocaleString()} />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2 text-center">
-              <Stat label="Price" value={`${item.priceEth} ETH`} />
-              <Stat label="Minted" value={`${item.minted}/${item.supply}`} />
-            </div>
+          {item.description && (
+            <p className="text-sm text-white/70 leading-relaxed">{item.description}</p>
           )}
+
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <Stat label="Price" value={item.priceUsd ? `$${item.priceUsd < 0.01 ? item.priceUsd.toExponential(2) : item.priceUsd.toFixed(4)}` : "—"} />
+            <Stat
+              label="24h"
+              value={pct !== undefined ? `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%` : "—"}
+              accent={pct !== undefined && pct >= 0}
+            />
+            <Stat label="Holders" value={item.uniqueHolders.toLocaleString()} />
+          </div>
 
           <p className="text-[10px] font-mono text-white/40 break-all bg-white/5 px-3 py-2 rounded-lg">
             {item.address}
           </p>
 
-          {item.kind === "coin" ? (
-            <div className="grid grid-cols-2 gap-2">
-              <button className="bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm">Buy</button>
-              <button className="bg-white/5 border border-white/10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm">Sell</button>
-            </div>
-          ) : (
-            <button className="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest text-sm">
-              Collect for {item.priceEth} ETH
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => void track("trade", { wallet_address: address, coin_address: item.address })}
+              className="bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
+            >
+              Buy
             </button>
-          )}
+            <button
+              onClick={() => void track("trade", { wallet_address: address, coin_address: item.address })}
+              className="bg-white/5 border border-white/10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
+            >
+              Sell
+            </button>
+          </div>
         </div>
       </div>
     </MiniAppShell>
