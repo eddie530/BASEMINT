@@ -108,8 +108,7 @@ export const getCoinDetail = createServerFn({ method: "GET" })
     try {
       const { getCoin } = await import("@zoralabs/coins-sdk");
       const res = await getCoin({ address: data.address, chain: data.chainId });
-      // @ts-expect-error narrow downstream
-      const token = res?.data?.zora20Token;
+      const token = (res as { data?: { zora20Token?: RawNode } })?.data?.zora20Token;
       if (!token) return null;
       return toDTO(token as RawNode);
     } catch (err) {
