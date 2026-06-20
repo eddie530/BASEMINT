@@ -4,7 +4,7 @@ import { MiniAppShell } from "@/components/MiniAppShell";
 import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
 import { useAccount } from "wagmi";
-import { track } from "@/lib/analytics.client";
+import { track } from "@/lib/analytics";
 
 const coinQO = (address: string) =>
   queryOptions({
