@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Web3Providers } from "../lib/providers";
+import { AnalyticsTracker } from "../components/AnalyticsTracker";
 
 function NotFoundComponent() {
   return (
@@ -82,7 +83,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "base:app_id", content: "6a359ca4b5c7cf28ed894db2" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Basemint" },
-      { name: "twitter:card", content: "summary" },
+      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "fc:frame",
+        content: JSON.stringify({
+          version: "1",
+          imageUrl: "https://foxy-token-forge.lovable.app/icon-512.png",
+          button: {
+            title: "Open Basemint",
+            action: {
+              type: "launch_frame",
+              name: "Basemint",
+              url: "https://foxy-token-forge.lovable.app/",
+              splashImageUrl: "https://foxy-token-forge.lovable.app/icon-512.png",
+              splashBackgroundColor: "#000000",
+            },
+          },
+        }),
+      },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },
@@ -133,6 +151,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Web3Providers>
+        <AnalyticsTracker />
         <Outlet />
       </Web3Providers>
     </QueryClientProvider>

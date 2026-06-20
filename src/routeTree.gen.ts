@@ -11,9 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
+import { Route as ProfileAddressRouteImport } from './routes/profile.$address'
 import { Route as CoinIdRouteImport } from './routes/coin.$id'
+import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
@@ -23,6 +27,11 @@ const VaultRoute = VaultRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CreateRoute = CreateRouteImport.update({
@@ -35,48 +44,107 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsProfileRoute = SettingsProfileRouteImport.update({
+  id: '/settings/profile',
+  path: '/settings/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileAddressRoute = ProfileAddressRouteImport.update({
+  id: '/profile/$address',
+  path: '/profile/$address',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoinIdRoute = CoinIdRouteImport.update({
   id: '/coin/$id',
   path: '/coin/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
+  id: '/api/public/track',
+  path: '/api/public/track',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/dashboard': typeof DashboardRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
+  '/profile/$address': typeof ProfileAddressRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/dashboard': typeof DashboardRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
+  '/profile/$address': typeof ProfileAddressRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
+  '/dashboard': typeof DashboardRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
+  '/profile/$address': typeof ProfileAddressRoute
+  '/settings/profile': typeof SettingsProfileRoute
+  '/api/public/track': typeof ApiPublicTrackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
+  fullPaths:
+    | '/'
+    | '/create'
+    | '/dashboard'
+    | '/sitemap.xml'
+    | '/vault'
+    | '/coin/$id'
+    | '/profile/$address'
+    | '/settings/profile'
+    | '/api/public/track'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
-  id: '__root__' | '/' | '/create' | '/sitemap.xml' | '/vault' | '/coin/$id'
+  to:
+    | '/'
+    | '/create'
+    | '/dashboard'
+    | '/sitemap.xml'
+    | '/vault'
+    | '/coin/$id'
+    | '/profile/$address'
+    | '/settings/profile'
+    | '/api/public/track'
+  id:
+    | '__root__'
+    | '/'
+    | '/create'
+    | '/dashboard'
+    | '/sitemap.xml'
+    | '/vault'
+    | '/coin/$id'
+    | '/profile/$address'
+    | '/settings/profile'
+    | '/api/public/track'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
+  DashboardRoute: typeof DashboardRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
+  ProfileAddressRoute: typeof ProfileAddressRoute
+  SettingsProfileRoute: typeof SettingsProfileRoute
+  ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -95,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/create': {
       id: '/create'
       path: '/create'
@@ -109,11 +184,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/profile': {
+      id: '/settings/profile'
+      path: '/settings/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof SettingsProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$address': {
+      id: '/profile/$address'
+      path: '/profile/$address'
+      fullPath: '/profile/$address'
+      preLoaderRoute: typeof ProfileAddressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/coin/$id': {
       id: '/coin/$id'
       path: '/coin/$id'
       fullPath: '/coin/$id'
       preLoaderRoute: typeof CoinIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/track': {
+      id: '/api/public/track'
+      path: '/api/public/track'
+      fullPath: '/api/public/track'
+      preLoaderRoute: typeof ApiPublicTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -122,9 +218,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
+  DashboardRoute: DashboardRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
+  ProfileAddressRoute: ProfileAddressRoute,
+  SettingsProfileRoute: SettingsProfileRoute,
+  ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

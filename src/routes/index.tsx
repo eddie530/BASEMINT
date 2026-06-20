@@ -1,24 +1,44 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
 import { NFTCard } from "@/components/feed/NFTCard";
-import { trendingFeed } from "@/lib/mock-data";
+import { getTrendingCoins, getRecentCoins } from "@/lib/zora.functions";
+
+const trendingQO = queryOptions({
+  queryKey: ["zora", "trending", 8],
+  queryFn: () => getTrendingCoins({ data: { count: 8 } }),
+  staleTime: 30_000,
+});
+
+const recentQO = queryOptions({
+  queryKey: ["zora", "recent", 4],
+  queryFn: () => getRecentCoins({ data: { count: 4 } }),
+  staleTime: 10_000,
+});
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Basemint — Mint on Base" },
-      { name: "description", content: "Mint on Base. Create coins and NFTs on Base in seconds." },
+      { name: "description", content: "Live Zora coin feed on Base. Trending tokens, recent launches, and one-tap minting." },
       { property: "og:title", content: "Basemint — Mint on Base" },
-      { property: "og:description", content: "Mint on Base. Create coins and NFTs on Base in seconds." },
+      { property: "og:description", content: "Live Zora coin feed on Base. Trending tokens, recent launches, and one-tap minting." },
       { property: "og:url", content: "https://foxy-token-forge.lovable.app/" },
     ],
     links: [{ rel: "canonical", href: "https://foxy-token-forge.lovable.app/" }],
   }),
+  loader: ({ context }) => {
+    void context.queryClient.prefetchQuery(trendingQO);
+    void context.queryClient.prefetchQuery(recentQO);
+  },
   component: FeedPage,
 });
 
 function FeedPage() {
+  const { data: trending } = useSuspenseQuery(trendingQO);
+  const { data: recent } = useSuspenseQuery(recentQO);
+
   return (
     <MiniAppShell>
       <section>
@@ -30,16 +50,30 @@ function FeedPage() {
           </span>
         </div>
 
-        <div className="space-y-4">
-          {trendingFeed.map((item) =>
-            item.kind === "coin" ? (
-              <CoinCard key={item.id} coin={item} />
-            ) : (
-              <NFTCard key={item.id} nft={item} />
-            ),
-          )}
-        </div>
+        {trending.length === 0 ? (
+          <p className="text-sm text-white/50 font-mono">Zora feed temporarily unavailable.</p>
+        ) : (
+          <div className="space-y-4">
+            {trending.map((coin) => (
+              <CoinCard key={coin.address} coin={coin} />
+            ))}
+          </div>
+        )}
       </section>
+
+      {recent.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-xl uppercase tracking-wider">Just Launched</h2>
+            <span className="text-[10px] text-white/40 font-mono uppercase tracking-widest">Newest first</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {recent.map((c) => (
+              <NFTCard key={c.address} nft={c} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="bg-accent/10 border border-accent/20 rounded-3xl p-6">
         <h2 className="font-display font-bold text-2xl mb-2 text-accent">Deploy on Base</h2>
