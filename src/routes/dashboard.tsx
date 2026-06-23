@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useAccount, useConnect } from "wagmi";
+import { useAccount } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { getReferralStats, getSiteAnalytics } from "@/lib/profiles.functions";
+import { useConnectWallet } from "@/lib/use-connect-wallet";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function DashboardPage() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connectWallet, isPending, message } = useConnectWallet();
 
   const refStats = useQuery({
     queryKey: ["ref-stats", address?.toLowerCase()],
@@ -37,14 +38,13 @@ function DashboardPage() {
           <h1 className="font-display font-bold text-2xl uppercase">Dashboard</h1>
           <p className="text-white/60 text-sm">Connect a wallet to see your referral stats.</p>
           <button
-            onClick={() => {
-              const c = connectors[0];
-              if (c) connect({ connector: c });
-            }}
-            className="bg-accent text-accent-foreground px-6 py-3 rounded-2xl font-bold uppercase tracking-widest text-sm"
+            onClick={connectWallet}
+            disabled={isPending}
+            className="bg-accent text-accent-foreground px-6 py-3 rounded-2xl font-bold uppercase tracking-widest text-sm disabled:opacity-60"
           >
-            Connect Wallet
+            {isPending ? "Connecting…" : "Connect Wallet"}
           </button>
+          {message && <p className="text-xs text-white/60 max-w-xs mx-auto">{message}</p>}
         </div>
       </MiniAppShell>
     );
