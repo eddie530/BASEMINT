@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { z } from "zod";
 import { useAccount, useConnect, useWalletClient, usePublicClient } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { ImagePlus, Loader2 } from "lucide-react";
+import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
+
 
 const searchSchema = z.object({
   kind: z.enum(["coin", "nft"]).default("coin"),
