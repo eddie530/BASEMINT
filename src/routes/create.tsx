@@ -295,14 +295,13 @@ function NFTForm() {
   const [busy, setBusy] = useState(false);
   const { steps, update, reset } = useSteps([]);
   const { isConnected, address, chainId } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
 
   async function onMint() {
     if (!isConnected) {
-      const c = connectors[0];
-      if (c) connect({ connector: c });
+      connectWallet();
       return;
     }
     if (!name) {
