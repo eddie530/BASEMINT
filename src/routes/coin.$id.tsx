@@ -6,6 +6,7 @@ import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
 import { useAccount } from "wagmi";
 import { TradeDialog } from "@/components/coin/TradeDialog";
+import { MintDialog } from "@/components/coin/MintDialog";
 
 const coinQO = (address: string) =>
   queryOptions({
