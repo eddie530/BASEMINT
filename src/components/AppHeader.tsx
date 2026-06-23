@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import basemintIcon from "@/assets/basemint-icon.png.asset.json";
 import { useState } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { base } from "wagmi/chains";
+import { useAccount, useDisconnect } from "wagmi";
+import { useConnectWallet } from "@/lib/use-connect-wallet";
 
 function shortAddr(a?: string) {
   if (!a) return "";
@@ -11,36 +11,11 @@ function shortAddr(a?: string) {
 
 export function AppHeader() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending, error } = useConnect();
   const { disconnect } = useDisconnect();
-  const [connectMessage, setConnectMessage] = useState<string>();
+  const { connectWith, isPending, message } = useConnectWallet();
+  const [open, setOpen] = useState(false);
 
-  const handleConnect = async () => {
-    setConnectMessage(undefined);
-    const fc = connectors.find((c) => c.id === "farcasterMiniApp" || c.id === "farcaster");
-    const inj = connectors.find((c) => c.type === "injected");
-
-    const inFarcaster =
-      typeof window !== "undefined" &&
-      (Boolean(window.ReactNativeWebView) || /Warpcast|Farcaster/i.test(navigator.userAgent));
-
-    const hasInjectedWallet = typeof window !== "undefined" && "ethereum" in window;
-    const chosen = inFarcaster ? fc : hasInjectedWallet ? inj : undefined;
-
-    if (!chosen) {
-      setConnectMessage("Open in Farcaster, or install a browser wallet to connect here.");
-      return;
-    }
-    connect(
-      { connector: chosen, chainId: base.id },
-      {
-        onError: (e) => {
-          console.error("wallet connect failed", e);
-          setConnectMessage(e.message || "Could not connect wallet");
-        },
-      }
-    );
-  };
+  const hasInjected = typeof window !== "undefined" && "ethereum" in window;
 
   return (
     <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between">
@@ -57,20 +32,66 @@ export function AppHeader() {
           {shortAddr(address)}
         </button>
       ) : (
-        <button
-          onClick={handleConnect}
-          disabled={isPending}
-          title={connectMessage || error?.message}
-          className="px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider disabled:opacity-50"
-        >
-          {isPending ? "…" : "Connect"}
-        </button>
-      )}
-      {connectMessage ? (
-        <div className="absolute right-4 top-14 max-w-[260px] rounded-md border border-white/10 bg-black/95 px-3 py-2 text-[11px] leading-snug text-white/80 shadow-lg">
-          {connectMessage}
+        <div className="relative">
+          <button
+            onClick={() => setOpen((o) => !o)}
+            disabled={isPending}
+            className="px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider disabled:opacity-50"
+          >
+            {isPending ? "…" : "Connect"}
+          </button>
+          {open ? (
+            <div className="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-black/95 p-2 shadow-xl z-40">
+              {hasInjected ? (
+                <MenuItem
+                  label="Browser wallet"
+                  hint="MetaMask, Rabby, …"
+                  onClick={() => {
+                    setOpen(false);
+                    connectWith("injected");
+                  }}
+                />
+              ) : null}
+              <MenuItem
+                label="Coinbase Wallet"
+                hint="Smart Wallet · no install"
+                onClick={() => {
+                  setOpen(false);
+                  connectWith("coinbase");
+                }}
+              />
+              <MenuItem
+                label="Farcaster"
+                hint="Inside Warpcast only"
+                onClick={() => {
+                  setOpen(false);
+                  connectWith("farcaster");
+                }}
+              />
+              {message ? (
+                <p className="px-3 py-2 text-[11px] leading-snug text-white/60">{message}</p>
+              ) : null}
+            </div>
+          ) : null}
+          {message && !open ? (
+            <div className="absolute right-0 top-12 max-w-[260px] rounded-md border border-white/10 bg-black/95 px-3 py-2 text-[11px] leading-snug text-white/80 shadow-lg">
+              {message}
+            </div>
+          ) : null}
         </div>
-      ) : null}
+      )}
     </header>
+  );
+}
+
+function MenuItem({ label, hint, onClick }: { label: string; hint: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 transition"
+    >
+      <p className="text-sm font-semibold text-white">{label}</p>
+      <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">{hint}</p>
+    </button>
   );
 }
