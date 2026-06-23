@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MiniAppShell } from "@/components/MiniAppShell";
-import { useAccount, useBalance, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useBalance, useDisconnect } from "wagmi";
 import { getHoldings } from "@/lib/zora.functions";
+import { useConnectWallet } from "@/lib/use-connect-wallet";
 
 export const Route = createFileRoute("/vault")({
   head: () => ({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/vault")({
 function VaultPage() {
   const { address, isConnected } = useAccount();
   const { data: bal } = useBalance({ address });
-  const { connect, connectors, isPending } = useConnect();
+  const { connectWallet, isPending, message } = useConnectWallet();
   const { disconnect } = useDisconnect();
 
   const holdingsQuery = useQuery({
@@ -40,15 +41,13 @@ function VaultPage() {
             Sign in with your Farcaster wallet to see your coins and collected NFTs.
           </p>
           <button
-            onClick={() => {
-              const c = connectors[0];
-              if (c) connect({ connector: c });
-            }}
+            onClick={connectWallet}
             disabled={isPending}
             className="bg-accent text-accent-foreground px-8 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm disabled:opacity-60"
           >
             {isPending ? "Connecting…" : "Connect Wallet"}
           </button>
+          {message && <p className="text-xs text-white/60 max-w-xs mx-auto">{message}</p>}
         </div>
       </MiniAppShell>
     );
