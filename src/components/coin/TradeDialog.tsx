@@ -232,7 +232,7 @@ export function TradeDialog({
               }
               className="text-accent hover:underline"
             >
-              Bal: {typeof inBalance === "number" ? inBalance.toFixed(6) : inBalance}
+              Bal: {inBalance}
             </button>
           </div>
           <input
