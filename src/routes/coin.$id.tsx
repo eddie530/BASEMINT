@@ -115,8 +115,24 @@ function DetailPage() {
               Sell
             </button>
           </div>
+
+          <button
+            onClick={() => setMintOpen(true)}
+            className="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
+          >
+            Collect Edition (Mint NFT)
+          </button>
         </div>
       </div>
+
+      {mintOpen && (
+        <MintDialog
+          collectionAddress={item.address as `0x${string}`}
+          title={item.name}
+          onClose={() => setMintOpen(false)}
+        />
+      )}
+
 
       {trade && (
         <TradeDialog
