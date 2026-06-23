@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { z } from "zod";
 import { useAccount, useConnect, useWalletClient, usePublicClient } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { ImagePlus, Loader2 } from "lucide-react";
+import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
+
 
 const searchSchema = z.object({
   kind: z.enum(["coin", "nft"]).default("coin"),
@@ -107,12 +109,24 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
   );
 }
 
+type StepUpdater = (id: string, patch: Partial<DeployStep>) => void;
+
+function useSteps(initial: DeployStep[]) {
+  const [steps, setSteps] = useState<DeployStep[]>(initial);
+  const reset = useCallback((next: DeployStep[]) => setSteps(next), []);
+  const update: StepUpdater = useCallback(
+    (id, patch) => setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s))),
+    [],
+  );
+  return { steps, update, reset };
+}
+
 function CoinForm() {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
+  const { steps, update, reset } = useSteps([]);
 
   const { isConnected, address, chainId } = useAccount();
   const { connect, connectors } = useConnect();
@@ -120,75 +134,124 @@ function CoinForm() {
   const publicClient = usePublicClient();
 
   async function onDeploy() {
-    setStatus(null);
     if (!isConnected) {
       const c = connectors[0];
       if (c) connect({ connector: c });
       return;
     }
     if (!name || !symbol) {
-      setStatus("Add a name and ticker.");
+      reset([{ id: "validate", label: "Add a name and ticker.", status: "error" }]);
       return;
     }
     if (!walletClient || !publicClient || !address) {
-      setStatus("Wallet not ready.");
+      reset([{ id: "wallet", label: "Wallet not ready.", status: "error" }]);
       return;
     }
-    if (chainId !== 8453) {
-      try {
-        await walletClient.switchChain({ id: 8453 });
-      } catch {
-        setStatus("Switch to Base mainnet (chain 8453) to deploy.");
-        return;
-      }
-    }
+
+    const initial: DeployStep[] = [
+      { id: "chain", label: "Connect to Base mainnet", status: "pending" },
+      { id: "calldata", label: "Prepare deployment calldata", status: "pending" },
+      { id: "sign", label: "Sign & broadcast transaction", status: "pending" },
+      { id: "confirm", label: "Confirm on Base", status: "pending" },
+      { id: "index", label: "Finalize & index", status: "pending" },
+    ];
+    reset(initial);
+    setBusy(true);
+
     try {
-      setBusy(true);
-      setStatus("Preparing calldata on server…");
-      const imageDataUri = media ? await fileToDataUri(media) : undefined;
-      const { buildCreateCoinCalls } = await import("@/lib/zora-create.functions");
-      const prepared = await buildCreateCoinCalls({
-        data: {
-          creator: address,
-          name,
-          symbol: symbol.toUpperCase(),
-          description: `${name} coin on Base`,
-          imageDataUri,
-          currency: "ZORA",
-          chainId: 8453,
-        },
-      });
-
-      setStatus(`Signing ${prepared.calls.length} tx…`);
-      let lastHash: `0x${string}` | undefined;
-      for (const call of prepared.calls) {
-        lastHash = await walletClient.sendTransaction({
-          to: call.to,
-          data: call.data,
-          value: BigInt(call.value),
-        });
-        await publicClient.waitForTransactionReceipt({ hash: lastHash });
+      // 1. Chain
+      update("chain", { status: "active" });
+      if (chainId !== 8453) {
+        try {
+          await walletClient.switchChain({ id: 8453 });
+        } catch (e) {
+          const { detail, hint } = explainError(e);
+          update("chain", { status: "error", detail, hint });
+          return;
+        }
       }
+      update("chain", { status: "success", detail: "Base mainnet (8453)" });
 
-      const coinAddress = prepared.predictedCoinAddress;
-      setStatus(coinAddress ? `Deployed! ${coinAddress.slice(0, 10)}…` : `Tx sent: ${lastHash?.slice(0, 10)}…`);
-
-      const { track } = await import("@/lib/analytics");
-      void track("mint", { wallet_address: address, coin_address: coinAddress });
-      if (coinAddress) {
-        const { recordPointEvent } = await import("@/lib/points.functions");
-        void recordPointEvent({
+      // 2. Calldata
+      update("calldata", { status: "active" });
+      let prepared;
+      try {
+        const imageDataUri = media ? await fileToDataUri(media) : undefined;
+        const { buildCreateCoinCalls } = await import("@/lib/zora-create.functions");
+        prepared = await buildCreateCoinCalls({
           data: {
-            address,
-            kind: "create_coin",
-            ref_key: `create:${coinAddress.toLowerCase()}`,
-            metadata: { coin: coinAddress, name },
+            creator: address,
+            name,
+            symbol: symbol.toUpperCase(),
+            description: `${name} coin on Base`,
+            imageDataUri,
+            currency: "ZORA",
+            chainId: 8453,
           },
         });
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("calldata", { status: "error", detail, hint });
+        return;
       }
-    } catch (e) {
-      console.error(e);
-      setStatus(e instanceof Error ? e.message : "Deploy failed.");
+      update("calldata", {
+        status: "success",
+        detail: `${prepared.calls.length} call(s) · ${prepared.predictedCoinAddress?.slice(0, 10) ?? "—"}…`,
+      });
+
+      // 3. Sign / 4. Confirm (loop per call, last hash drives confirm)
+      update("sign", { status: "active" });
+      let lastHash: `0x${string}` | undefined;
+      try {
+        for (const call of prepared.calls) {
+          lastHash = await walletClient.sendTransaction({
+            to: call.to,
+            data: call.data,
+            value: BigInt(call.value),
+          });
+        }
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("sign", { status: "error", detail, hint });
+        return;
+      }
+      update("sign", { status: "success", txHash: lastHash });
+
+      update("confirm", { status: "active" });
+      try {
+        if (lastHash) await publicClient.waitForTransactionReceipt({ hash: lastHash });
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("confirm", { status: "error", detail, hint });
+        return;
+      }
+      update("confirm", { status: "success", txHash: lastHash });
+
+      // 5. Index / analytics
+      update("index", { status: "active" });
+      const coinAddress = prepared.predictedCoinAddress;
+      try {
+        const { track } = await import("@/lib/analytics");
+        void track("mint", { wallet_address: address, coin_address: coinAddress });
+        if (coinAddress) {
+          const { recordPointEvent } = await import("@/lib/points.functions");
+          void recordPointEvent({
+            data: {
+              address,
+              kind: "create_coin",
+              ref_key: `create:${coinAddress.toLowerCase()}`,
+              metadata: { coin: coinAddress, name },
+            },
+          });
+        }
+      } catch {
+        // non-fatal
+      }
+      update("index", {
+        status: "success",
+        detail: coinAddress ? `Coin ${coinAddress.slice(0, 10)}…` : "Tracked",
+        link: coinAddress ? { href: `/coin/${coinAddress}`, label: "View coin" } : undefined,
+      });
     } finally {
       setBusy(false);
     }
@@ -206,17 +269,11 @@ function CoinForm() {
       />
 
       <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/60 font-mono leading-relaxed">
-        <p>
-          <span className="text-accent">●</span> Network: Base mainnet
-        </p>
-        <p>
-          <span className="text-accent">●</span> Standard: Zora Coins (ERC-20 + curve)
-        </p>
+        <p><span className="text-accent">●</span> Network: Base mainnet</p>
+        <p><span className="text-accent">●</span> Standard: Zora Coins (ERC-20 + curve)</p>
       </div>
 
-      {status && (
-        <p className="text-xs text-white/70 font-mono bg-white/5 rounded-xl px-3 py-2 break-all">{status}</p>
-      )}
+      <DeployProgress steps={steps} onRetry={onDeploy} />
 
       <button
         onClick={onDeploy}
@@ -236,77 +293,117 @@ function NFTForm() {
   const [supply, setSupply] = useState("100");
   const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
+  const { steps, update, reset } = useSteps([]);
   const { isConnected, address, chainId } = useAccount();
   const { connect, connectors } = useConnect();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
 
   async function onMint() {
-    setStatus(null);
     if (!isConnected) {
       const c = connectors[0];
       if (c) connect({ connector: c });
       return;
     }
     if (!name) {
-      setStatus("Add a title.");
+      reset([{ id: "validate", label: "Add a title.", status: "error" }]);
       return;
     }
     if (!walletClient || !publicClient || !address) {
-      setStatus("Wallet not ready.");
+      reset([{ id: "wallet", label: "Wallet not ready.", status: "error" }]);
       return;
     }
-    if (chainId !== 8453) {
-      try {
-        await walletClient.switchChain({ id: 8453 });
-      } catch {
-        setStatus("Switch to Base mainnet.");
-        return;
-      }
-    }
-    try {
-      setBusy(true);
-      setStatus("Preparing collection…");
 
+    const initial: DeployStep[] = [
+      { id: "chain", label: "Connect to Base mainnet", status: "pending" },
+      { id: "meta", label: "Build metadata (on-chain data URI)", status: "pending" },
+      { id: "prepare", label: "Prepare ERC-1155 deployment", status: "pending" },
+      { id: "sign", label: "Sign & broadcast transaction", status: "pending" },
+      { id: "confirm", label: "Confirm on Base", status: "pending" },
+    ];
+    reset(initial);
+    setBusy(true);
+
+    try {
+      update("chain", { status: "active" });
+      if (chainId !== 8453) {
+        try {
+          await walletClient.switchChain({ id: 8453 });
+        } catch (e) {
+          const { detail, hint } = explainError(e);
+          update("chain", { status: "error", detail, hint });
+          return;
+        }
+      }
+      update("chain", { status: "success", detail: "Base mainnet (8453)" });
+
+      update("meta", { status: "active" });
       const imageDataUri = media ? await fileToDataUri(media) : undefined;
-      const tokenMetadata = {
-        name,
-        description: `${name} — minted via Basemint`,
-        image: imageDataUri,
-      };
-      const tokenUri = `data:application/json;utf8,${encodeURIComponent(JSON.stringify(tokenMetadata))}`;
+      const tokenUri = `data:application/json;utf8,${encodeURIComponent(
+        JSON.stringify({ name, description: `${name} — minted via Basemint`, image: imageDataUri }),
+      )}`;
       const contractUri = `data:application/json;utf8,${encodeURIComponent(
         JSON.stringify({ name, description: `${name} collection`, image: imageDataUri }),
       )}`;
+      update("meta", { status: "success", detail: imageDataUri ? "Image + JSON embedded" : "JSON only" });
 
-      const { createCreatorClient } = await import("@zoralabs/protocol-sdk");
-      const creatorClient = createCreatorClient({ chainId: 8453, publicClient: publicClient as unknown as Parameters<typeof createCreatorClient>[0]["publicClient"] });
-
-      const { parameters, contractAddress } = await creatorClient.create1155({
-        contract: { name, uri: contractUri },
-        token: {
-          tokenMetadataURI: tokenUri,
-          mintToCreatorCount: 1,
-          salesConfig: {
-            pricePerToken: BigInt(Math.floor(Number(price) * 1e18)),
-            // total mintable per address left default; total supply via maxTokensPerAddress is contract-default
+      update("prepare", { status: "active" });
+      let parameters;
+      let contractAddress: `0x${string}` | undefined;
+      try {
+        const { createCreatorClient } = await import("@zoralabs/protocol-sdk");
+        const creatorClient = createCreatorClient({
+          chainId: 8453,
+          publicClient: publicClient as unknown as Parameters<typeof createCreatorClient>[0]["publicClient"],
+        });
+        const res = await creatorClient.create1155({
+          contract: { name, uri: contractUri },
+          token: {
+            tokenMetadataURI: tokenUri,
+            mintToCreatorCount: 1,
+            salesConfig: { pricePerToken: BigInt(Math.floor(Number(price) * 1e18)) },
+            maxSupply: BigInt(supply),
           },
-          maxSupply: BigInt(supply),
-        },
-        account: address as `0x${string}`,
+          account: address as `0x${string}`,
+        });
+        parameters = res.parameters;
+        contractAddress = res.contractAddress;
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("prepare", { status: "error", detail, hint });
+        return;
+      }
+      update("prepare", { status: "success", detail: `Collection ${contractAddress?.slice(0, 10)}…` });
+
+      update("sign", { status: "active" });
+      let hash: `0x${string}`;
+      try {
+        hash = await walletClient.writeContract(parameters);
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("sign", { status: "error", detail, hint });
+        return;
+      }
+      update("sign", { status: "success", txHash: hash });
+
+      update("confirm", { status: "active" });
+      try {
+        await publicClient.waitForTransactionReceipt({ hash });
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("confirm", { status: "error", detail, hint });
+        return;
+      }
+      update("confirm", {
+        status: "success",
+        txHash: hash,
+        link: contractAddress
+          ? { href: `https://basescan.org/address/${contractAddress}`, label: "View on Basescan" }
+          : undefined,
       });
 
-      setStatus("Sign in wallet…");
-      const hash = await walletClient.writeContract(parameters);
-      await publicClient.waitForTransactionReceipt({ hash });
-
-      setStatus(`Deployed! Collection: ${contractAddress.slice(0, 10)}…`);
       const { track } = await import("@/lib/analytics");
       void track("mint", { wallet_address: address, coin_address: contractAddress });
-    } catch (e) {
-      console.error(e);
-      setStatus(e instanceof Error ? e.message : "Deploy failed.");
     } finally {
       setBusy(false);
     }
@@ -327,9 +424,7 @@ function NFTForm() {
         <p><span className="text-accent">●</span> Metadata: on-chain data URI (no IPFS)</p>
       </div>
 
-      {status && (
-        <p className="text-xs text-white/70 font-mono bg-white/5 rounded-xl px-3 py-2 break-all">{status}</p>
-      )}
+      <DeployProgress steps={steps} onRetry={onMint} />
 
       <button
         onClick={onMint}
@@ -342,3 +437,4 @@ function NFTForm() {
     </div>
   );
 }
+
