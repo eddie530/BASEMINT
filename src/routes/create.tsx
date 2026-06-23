@@ -281,7 +281,7 @@ function NFTForm() {
       )}`;
 
       const { createCreatorClient } = await import("@zoralabs/protocol-sdk");
-      const creatorClient = createCreatorClient({ chainId: 8453, publicClient });
+      const creatorClient = createCreatorClient({ chainId: 8453, publicClient: publicClient as unknown as Parameters<typeof createCreatorClient>[0]["publicClient"] });
 
       const { parameters, contractAddress } = await creatorClient.create1155({
         contract: { name, uri: contractUri },
