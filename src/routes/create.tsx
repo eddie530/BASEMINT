@@ -274,6 +274,7 @@ function CoinForm() {
       </div>
 
       <DeployProgress steps={steps} onRetry={onDeploy} />
+      {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
 
       <button
         onClick={onDeploy}
@@ -424,6 +425,7 @@ function NFTForm() {
       </div>
 
       <DeployProgress steps={steps} onRetry={onMint} />
+      {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
 
       <button
         onClick={onMint}
