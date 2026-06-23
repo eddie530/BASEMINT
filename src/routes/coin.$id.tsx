@@ -51,6 +51,7 @@ function DetailPage() {
   const { data: item } = useSuspenseQuery(coinQO(id));
   useAccount();
   const [trade, setTrade] = useState<"buy" | "sell" | null>(null);
+  const [mintOpen, setMintOpen] = useState(false);
   if (!item) return null;
 
   const delta = item.marketCapDelta24h;
