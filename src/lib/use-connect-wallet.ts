@@ -6,7 +6,7 @@ export function useConnectWallet() {
   const { connect, connectors, isPending } = useConnect();
   const [message, setMessage] = useState<string>();
 
-  const connectWallet = useCallback(
+  const connectWith = useCallback(
     (preferred?: "farcaster" | "injected" | "coinbase") => {
       setMessage(undefined);
       const fc = connectors.find((c) => c.id === "farcasterMiniApp" || c.id === "farcaster");
@@ -45,5 +45,7 @@ export function useConnectWallet() {
     [connect, connectors],
   );
 
-  return { connectWallet, isPending, message };
+  const connectWallet = useCallback(() => connectWith(), [connectWith]);
+
+  return { connectWallet, connectWith, isPending, message };
 }
