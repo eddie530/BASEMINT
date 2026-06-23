@@ -58,6 +58,15 @@ function CreatePage() {
   );
 }
 
+function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
 function MediaPicker({ onChange }: { onChange: (f: File | null) => void }) {
   const [preview, setPreview] = useState<string | null>(null);
   return (
@@ -101,11 +110,11 @@ function Field({ label, ...props }: { label: string } & React.InputHTMLAttribute
 function CoinForm() {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
-  const [, setMedia] = useState<File | null>(null);
+  const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, chainId } = useAccount();
   const { connect, connectors } = useConnect();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
@@ -125,37 +134,55 @@ function CoinForm() {
       setStatus("Wallet not ready.");
       return;
     }
+    if (chainId !== 8453) {
+      try {
+        await walletClient.switchChain({ id: 8453 });
+      } catch {
+        setStatus("Switch to Base mainnet (chain 8453) to deploy.");
+        return;
+      }
+    }
     try {
       setBusy(true);
-      setStatus("Preparing deployment on Base…");
-      const { createCoin } = await import("@zoralabs/coins-sdk");
-      const uri = `data:application/json;utf8,${encodeURIComponent(
-        JSON.stringify({ name, description: `${name} coin on Base`, symbol }),
-      )}`;
-      const res = await createCoin({
-        call: {
+      setStatus("Preparing calldata on server…");
+      const imageDataUri = media ? await fileToDataUri(media) : undefined;
+      const { buildCreateCoinCalls } = await import("@/lib/zora-create.functions");
+      const prepared = await buildCreateCoinCalls({
+        data: {
           creator: address,
           name,
           symbol: symbol.toUpperCase(),
-          metadata: { type: "RAW_URI", uri },
+          description: `${name} coin on Base`,
+          imageDataUri,
           currency: "ZORA",
           chainId: 8453,
-          skipMetadataValidation: true,
         },
-        walletClient,
-        publicClient,
       });
-      setStatus(res.address ? `Deployed! Coin: ${res.address.slice(0, 10)}…` : `Tx sent: ${res.hash.slice(0, 10)}…`);
+
+      setStatus(`Signing ${prepared.calls.length} tx…`);
+      let lastHash: `0x${string}` | undefined;
+      for (const call of prepared.calls) {
+        lastHash = await walletClient.sendTransaction({
+          to: call.to,
+          data: call.data,
+          value: BigInt(call.value),
+        });
+        await publicClient.waitForTransactionReceipt({ hash: lastHash });
+      }
+
+      const coinAddress = prepared.predictedCoinAddress;
+      setStatus(coinAddress ? `Deployed! ${coinAddress.slice(0, 10)}…` : `Tx sent: ${lastHash?.slice(0, 10)}…`);
+
       const { track } = await import("@/lib/analytics");
-      void track("mint", { wallet_address: address, coin_address: res.address });
-      if (res.address) {
+      void track("mint", { wallet_address: address, coin_address: coinAddress });
+      if (coinAddress) {
         const { recordPointEvent } = await import("@/lib/points.functions");
         void recordPointEvent({
           data: {
             address,
             kind: "create_coin",
-            ref_key: `create:${res.address.toLowerCase()}`,
-            metadata: { coin: res.address, name },
+            ref_key: `create:${coinAddress.toLowerCase()}`,
+            metadata: { coin: coinAddress, name },
           },
         });
       }
@@ -207,18 +234,82 @@ function NFTForm() {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("0.001");
   const [supply, setSupply] = useState("100");
-  const [, setMedia] = useState<File | null>(null);
+  const [media, setMedia] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-  const { isConnected } = useAccount();
+  const { isConnected, address, chainId } = useAccount();
   const { connect, connectors } = useConnect();
+  const { data: walletClient } = useWalletClient();
+  const publicClient = usePublicClient();
 
-  function onMint() {
+  async function onMint() {
+    setStatus(null);
     if (!isConnected) {
       const c = connectors[0];
       if (c) connect({ connector: c });
       return;
     }
-    setStatus("NFT collection deploy is queued — coming online with the Zora 1155 module.");
+    if (!name) {
+      setStatus("Add a title.");
+      return;
+    }
+    if (!walletClient || !publicClient || !address) {
+      setStatus("Wallet not ready.");
+      return;
+    }
+    if (chainId !== 8453) {
+      try {
+        await walletClient.switchChain({ id: 8453 });
+      } catch {
+        setStatus("Switch to Base mainnet.");
+        return;
+      }
+    }
+    try {
+      setBusy(true);
+      setStatus("Preparing collection…");
+
+      const imageDataUri = media ? await fileToDataUri(media) : undefined;
+      const tokenMetadata = {
+        name,
+        description: `${name} — minted via Basemint`,
+        image: imageDataUri,
+      };
+      const tokenUri = `data:application/json;utf8,${encodeURIComponent(JSON.stringify(tokenMetadata))}`;
+      const contractUri = `data:application/json;utf8,${encodeURIComponent(
+        JSON.stringify({ name, description: `${name} collection`, image: imageDataUri }),
+      )}`;
+
+      const { createCreatorClient } = await import("@zoralabs/protocol-sdk");
+      const creatorClient = createCreatorClient({ chainId: 8453, publicClient: publicClient as unknown as Parameters<typeof createCreatorClient>[0]["publicClient"] });
+
+      const { parameters, contractAddress } = await creatorClient.create1155({
+        contract: { name, uri: contractUri },
+        token: {
+          tokenMetadataURI: tokenUri,
+          mintToCreatorCount: 1,
+          salesConfig: {
+            pricePerToken: BigInt(Math.floor(Number(price) * 1e18)),
+            // total mintable per address left default; total supply via maxTokensPerAddress is contract-default
+          },
+          maxSupply: BigInt(supply),
+        },
+        account: address as `0x${string}`,
+      });
+
+      setStatus("Sign in wallet…");
+      const hash = await walletClient.writeContract(parameters);
+      await publicClient.waitForTransactionReceipt({ hash });
+
+      setStatus(`Deployed! Collection: ${contractAddress.slice(0, 10)}…`);
+      const { track } = await import("@/lib/analytics");
+      void track("mint", { wallet_address: address, coin_address: contractAddress });
+    } catch (e) {
+      console.error(e);
+      setStatus(e instanceof Error ? e.message : "Deploy failed.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -232,18 +323,21 @@ function NFTForm() {
 
       <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/60 font-mono leading-relaxed">
         <p><span className="text-accent">●</span> Network: Base mainnet</p>
-        <p><span className="text-accent">●</span> Standard: ERC-1155 edition</p>
+        <p><span className="text-accent">●</span> Standard: ERC-1155 edition (Zora)</p>
+        <p><span className="text-accent">●</span> Metadata: on-chain data URI (no IPFS)</p>
       </div>
 
       {status && (
-        <p className="text-xs text-white/70 font-mono bg-white/5 rounded-xl px-3 py-2">{status}</p>
+        <p className="text-xs text-white/70 font-mono bg-white/5 rounded-xl px-3 py-2 break-all">{status}</p>
       )}
 
       <button
         onClick={onMint}
-        className="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition"
+        disabled={busy}
+        className="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-60 flex items-center justify-center gap-2"
       >
-        {isConnected ? "Mint Collection" : "Connect Wallet"}
+        {busy && <Loader2 className="size-4 animate-spin" />}
+        {isConnected ? (busy ? "Deploying…" : "Mint Collection") : "Connect Wallet"}
       </button>
     </div>
   );
