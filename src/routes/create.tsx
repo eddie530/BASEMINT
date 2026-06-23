@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { z } from "zod";
-import { useAccount, useConnect, useWalletClient, usePublicClient } from "wagmi";
+import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
+import { useConnectWallet } from "@/lib/use-connect-wallet";
 
 
 const searchSchema = z.object({
@@ -129,14 +130,13 @@ function CoinForm() {
   const { steps, update, reset } = useSteps([]);
 
   const { isConnected, address, chainId } = useAccount();
-  const { connect, connectors } = useConnect();
+  const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
 
   async function onDeploy() {
     if (!isConnected) {
-      const c = connectors[0];
-      if (c) connect({ connector: c });
+      connectWallet();
       return;
     }
     if (!name || !symbol) {
