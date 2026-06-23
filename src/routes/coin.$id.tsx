@@ -98,19 +98,28 @@ function DetailPage() {
           </p>
 
           <div className="grid grid-cols-2 gap-2">
-            <button
+            <a
+              href={`https://zora.co/coin/base:${item.address}`}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => void track("trade", { wallet_address: address, coin_address: item.address })}
-              className="bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
+              className="bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm text-center"
             >
-              Buy
-            </button>
-            <button
+              Buy on Zora
+            </a>
+            <a
+              href={`https://zora.co/coin/base:${item.address}`}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => void track("trade", { wallet_address: address, coin_address: item.address })}
-              className="bg-white/5 border border-white/10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
+              className="bg-white/5 border border-white/10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm text-center"
             >
-              Sell
-            </button>
+              Sell on Zora
+            </a>
           </div>
+          <p className="text-[10px] text-white/40 text-center mt-2">
+            In-app swaps coming soon. Trade now on Zora.
+          </p>
         </div>
       </div>
     </MiniAppShell>
