@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useAccount, useBalance, usePublicClient, useWalletClient } from "wagmi";
+import { useAccount, useBalance, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { erc20Abi, formatEther, parseEther, parseUnits, maxUint256 } from "viem";
 import { Loader2, X } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
@@ -24,11 +24,22 @@ export function TradeDialog({
   const publicClient = usePublicClient();
 
   const { data: ethBal } = useBalance({ address, query: { enabled: Boolean(address) } });
-  const { data: coinBal } = useBalance({
-    address,
-    token: coinAddress,
+  const { data: coinRawBal } = useReadContract({
+    address: coinAddress,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
     query: { enabled: Boolean(address) },
   });
+  const { data: coinDecimals } = useReadContract({
+    address: coinAddress,
+    abi: erc20Abi,
+    functionName: "decimals",
+  });
+  const coinBal = {
+    value: (coinRawBal as bigint | undefined) ?? 0n,
+    decimals: (coinDecimals as number | undefined) ?? 18,
+  };
 
   const [amount, setAmount] = useState("");
   const [steps, setSteps] = useState<DeployStep[]>([]);
@@ -45,9 +56,7 @@ export function TradeDialog({
       ? ethBal
         ? Number(formatEther(ethBal.value)).toFixed(5)
         : "0"
-      : coinBal
-        ? Number(coinBal.value) / 10 ** (coinBal.decimals ?? 18)
-        : 0;
+      : (Number(coinBal.value) / 10 ** coinBal.decimals).toString();
 
   async function run() {
     if (!isConnected) {
