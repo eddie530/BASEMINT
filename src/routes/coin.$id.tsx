@@ -1,10 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
 import { useAccount } from "wagmi";
-import { track } from "@/lib/analytics";
+import { TradeDialog } from "@/components/coin/TradeDialog";
 
 const coinQO = (address: string) =>
   queryOptions({
@@ -47,7 +48,8 @@ export const Route = createFileRoute("/coin/$id")({
 function DetailPage() {
   const { id } = Route.useParams();
   const { data: item } = useSuspenseQuery(coinQO(id));
-  const { address } = useAccount();
+  useAccount();
+  const [trade, setTrade] = useState<"buy" | "sell" | null>(null);
   if (!item) return null;
 
   const delta = item.marketCapDelta24h;
@@ -98,30 +100,30 @@ function DetailPage() {
           </p>
 
           <div className="grid grid-cols-2 gap-2">
-            <a
-              href={`https://zora.co/coin/base:${item.address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => void track("trade", { wallet_address: address, coin_address: item.address })}
-              className="bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm text-center"
+            <button
+              onClick={() => setTrade("buy")}
+              className="bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
             >
-              Buy on Zora
-            </a>
-            <a
-              href={`https://zora.co/coin/base:${item.address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => void track("trade", { wallet_address: address, coin_address: item.address })}
-              className="bg-white/5 border border-white/10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm text-center"
+              Buy
+            </button>
+            <button
+              onClick={() => setTrade("sell")}
+              className="bg-white/5 border border-white/10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
             >
-              Sell on Zora
-            </a>
+              Sell
+            </button>
           </div>
-          <p className="text-[10px] text-white/40 text-center mt-2">
-            In-app swaps coming soon. Trade now on Zora.
-          </p>
         </div>
       </div>
+
+      {trade && (
+        <TradeDialog
+          side={trade}
+          coinAddress={item.address as `0x${string}`}
+          coinSymbol={item.symbol}
+          onClose={() => setTrade(null)}
+        />
+      )}
     </MiniAppShell>
   );
 }
