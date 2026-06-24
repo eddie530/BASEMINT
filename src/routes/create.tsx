@@ -470,6 +470,8 @@ function NFTForm() {
         {busy && <Loader2 className="size-4 animate-spin" />}
         {isConnected ? (busy ? "Deploying…" : "Mint Collection") : "Connect Wallet"}
       </button>
+
+      {receipt && <LaunchReceipt {...receipt} onClose={() => setReceipt(null)} />}
     </div>
   );
 }
