@@ -5,7 +5,19 @@ import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
+import { LaunchReceipt } from "@/components/create/LaunchReceipt";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+
+// Receipt info captured after a successful deploy and handed to LaunchReceipt
+// for Priority 1 (auto-prompt Farcaster share) + Priority 5 (artifact receipt).
+type Receipt = {
+  kind: "coin" | "nft";
+  name: string;
+  symbol?: string;
+  contractAddress?: string;
+  txHash?: string;
+  imageUrl?: string;
+};
 
 
 const searchSchema = z.object({
@@ -127,6 +139,7 @@ function CoinForm() {
   const [symbol, setSymbol] = useState("");
   const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const { steps, update, reset } = useSteps([]);
 
   const { isConnected, address, chainId } = useAccount();
@@ -252,6 +265,16 @@ function CoinForm() {
         detail: coinAddress ? `Coin ${coinAddress.slice(0, 10)}…` : "Tracked",
         link: coinAddress ? { href: `/coin/${coinAddress}`, label: "View coin" } : undefined,
       });
+
+      // Auto-prompt the launch receipt + Farcaster share (Priority 1 & 5).
+      setReceipt({
+        kind: "coin",
+        name,
+        symbol,
+        contractAddress: coinAddress,
+        txHash: lastHash,
+        imageUrl: media ? URL.createObjectURL(media) : undefined,
+      });
     } finally {
       setBusy(false);
     }
@@ -284,6 +307,8 @@ function CoinForm() {
         {busy && <Loader2 className="size-4 animate-spin" />}
         {isConnected ? (busy ? "Deploying…" : "Deploy Coin") : "Connect Wallet"}
       </button>
+
+      {receipt && <LaunchReceipt {...receipt} onClose={() => setReceipt(null)} />}
     </div>
   );
 }
@@ -294,6 +319,7 @@ function NFTForm() {
   const [supply, setSupply] = useState("100");
   const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const { steps, update, reset } = useSteps([]);
   const { isConnected, address, chainId } = useAccount();
   const { connectWallet, message: connectMessage } = useConnectWallet();
@@ -404,6 +430,15 @@ function NFTForm() {
 
       const { track } = await import("@/lib/analytics");
       void track("mint", { wallet_address: address, coin_address: contractAddress });
+
+      // Auto-prompt receipt + Farcaster share (Priority 1 & 5).
+      setReceipt({
+        kind: "nft",
+        name,
+        contractAddress,
+        txHash: hash,
+        imageUrl: media ? URL.createObjectURL(media) : undefined,
+      });
     } finally {
       setBusy(false);
     }
@@ -435,6 +470,8 @@ function NFTForm() {
         {busy && <Loader2 className="size-4 animate-spin" />}
         {isConnected ? (busy ? "Deploying…" : "Mint Collection") : "Connect Wallet"}
       </button>
+
+      {receipt && <LaunchReceipt {...receipt} onClose={() => setReceipt(null)} />}
     </div>
   );
 }
