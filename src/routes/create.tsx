@@ -265,6 +265,16 @@ function CoinForm() {
         detail: coinAddress ? `Coin ${coinAddress.slice(0, 10)}…` : "Tracked",
         link: coinAddress ? { href: `/coin/${coinAddress}`, label: "View coin" } : undefined,
       });
+
+      // Auto-prompt the launch receipt + Farcaster share (Priority 1 & 5).
+      setReceipt({
+        kind: "coin",
+        name,
+        symbol,
+        contractAddress: coinAddress,
+        txHash: lastHash,
+        imageUrl: media ? URL.createObjectURL(media) : undefined,
+      });
     } finally {
       setBusy(false);
     }
