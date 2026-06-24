@@ -33,17 +33,16 @@ function dataUriToFile(dataUri: string, filename: string): File {
   const mime = match[1] || "application/octet-stream";
   const isBase64 = Boolean(match[2]);
   const payload = match[3] ?? "";
-  let bytes: Uint8Array;
-  if (isBase64) {
-    const buf = Buffer.from(payload, "base64");
-    bytes = new Uint8Array(buf);
-  } else {
-    bytes = new TextEncoder().encode(decodeURIComponent(payload));
-  }
+  const source = isBase64
+    ? Buffer.from(payload, "base64")
+    : Buffer.from(decodeURIComponent(payload), "utf8");
+  // Copy into a fresh ArrayBuffer so BlobPart typing is satisfied across runtimes.
+  const ab = new ArrayBuffer(source.byteLength);
+  new Uint8Array(ab).set(source);
   // Normalize jpg -> jpeg so the SDK MIME allow-list accepts it.
   const normalizedMime = mime === "image/jpg" ? "image/jpeg" : mime;
   const ext = normalizedMime.split("/")[1]?.split("+")[0] ?? "bin";
-  return new File([bytes], `${filename}.${ext}`, { type: normalizedMime });
+  return new File([ab], `${filename}.${ext}`, { type: normalizedMime });
 }
 
 export const buildCreateCoinCalls = createServerFn({ method: "POST" })
