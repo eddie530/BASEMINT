@@ -5,7 +5,19 @@ import { useAccount, useWalletClient, usePublicClient } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
+import { LaunchReceipt } from "@/components/create/LaunchReceipt";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+
+// Receipt info captured after a successful deploy and handed to LaunchReceipt
+// for Priority 1 (auto-prompt Farcaster share) + Priority 5 (artifact receipt).
+type Receipt = {
+  kind: "coin" | "nft";
+  name: string;
+  symbol?: string;
+  contractAddress?: string;
+  txHash?: string;
+  imageUrl?: string;
+};
 
 
 const searchSchema = z.object({
