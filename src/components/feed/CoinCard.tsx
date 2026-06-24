@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { CoinDTO } from "@/lib/zora.types";
+import { isCurated, RESIDENT_LABS } from "@/lib/curated";
 
 function fmtPrice(p?: number): string {
   if (p == null || !Number.isFinite(p)) return "—";
@@ -8,18 +9,30 @@ function fmtPrice(p?: number): string {
   return `$${p.toLocaleString(undefined, { maximumFractionDigits: 4 })}`;
 }
 
+// Resident Labs branding: curated picks get a neon-edged Signal badge
+// and every card carries a quiet "Built by Resident Labs" footer.
 export function CoinCard({ coin }: { coin: CoinDTO }) {
   const delta = coin.marketCapDelta24h;
   const mc = coin.marketCap;
   const pct = mc && delta && mc - delta !== 0 ? (delta / Math.max(1, mc - delta)) * 100 : undefined;
   const up = (pct ?? 0) >= 0;
+  const curated = isCurated(coin.address);
 
   return (
     <Link
       to="/coin/$id"
       params={{ id: coin.address }}
-      className="block bg-card rounded-3xl p-4 border border-white/5 hover:border-white/10 transition"
+      className={`block bg-card rounded-3xl p-4 border transition relative ${
+        curated
+          ? "border-accent/40 [box-shadow:0_0_30px_-12px_hsl(var(--accent)/0.6)]"
+          : "border-white/5 hover:border-white/10"
+      }`}
     >
+      {curated && (
+        <span className="absolute -top-2 left-4 px-2 py-0.5 text-[9px] font-mono uppercase tracking-widest bg-accent text-accent-foreground rounded-full">
+          RL · Signal
+        </span>
+      )}
       <div className="flex gap-4">
         <div className="size-16 rounded-2xl overflow-hidden shrink-0 bg-white/5">
           <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" loading="lazy" />
@@ -53,6 +66,9 @@ export function CoinCard({ coin }: { coin: CoinDTO }) {
           ⋮
         </span>
       </div>
+      <p className="mt-2 text-[9px] text-white/30 font-mono uppercase tracking-widest text-center">
+        Built by {RESIDENT_LABS.name}
+      </p>
     </Link>
   );
 }
