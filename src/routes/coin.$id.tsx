@@ -114,8 +114,18 @@ function DetailPage() {
             </button>
           </div>
 
+          {/* Zora content coins are ERC-20s; "Collect Edition" routes to the buy flow,
+              which is the on-chain action that mints/acquires a unit of the edition. */}
+          <button
+            onClick={() => setTrade("buy")}
+            className="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
+          >
+            Collect Edition
+          </button>
         </div>
       </div>
+
+
 
       {trade && (
         <TradeDialog
