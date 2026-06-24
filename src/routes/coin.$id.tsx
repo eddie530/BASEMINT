@@ -125,6 +125,8 @@ function DetailPage() {
         </div>
       </div>
 
+      </div>
+
       {trade && (
         <TradeDialog
           side={trade}
