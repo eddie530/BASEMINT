@@ -6,7 +6,6 @@ import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
 import { useAccount } from "wagmi";
 import { TradeDialog } from "@/components/coin/TradeDialog";
-import { MintDialog } from "@/components/coin/MintDialog";
 
 const coinQO = (address: string) =>
   queryOptions({
@@ -51,7 +50,6 @@ function DetailPage() {
   const { data: item } = useSuspenseQuery(coinQO(id));
   useAccount();
   const [trade, setTrade] = useState<"buy" | "sell" | null>(null);
-  const [mintOpen, setMintOpen] = useState(false);
   if (!item) return null;
 
   const delta = item.marketCapDelta24h;
@@ -116,23 +114,8 @@ function DetailPage() {
             </button>
           </div>
 
-          <button
-            onClick={() => setMintOpen(true)}
-            className="w-full bg-white text-black py-4 rounded-2xl font-bold uppercase tracking-widest text-sm"
-          >
-            Collect Edition (Mint NFT)
-          </button>
         </div>
       </div>
-
-      {mintOpen && (
-        <MintDialog
-          collectionAddress={item.address as `0x${string}`}
-          title={item.name}
-          onClose={() => setMintOpen(false)}
-        />
-      )}
-
 
       {trade && (
         <TradeDialog
