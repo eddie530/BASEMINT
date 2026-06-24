@@ -307,6 +307,8 @@ function CoinForm() {
         {busy && <Loader2 className="size-4 animate-spin" />}
         {isConnected ? (busy ? "Deploying…" : "Deploy Coin") : "Connect Wallet"}
       </button>
+
+      {receipt && <LaunchReceipt {...receipt} onClose={() => setReceipt(null)} />}
     </div>
   );
 }
@@ -317,6 +319,7 @@ function NFTForm() {
   const [supply, setSupply] = useState("100");
   const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const { steps, update, reset } = useSteps([]);
   const { isConnected, address, chainId } = useAccount();
   const { connectWallet, message: connectMessage } = useConnectWallet();
