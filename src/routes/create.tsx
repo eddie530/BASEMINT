@@ -430,6 +430,15 @@ function NFTForm() {
 
       const { track } = await import("@/lib/analytics");
       void track("mint", { wallet_address: address, coin_address: contractAddress });
+
+      // Auto-prompt receipt + Farcaster share (Priority 1 & 5).
+      setReceipt({
+        kind: "nft",
+        name,
+        contractAddress,
+        txHash: hash,
+        imageUrl: media ? URL.createObjectURL(media) : undefined,
+      });
     } finally {
       setBusy(false);
     }
