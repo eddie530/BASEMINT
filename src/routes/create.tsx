@@ -139,6 +139,7 @@ function CoinForm() {
   const [symbol, setSymbol] = useState("");
   const [media, setMedia] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const { steps, update, reset } = useSteps([]);
 
   const { isConnected, address, chainId } = useAccount();
