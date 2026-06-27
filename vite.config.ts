@@ -10,11 +10,18 @@ export default defineConfig({
   },
   vite: {
     plugins: [
-      nodePolyfills({
+      // Polyfills are only needed for the browser bundle. Scoping them to the
+      // client environment prevents them from aliasing `stream` -> `stream-browserify`
+      // in the SSR/Nitro/Worker builds, which breaks srvx's `stream/promises` import
+      // on Vercel.
+      ...nodePolyfills({
         include: ["buffer", "util", "stream", "events"],
         globals: { Buffer: true, global: true, process: false },
         protocolImports: true,
-      }),
+      }).map((plugin) => ({
+        ...plugin,
+        applyToEnvironment: (env: { name: string }) => env.name === "client",
+      })),
     ],
     resolve: {
       alias: [
