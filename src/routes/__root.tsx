@@ -85,17 +85,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "Basemint" },
       { name: "twitter:card", content: "summary_large_image" },
       {
+        name: "fc:miniapp",
+        content: JSON.stringify({
+          version: "1",
+          imageUrl: "https://basemint.dev/icon-512.png",
+          button: {
+            title: "Open Basemint",
+            action: {
+              type: "launch_miniapp",
+              name: "Basemint",
+              url: "https://basemint.dev/",
+              splashImageUrl: "https://basemint.dev/icon-512.png",
+              splashBackgroundColor: "#000000",
+            },
+          },
+        }),
+      },
+      {
         name: "fc:frame",
         content: JSON.stringify({
           version: "1",
-          imageUrl: "https://foxy-token-forge.lovable.app/icon-512.png",
+          imageUrl: "https://basemint.dev/icon-512.png",
           button: {
             title: "Open Basemint",
             action: {
               type: "launch_frame",
               name: "Basemint",
-              url: "https://foxy-token-forge.lovable.app/",
-              splashImageUrl: "https://foxy-token-forge.lovable.app/icon-512.png",
+              url: "https://basemint.dev/",
+              splashImageUrl: "https://basemint.dev/icon-512.png",
               splashBackgroundColor: "#000000",
             },
           },
