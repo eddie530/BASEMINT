@@ -107,7 +107,9 @@ export function LaunchReceipt({
           {txHash && (
             <div className="flex justify-between gap-2">
               <dt className="text-white/40 uppercase tracking-widest">Tx</dt>
-              <dd className="truncate">{txHash.slice(0, 14)}…{txHash.slice(-6)}</dd>
+              <dd className="truncate">
+                {txHash.slice(0, 14)}…{txHash.slice(-6)}
+              </dd>
             </div>
           )}
           <div className="flex justify-between gap-2">

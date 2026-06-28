@@ -38,7 +38,10 @@ export const Route = createFileRoute("/profile/$address")({
         { title: `${short} · Basemint Profile` },
         { name: "description", content: `Creator profile and Zora coins by ${short} on Base.` },
         { property: "og:title", content: `${short} · Basemint Profile` },
-        { property: "og:description", content: `Creator profile and Zora coins by ${short} on Base.` },
+        {
+          property: "og:description",
+          content: `Creator profile and Zora coins by ${short} on Base.`,
+        },
         { property: "og:url", content: url },
       ],
       links: [{ rel: "canonical", href: url }],
@@ -149,7 +152,9 @@ function ProfilePage() {
       </section>
 
       <section>
-        <h2 className="font-display font-bold text-lg uppercase tracking-wider mb-3">Coins by creator</h2>
+        <h2 className="font-display font-bold text-lg uppercase tracking-wider mb-3">
+          Coins by creator
+        </h2>
         {coins.length === 0 ? (
           <p className="text-sm text-white/40 font-mono">No Zora coins from this address yet.</p>
         ) : (

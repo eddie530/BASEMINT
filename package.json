@@ -47,6 +47,7 @@
     "@tanstack/react-router": "^1.168.25",
     "@tanstack/react-start": "^1.167.50",
     "@tanstack/router-plugin": "^1.167.28",
+    "@vercel/analytics": "^2.0.1",
     "@zoralabs/coins-sdk": "^0.6.0",
     "@zoralabs/protocol-sdk": "^0.13.21",
     "buffer": "^6.0.3",

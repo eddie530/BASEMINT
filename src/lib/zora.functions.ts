@@ -119,7 +119,9 @@ export const getCoinDetail = createServerFn({ method: "GET" })
 
 export const getCoinsByCreator = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
-    z.object({ address: z.string().min(1), count: z.number().int().min(1).max(50).default(20) }).parse(input),
+    z
+      .object({ address: z.string().min(1), count: z.number().int().min(1).max(50).default(20) })
+      .parse(input),
   )
   .handler(async ({ data }): Promise<CoinDTO[]> => {
     try {
@@ -137,15 +139,20 @@ export const getCoinsByCreator = createServerFn({ method: "GET" })
 
 export const getHoldings = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) =>
-    z.object({ address: z.string().min(1), count: z.number().int().min(1).max(50).default(20) }).parse(input),
+    z
+      .object({ address: z.string().min(1), count: z.number().int().min(1).max(50).default(20) })
+      .parse(input),
   )
   .handler(async ({ data }): Promise<CoinDTO[]> => {
     try {
       const { getProfileBalances } = await import("@zoralabs/coins-sdk");
       const res = await getProfileBalances({ identifier: data.address, count: data.count });
       const edges =
-        (res as { data?: { profile?: { coinBalances?: { edges?: Array<{ node: { coin?: RawNode } }> } } } })
-          ?.data?.profile?.coinBalances?.edges ?? [];
+        (
+          res as {
+            data?: { profile?: { coinBalances?: { edges?: Array<{ node: { coin?: RawNode } }> } } };
+          }
+        )?.data?.profile?.coinBalances?.edges ?? [];
       return edges
         .map((e) => e.node?.coin)
         .filter((c): c is RawNode => Boolean(c))

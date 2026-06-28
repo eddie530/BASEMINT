@@ -52,7 +52,7 @@
   --popover: oklch(0.14 0.005 270);
   --popover-foreground: oklch(1 0 0);
 
-  --primary: oklch(0.55 0.24 263);  /* Base blue #0052FF */
+  --primary: oklch(0.55 0.24 263); /* Base blue #0052FF */
   --primary-foreground: oklch(1 0 0);
 
   --secondary: oklch(0.22 0.005 270);
@@ -61,7 +61,7 @@
   --muted: oklch(0.22 0.005 270);
   --muted-foreground: oklch(0.65 0.01 270);
 
-  --accent: oklch(0.94 0.21 121);   /* Neon #CCFF00 */
+  --accent: oklch(0.94 0.21 121); /* Neon #CCFF00 */
   --accent-foreground: oklch(0.12 0 0);
 
   --destructive: oklch(0.65 0.24 25);
@@ -71,8 +71,8 @@
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.55 0.24 263);
 
-  --base-blue: #0052FF;
-  --neon: #CCFF00;
+  --base-blue: #0052ff;
+  --neon: #ccff00;
   --surface: #121214;
 
   --font-display-family: "Space Grotesk", system-ui, sans-serif;
@@ -84,7 +84,8 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);

@@ -79,7 +79,9 @@ function DashboardPage() {
       </section>
 
       <section className="bg-card border border-white/5 rounded-3xl p-5">
-        <h2 className="text-sm uppercase tracking-widest text-white/60 font-bold mb-3">Site analytics · 7d</h2>
+        <h2 className="text-sm uppercase tracking-widest text-white/60 font-bold mb-3">
+          Site analytics · 7d
+        </h2>
         {siteStats.isLoading ? (
           <p className="text-white/40 text-xs font-mono">Loading…</p>
         ) : (
@@ -90,8 +92,14 @@ function DashboardPage() {
             </div>
             <Sparkline data={(siteStats.data?.by_day ?? []).map((d) => d.views)} />
             <div className="mt-4 grid grid-cols-2 gap-4">
-              <SmallList title="Top paths" rows={siteStats.data?.top_paths?.map((p) => [p.path, p.views]) ?? []} />
-              <SmallList title="Top refs" rows={siteStats.data?.top_refs?.map((p) => [p.ref_code, p.views]) ?? []} />
+              <SmallList
+                title="Top paths"
+                rows={siteStats.data?.top_paths?.map((p) => [p.path, p.views]) ?? []}
+              />
+              <SmallList
+                title="Top refs"
+                rows={siteStats.data?.top_refs?.map((p) => [p.ref_code, p.views]) ?? []}
+              />
             </div>
           </>
         )}

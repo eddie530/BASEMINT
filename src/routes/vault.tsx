@@ -67,7 +67,11 @@ function VaultPage() {
         <p className="text-[11px] text-white/40 font-mono mt-2 break-all">{address}</p>
         <div className="mt-4 flex flex-wrap gap-3 text-[11px] uppercase tracking-widest">
           {address && (
-            <Link to="/profile/$address" params={{ address }} className="text-accent hover:underline">
+            <Link
+              to="/profile/$address"
+              params={{ address }}
+              className="text-accent hover:underline"
+            >
               View profile
             </Link>
           )}
@@ -95,7 +99,12 @@ function VaultPage() {
                 params={{ id: i.address }}
                 className="bg-card border border-white/5 rounded-2xl p-3 hover:border-white/15 transition"
               >
-                <img src={i.image} alt={i.name} className="w-full aspect-square rounded-xl object-cover" loading="lazy" />
+                <img
+                  src={i.image}
+                  alt={i.name}
+                  className="w-full aspect-square rounded-xl object-cover"
+                  loading="lazy"
+                />
                 <p className="font-bold text-sm mt-2 truncate">{i.name}</p>
                 <p className="text-[11px] text-white/40 font-mono truncate">${i.symbol}</p>
               </Link>

@@ -27,7 +27,9 @@ export function SpinDiscover({ pool }: { pool: CoinDTO[] }) {
   return (
     <section className="bg-gradient-to-br from-primary/15 via-accent/5 to-transparent border border-white/10 rounded-3xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-display font-bold text-lg uppercase tracking-wider">Spin to Discover</h2>
+        <h2 className="font-display font-bold text-lg uppercase tracking-wider">
+          Spin to Discover
+        </h2>
         <button
           onClick={spin}
           disabled={spinning || pool.length === 0}
@@ -56,12 +58,12 @@ export function SpinDiscover({ pool }: { pool: CoinDTO[] }) {
               ${pick.symbol} · {pick.uniqueHolders.toLocaleString()} holders
             </p>
           </div>
-          <span className="text-[10px] text-accent font-mono uppercase tracking-widest">Open →</span>
+          <span className="text-[10px] text-accent font-mono uppercase tracking-widest">
+            Open →
+          </span>
         </Link>
       ) : (
-        <p className="text-xs text-white/50 font-mono">
-          Tap Spin for a random Base launch.
-        </p>
+        <p className="text-xs text-white/50 font-mono">Tap Spin for a random Base launch.</p>
       )}
     </section>
   );

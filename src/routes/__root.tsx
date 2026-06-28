@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -121,11 +122,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "BaseMint" },
       { property: "og:title", content: "BaseMint" },
       { name: "twitter:title", content: "BaseMint" },
-      { name: "description", content: "- Create and manage tokens, NFTs, and community points on Base and Farcaster." },
-      { property: "og:description", content: "- Create and manage tokens, NFTs, and community points on Base and Farcaster." },
-      { name: "twitter:description", content: "- Create and manage tokens, NFTs, and community points on Base and Farcaster." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp" },
+      {
+        name: "description",
+        content: "- Create and manage tokens, NFTs, and community points on Base and Farcaster.",
+      },
+      {
+        property: "og:description",
+        content: "- Create and manage tokens, NFTs, and community points on Base and Farcaster.",
+      },
+      {
+        name: "twitter:description",
+        content: "- Create and manage tokens, NFTs, and community points on Base and Farcaster.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp",
+      },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },
@@ -139,16 +157,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
     ],
-    scripts: [{
-      type: "application/ld+json",
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "Basemint",
-        url: "https://foxy-token-forge.lovable.app",
-        description: "Mint on Base. Create coins and NFTs on Base in seconds.",
-      }),
-    }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Basemint",
+          url: "https://foxy-token-forge.lovable.app",
+          description: "Mint on Base. Create coins and NFTs on Base in seconds.",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -164,6 +184,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        <Analytics />
         <Scripts />
       </body>
     </html>

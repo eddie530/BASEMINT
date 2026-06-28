@@ -20,9 +20,15 @@ export const Route = createFileRoute("/coin/$id")({
     return {
       meta: [
         { title: `${params.id.slice(0, 8)}… · Basemint` },
-        { name: "description", content: "Zora coin on Base. Trade, view stats and creator details." },
+        {
+          name: "description",
+          content: "Zora coin on Base. Trade, view stats and creator details.",
+        },
         { property: "og:title", content: `Basemint · Coin ${params.id.slice(0, 10)}…` },
-        { property: "og:description", content: "Zora coin on Base. Trade, view stats and creator details." },
+        {
+          property: "og:description",
+          content: "Zora coin on Base. Trade, view stats and creator details.",
+        },
         { property: "og:url", content: url },
       ],
       links: [{ rel: "canonical", href: url }],
@@ -58,7 +64,10 @@ function DetailPage() {
 
   return (
     <MiniAppShell>
-      <Link to="/" className="inline-flex items-center gap-1.5 text-white/60 text-xs font-mono hover:text-white transition">
+      <Link
+        to="/"
+        className="inline-flex items-center gap-1.5 text-white/60 text-xs font-mono hover:text-white transition"
+      >
         <ArrowLeft className="size-3.5" /> back
       </Link>
 
@@ -68,7 +77,9 @@ function DetailPage() {
         </div>
         <div className="p-5 space-y-4">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">${item.symbol}</p>
+            <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+              ${item.symbol}
+            </p>
             <h1 className="font-display font-bold text-2xl mt-1">{item.name}</h1>
             {item.creatorAddress && (
               <Link
@@ -76,7 +87,10 @@ function DetailPage() {
                 params={{ address: item.creatorAddress }}
                 className="text-white/50 text-sm mt-0.5 inline-block hover:text-accent"
               >
-                by {item.creatorHandle ? `@${item.creatorHandle}` : `${item.creatorAddress.slice(0, 6)}…${item.creatorAddress.slice(-4)}`}
+                by{" "}
+                {item.creatorHandle
+                  ? `@${item.creatorHandle}`
+                  : `${item.creatorAddress.slice(0, 6)}…${item.creatorAddress.slice(-4)}`}
               </Link>
             )}
           </div>
@@ -86,7 +100,14 @@ function DetailPage() {
           )}
 
           <div className="grid grid-cols-3 gap-2 text-center">
-            <Stat label="Price" value={item.priceUsd ? `$${item.priceUsd < 0.01 ? item.priceUsd.toExponential(2) : item.priceUsd.toFixed(4)}` : "—"} />
+            <Stat
+              label="Price"
+              value={
+                item.priceUsd
+                  ? `$${item.priceUsd < 0.01 ? item.priceUsd.toExponential(2) : item.priceUsd.toFixed(4)}`
+                  : "—"
+              }
+            />
             <Stat
               label="24h"
               value={pct !== undefined ? `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%` : "—"}
@@ -125,8 +146,6 @@ function DetailPage() {
         </div>
       </div>
 
-
-
       {trade && (
         <TradeDialog
           side={trade}
@@ -143,7 +162,9 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
   return (
     <div className="bg-white/5 rounded-xl py-2.5 border border-white/5">
       <p className="text-[9px] uppercase tracking-widest text-white/40 font-mono">{label}</p>
-      <p className={`font-display font-bold text-sm mt-0.5 ${accent ? "text-accent" : ""}`}>{value}</p>
+      <p className={`font-display font-bold text-sm mt-0.5 ${accent ? "text-accent" : ""}`}>
+        {value}
+      </p>
     </div>
   );
 }
