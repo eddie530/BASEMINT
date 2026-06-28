@@ -29,7 +29,9 @@ export function BottomNav() {
         <span className="size-12 bg-white rounded-full grid place-items-center -mt-7 border-4 border-black shadow-xl shadow-primary/30 ring-1 ring-white/10">
           <Plus className="size-6 text-black" strokeWidth={2.5} />
         </span>
-        <span className={`text-[10px] font-bold uppercase tracking-tighter ${isActive("/create") ? "text-accent" : "text-white/50"}`}>
+        <span
+          className={`text-[10px] font-bold uppercase tracking-tighter ${isActive("/create") ? "text-accent" : "text-white/50"}`}
+        >
           Create
         </span>
       </Link>

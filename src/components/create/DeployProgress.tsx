@@ -42,7 +42,9 @@ export function DeployProgress({ steps, onRetry }: { steps: DeployStep[]; onRetr
           <li key={step.id} className="flex gap-3">
             <div className="mt-0.5 shrink-0">
               {step.status === "success" && <CheckCircle2 className="size-4 text-accent" />}
-              {step.status === "active" && <Loader2 className="size-4 animate-spin text-white/80" />}
+              {step.status === "active" && (
+                <Loader2 className="size-4 animate-spin text-white/80" />
+              )}
               {step.status === "error" && <XCircle className="size-4 text-destructive" />}
               {step.status === "pending" && <Circle className="size-4 text-white/20" />}
             </div>
@@ -59,7 +61,9 @@ export function DeployProgress({ steps, onRetry }: { steps: DeployStep[]; onRetr
                 {step.label}
               </p>
               {step.detail && (
-                <p className="mt-0.5 text-[11px] text-white/50 font-mono break-all">{step.detail}</p>
+                <p className="mt-0.5 text-[11px] text-white/50 font-mono break-all">
+                  {step.detail}
+                </p>
               )}
               {step.hint && step.status === "error" && (
                 <p className="mt-1 text-[11px] text-white/70 bg-destructive/10 border border-destructive/30 rounded-lg px-2 py-1.5">
@@ -100,7 +104,10 @@ export function explainError(err: unknown): { detail: string; hint: string } {
   const msg = raw.toLowerCase();
 
   if (msg.includes("user rejected") || msg.includes("user denied")) {
-    return { detail: "Wallet signature rejected.", hint: "Approve the transaction in your wallet to continue." };
+    return {
+      detail: "Wallet signature rejected.",
+      hint: "Approve the transaction in your wallet to continue.",
+    };
   }
   if (msg.includes("insufficient funds")) {
     return { detail: raw, hint: "Top up ETH on Base for gas, then retry." };
@@ -120,5 +127,8 @@ export function explainError(err: unknown): { detail: string; hint: string } {
   if (msg.includes("network") || msg.includes("fetch")) {
     return { detail: raw, hint: "Network hiccup. Check your connection and retry." };
   }
-  return { detail: raw.slice(0, 240), hint: "Unexpected error. Retry; if it persists, share this with support." };
+  return {
+    detail: raw.slice(0, 240),
+    hint: "Unexpected error. Retry; if it persists, share this with support.",
+  };
 }

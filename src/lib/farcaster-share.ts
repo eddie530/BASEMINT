@@ -16,7 +16,11 @@ export async function shareCast({ text, embeds = [] }: ShareCastInput): Promise<
     if (typeof window !== "undefined") {
       const mod = await import("@farcaster/miniapp-sdk");
       const sdk = (mod as { sdk?: unknown }).sdk as
-        | { actions?: { composeCast?: (i: { text: string; embeds?: string[] }) => Promise<unknown> } }
+        | {
+            actions?: {
+              composeCast?: (i: { text: string; embeds?: string[] }) => Promise<unknown>;
+            };
+          }
         | undefined;
       if (sdk?.actions?.composeCast) {
         await sdk.actions.composeCast({ text, embeds: trimmed });
@@ -40,9 +44,6 @@ export function buildLaunchCastText(opts: {
   name: string;
   symbol?: string;
 }): string {
-  const what =
-    opts.kind === "coin"
-      ? `$${(opts.symbol ?? opts.name).toUpperCase()}`
-      : opts.name;
+  const what = opts.kind === "coin" ? `$${(opts.symbol ?? opts.name).toUpperCase()}` : opts.name;
   return `Just launched ${what} on Base via Basemint 🔥\n\nCreate & discover coins/NFTs directly in Farcaster → basemint.dev`;
 }

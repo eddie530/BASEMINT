@@ -9,7 +9,11 @@ const bodySchema = z.object({
   path: z.string().max(500),
   referrer: z.string().max(500).optional().nullable(),
   ref_code: z.string().max(64).optional().nullable(),
-  wallet_address: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional().nullable(),
+  wallet_address: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{40}$/)
+    .optional()
+    .nullable(),
   event: z.enum(["pageview", "connect", "mint", "trade"]).default("pageview"),
   coin_address: z.string().max(80).optional().nullable(),
 });
@@ -77,10 +81,9 @@ export const Route = createFileRoute("/api/public/track")({
             // Make sure the referral code exists (auto-create for any wallet-derived code)
             // Wallet-derived codes are first 8 hex chars after 0x — if the code looks like one,
             // bind it to that wallet on first sight.
-            const guessedWallet =
-              /^[a-f0-9]{8}$/i.test(data.ref_code)
-                ? `0x${data.ref_code.toLowerCase()}${"0".repeat(32)}`.slice(0, 42)
-                : null;
+            const guessedWallet = /^[a-f0-9]{8}$/i.test(data.ref_code)
+              ? `0x${data.ref_code.toLowerCase()}${"0".repeat(32)}`.slice(0, 42)
+              : null;
             // No owner guess — only insert if missing AND we can attribute it
             if (guessedWallet) {
               await supabaseAdmin

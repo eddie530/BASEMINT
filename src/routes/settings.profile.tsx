@@ -89,12 +89,37 @@ function SettingsProfile() {
       <p className="text-[11px] font-mono text-white/40 break-all">{wallet}</p>
 
       <div className="space-y-4">
-        <Field label="Display name" value={form.display_name} onChange={(v) => setForm((s) => ({ ...s, display_name: v }))} />
-        <Field label="Bio" value={form.bio} onChange={(v) => setForm((s) => ({ ...s, bio: v }))} multiline />
-        <Field label="Avatar URL" value={form.avatar_url} onChange={(v) => setForm((s) => ({ ...s, avatar_url: v }))} />
-        <Field label="Twitter handle" value={form.twitter} onChange={(v) => setForm((s) => ({ ...s, twitter: v }))} />
-        <Field label="Farcaster handle" value={form.farcaster} onChange={(v) => setForm((s) => ({ ...s, farcaster: v }))} />
-        <Field label="Website" value={form.website} onChange={(v) => setForm((s) => ({ ...s, website: v }))} />
+        <Field
+          label="Display name"
+          value={form.display_name}
+          onChange={(v) => setForm((s) => ({ ...s, display_name: v }))}
+        />
+        <Field
+          label="Bio"
+          value={form.bio}
+          onChange={(v) => setForm((s) => ({ ...s, bio: v }))}
+          multiline
+        />
+        <Field
+          label="Avatar URL"
+          value={form.avatar_url}
+          onChange={(v) => setForm((s) => ({ ...s, avatar_url: v }))}
+        />
+        <Field
+          label="Twitter handle"
+          value={form.twitter}
+          onChange={(v) => setForm((s) => ({ ...s, twitter: v }))}
+        />
+        <Field
+          label="Farcaster handle"
+          value={form.farcaster}
+          onChange={(v) => setForm((s) => ({ ...s, farcaster: v }))}
+        />
+        <Field
+          label="Website"
+          value={form.website}
+          onChange={(v) => setForm((s) => ({ ...s, website: v }))}
+        />
       </div>
 
       {mutation.isError && (

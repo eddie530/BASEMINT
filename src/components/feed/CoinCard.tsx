@@ -35,7 +35,12 @@ export function CoinCard({ coin }: { coin: CoinDTO }) {
       )}
       <div className="flex gap-4">
         <div className="size-16 rounded-2xl overflow-hidden shrink-0 bg-white/5">
-          <img src={coin.image} alt={coin.name} className="w-full h-full object-cover" loading="lazy" />
+          <img
+            src={coin.image}
+            alt={coin.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start gap-2">
@@ -46,7 +51,9 @@ export function CoinCard({ coin }: { coin: CoinDTO }) {
               </p>
             </div>
             {pct !== undefined && (
-              <span className={`font-display font-bold text-sm ${up ? "text-accent" : "text-destructive"}`}>
+              <span
+                className={`font-display font-bold text-sm ${up ? "text-accent" : "text-destructive"}`}
+              >
                 {up ? "+" : ""}
                 {pct.toFixed(1)}%
               </span>

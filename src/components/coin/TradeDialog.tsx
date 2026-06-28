@@ -101,8 +101,7 @@ export function TradeDialog({
       const decimals = side === "buy" ? 18 : (coinBal?.decimals ?? 18);
       let amountInWei: bigint;
       try {
-        amountInWei =
-          side === "buy" ? parseEther(amt as `${number}`) : parseUnits(amt, decimals);
+        amountInWei = side === "buy" ? parseEther(amt as `${number}`) : parseUnits(amt, decimals);
       } catch {
         update("quote", { status: "error", detail: "Invalid amount." });
         return;
@@ -227,9 +226,7 @@ export function TradeDialog({
             <span>You pay ({inSymbol})</span>
             <button
               type="button"
-              onClick={() =>
-                setAmount(side === "buy" ? String(inBalance) : String(inBalance))
-              }
+              onClick={() => setAmount(side === "buy" ? String(inBalance) : String(inBalance))}
               className="text-accent hover:underline"
             >
               Bal: {inBalance}

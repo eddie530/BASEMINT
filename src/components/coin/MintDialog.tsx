@@ -75,7 +75,9 @@ export function MintDialog({
         const { createCollectorClient } = await import("@zoralabs/protocol-sdk");
         const collectorClient = createCollectorClient({
           chainId: 8453,
-          publicClient: publicClient as unknown as Parameters<typeof createCollectorClient>[0]["publicClient"],
+          publicClient: publicClient as unknown as Parameters<
+            typeof createCollectorClient
+          >[0]["publicClient"],
         });
         const res = await collectorClient.mint({
           tokenContract: collectionAddress,
@@ -117,7 +119,10 @@ export function MintDialog({
         status: "success",
         txHash: hash,
         detail: `Minted ${qty} × ${title}`,
-        link: { href: `https://basescan.org/address/${collectionAddress}`, label: "View collection" },
+        link: {
+          href: `https://basescan.org/address/${collectionAddress}`,
+          label: "View collection",
+        },
       });
 
       try {
@@ -137,8 +142,14 @@ export function MintDialog({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="w-full max-w-md bg-card rounded-3xl border border-white/10 p-5 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-bold text-lg uppercase tracking-wider">Collect Edition</h2>
-          <button onClick={onClose} className="text-white/50 hover:text-white p-1" aria-label="Close">
+          <h2 className="font-display font-bold text-lg uppercase tracking-wider">
+            Collect Edition
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-white/50 hover:text-white p-1"
+            aria-label="Close"
+          >
             <X className="size-5" />
           </button>
         </div>

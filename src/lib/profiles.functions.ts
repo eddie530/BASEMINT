@@ -25,9 +25,7 @@ function codeFromWallet(wallet: string): string {
 }
 
 export const getProfile = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) =>
-    z.object({ address: addrSchema }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ address: addrSchema }).parse(input))
   .handler(async ({ data }): Promise<ProfileDTO | null> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const wallet = data.address.toLowerCase();
@@ -83,9 +81,7 @@ export const upsertProfile = createServerFn({ method: "POST" })
   });
 
 export const getReferralStats = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) =>
-    z.object({ address: addrSchema }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ address: addrSchema }).parse(input))
   .handler(async ({ data }): Promise<ReferralStats> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const wallet = data.address.toLowerCase();
@@ -97,10 +93,7 @@ export const getReferralStats = createServerFn({ method: "GET" })
       .upsert({ code, owner_wallet: wallet }, { onConflict: "code" });
 
     const [{ data: events }, { data: recent }] = await Promise.all([
-      supabaseAdmin
-        .from("referral_events")
-        .select("event_type")
-        .eq("code", code),
+      supabaseAdmin.from("referral_events").select("event_type").eq("code", code),
       supabaseAdmin
         .from("referral_events")
         .select("event_type,coin_address,created_at")
@@ -128,8 +121,8 @@ export interface SiteAnalytics {
   top_refs: Array<{ ref_code: string; views: number }>;
 }
 
-export const getSiteAnalytics = createServerFn({ method: "GET" })
-  .handler(async (): Promise<SiteAnalytics> => {
+export const getSiteAnalytics = createServerFn({ method: "GET" }).handler(
+  async (): Promise<SiteAnalytics> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data: events } = await supabaseAdmin
@@ -168,4 +161,5 @@ export const getSiteAnalytics = createServerFn({ method: "GET" })
         .slice(0, 10)
         .map(([ref_code, views]) => ({ ref_code, views })),
     };
-  });
+  },
+);

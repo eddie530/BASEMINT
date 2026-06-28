@@ -4,12 +4,7 @@ import { z } from "zod";
 const addrSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 
 export type PointKind =
-  | "create_coin"
-  | "buy_coin"
-  | "referral_signup"
-  | "referral_mint"
-  | "daily_checkin"
-  | "share_cast";
+  "create_coin" | "buy_coin" | "referral_signup" | "referral_mint" | "daily_checkin" | "share_cast";
 
 export const POINT_RULES: Record<PointKind, number> = {
   create_coin: 100,
@@ -111,7 +106,12 @@ async function bumpQuestProgress(wallet: string, goalKind: string, by: number) {
     .select("id,goal_count,points_reward,slug")
     .eq("goal_kind", goalKind)
     .eq("active", true);
-  for (const q of (quests ?? []) as Array<{ id: string; goal_count: number; points_reward: number; slug: string }>) {
+  for (const q of (quests ?? []) as Array<{
+    id: string;
+    goal_count: number;
+    points_reward: number;
+    slug: string;
+  }>) {
     const { data: existing } = await supabaseAdmin
       .from("quest_progress")
       .select("progress,completed_at")
@@ -122,18 +122,16 @@ async function bumpQuestProgress(wallet: string, goalKind: string, by: number) {
     if (prev?.completed_at) continue;
     const next = (prev?.progress ?? 0) + by;
     const completed = next >= q.goal_count;
-    await supabaseAdmin
-      .from("quest_progress")
-      .upsert(
-        {
-          wallet_address: wallet,
-          quest_id: q.id,
-          progress: next,
-          completed_at: completed ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "wallet_address,quest_id" },
-      );
+    await supabaseAdmin.from("quest_progress").upsert(
+      {
+        wallet_address: wallet,
+        quest_id: q.id,
+        progress: next,
+        completed_at: completed ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "wallet_address,quest_id" },
+    );
     if (completed) {
       await supabaseAdmin.from("point_events").insert({
         wallet_address: wallet,
@@ -172,9 +170,7 @@ export const recordPointEvent = createServerFn({ method: "POST" })
   });
 
 export const claimDailyCheckin = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
-    z.object({ address: addrSchema }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ address: addrSchema }).parse(input))
   .handler(async ({ data }): Promise<{ claimed: boolean; streak: number; points: number }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const wallet = data.address.toLowerCase();
@@ -222,9 +218,7 @@ export const claimDailyCheckin = createServerFn({ method: "POST" })
   });
 
 export const getPointsSummary = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) =>
-    z.object({ address: addrSchema }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ address: addrSchema }).parse(input))
   .handler(async ({ data }): Promise<PointsSummary> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const wallet = data.address.toLowerCase();
@@ -256,15 +250,18 @@ export const getPointsSummary = createServerFn({ method: "GET" })
         .limit(1)
         .maybeSingle(),
     ]);
-    const bal = (balRes.data as { total: number; lifetime: number } | null) ?? { total: 0, lifetime: 0 };
+    const bal = (balRes.data as { total: number; lifetime: number } | null) ?? {
+      total: 0,
+      lifetime: 0,
+    };
     const todayRow = todayRes.data as { streak: number } | null;
     const last = lastRes.data as { streak: number; checkin_date: string } | null;
     const claimed_today = !!todayRow;
     const currentStreak = claimed_today
       ? todayRow!.streak
       : last && last.checkin_date === yesterdayISO()
-      ? last.streak
-      : 0;
+        ? last.streak
+        : 0;
     const next_reward = streakReward(currentStreak + 1);
 
     return {
@@ -276,8 +273,8 @@ export const getPointsSummary = createServerFn({ method: "GET" })
     };
   });
 
-export const getLeaderboard = createServerFn({ method: "GET" })
-  .handler(async (): Promise<LeaderboardRow[]> => {
+export const getLeaderboard = createServerFn({ method: "GET" }).handler(
+  async (): Promise<LeaderboardRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("point_balances")
@@ -292,10 +289,9 @@ export const getLeaderboard = createServerFn({ method: "GET" })
       .select("wallet_address,display_name")
       .in("wallet_address", wallets);
     const nameMap = new Map<string, string | null>(
-      ((profiles ?? []) as Array<{ wallet_address: string; display_name: string | null }>).map((p) => [
-        p.wallet_address,
-        p.display_name,
-      ]),
+      ((profiles ?? []) as Array<{ wallet_address: string; display_name: string | null }>).map(
+        (p) => [p.wallet_address, p.display_name],
+      ),
     );
     return rows.map((r) => ({
       wallet_address: r.wallet_address,
@@ -303,12 +299,11 @@ export const getLeaderboard = createServerFn({ method: "GET" })
       lifetime: r.lifetime,
       display_name: nameMap.get(r.wallet_address) ?? null,
     }));
-  });
+  },
+);
 
 export const getQuestsForWallet = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) =>
-    z.object({ address: addrSchema.optional() }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ address: addrSchema.optional() }).parse(input))
   .handler(async ({ data }): Promise<QuestDTO[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: quests } = await supabaseAdmin
@@ -324,10 +319,13 @@ export const getQuestsForWallet = createServerFn({ method: "GET" })
       .select("quest_id,progress,completed_at")
       .eq("wallet_address", wallet);
     const map = new Map<string, { progress: number; completed: boolean }>(
-      ((progress ?? []) as Array<{ quest_id: string; progress: number; completed_at: string | null }>).map((p) => [
-        p.quest_id,
-        { progress: p.progress, completed: !!p.completed_at },
-      ]),
+      (
+        (progress ?? []) as Array<{
+          quest_id: string;
+          progress: number;
+          completed_at: string | null;
+        }>
+      ).map((p) => [p.quest_id, { progress: p.progress, completed: !!p.completed_at }]),
     );
     return list.map((q) => ({
       ...q,

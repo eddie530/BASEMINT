@@ -19,7 +19,6 @@ type Receipt = {
   imageUrl?: string;
 };
 
-
 const searchSchema = z.object({
   kind: z.enum(["coin", "nft"]).default("coin"),
 });
@@ -31,7 +30,10 @@ export const Route = createFileRoute("/create")({
       { title: "Create · Basemint" },
       { name: "description", content: "Launch a coin or NFT collection on Base in seconds." },
       { property: "og:title", content: "Create · Basemint" },
-      { property: "og:description", content: "Launch a coin or NFT collection on Base in seconds." },
+      {
+        property: "og:description",
+        content: "Launch a coin or NFT collection on Base in seconds.",
+      },
       { property: "og:url", content: "https://foxy-token-forge.lovable.app/create" },
     ],
     links: [{ rel: "canonical", href: "https://foxy-token-forge.lovable.app/create" }],
@@ -110,7 +112,10 @@ function MediaPicker({ onChange }: { onChange: (f: File | null) => void }) {
   );
 }
 
-function Field({ label, ...props }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+function Field({
+  label,
+  ...props
+}: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
       <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">{label}</span>
@@ -283,17 +288,33 @@ function CoinForm() {
   return (
     <div className="space-y-4">
       <MediaPicker onChange={setMedia} />
-      <Field label="Name" placeholder="Based Cat" value={name} onChange={(e) => setName(e.target.value)} />
+      <Field
+        label="Name"
+        placeholder="Based Cat"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
       <Field
         label="Ticker"
         placeholder="BCAT"
         value={symbol}
-        onChange={(e) => setSymbol(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8))}
+        onChange={(e) =>
+          setSymbol(
+            e.target.value
+              .toUpperCase()
+              .replace(/[^A-Z0-9]/g, "")
+              .slice(0, 8),
+          )
+        }
       />
 
       <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/60 font-mono leading-relaxed">
-        <p><span className="text-accent">●</span> Network: Base mainnet</p>
-        <p><span className="text-accent">●</span> Standard: Zora Coins (ERC-20 + curve)</p>
+        <p>
+          <span className="text-accent">●</span> Network: Base mainnet
+        </p>
+        <p>
+          <span className="text-accent">●</span> Standard: Zora Coins (ERC-20 + curve)
+        </p>
       </div>
 
       <DeployProgress steps={steps} onRetry={onDeploy} />
@@ -371,7 +392,10 @@ function NFTForm() {
       const contractUri = `data:application/json;utf8,${encodeURIComponent(
         JSON.stringify({ name, description: `${name} collection`, image: imageDataUri }),
       )}`;
-      update("meta", { status: "success", detail: imageDataUri ? "Image + JSON embedded" : "JSON only" });
+      update("meta", {
+        status: "success",
+        detail: imageDataUri ? "Image + JSON embedded" : "JSON only",
+      });
 
       update("prepare", { status: "active" });
       let parameters;
@@ -380,7 +404,9 @@ function NFTForm() {
         const { createCreatorClient } = await import("@zoralabs/protocol-sdk");
         const creatorClient = createCreatorClient({
           chainId: 8453,
-          publicClient: publicClient as unknown as Parameters<typeof createCreatorClient>[0]["publicClient"],
+          publicClient: publicClient as unknown as Parameters<
+            typeof createCreatorClient
+          >[0]["publicClient"],
         });
         const res = await creatorClient.create1155({
           contract: { name, uri: contractUri },
@@ -399,7 +425,10 @@ function NFTForm() {
         update("prepare", { status: "error", detail, hint });
         return;
       }
-      update("prepare", { status: "success", detail: `Collection ${contractAddress?.slice(0, 10)}…` });
+      update("prepare", {
+        status: "success",
+        detail: `Collection ${contractAddress?.slice(0, 10)}…`,
+      });
 
       update("sign", { status: "active" });
       let hash: `0x${string}`;
@@ -447,16 +476,38 @@ function NFTForm() {
   return (
     <div className="space-y-4">
       <MediaPicker onChange={setMedia} />
-      <Field label="Title" placeholder="Hyperstructure #04" value={name} onChange={(e) => setName(e.target.value)} />
+      <Field
+        label="Title"
+        placeholder="Hyperstructure #04"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Price (ETH)" type="number" step="0.0001" value={price} onChange={(e) => setPrice(e.target.value)} />
-        <Field label="Edition Supply" type="number" value={supply} onChange={(e) => setSupply(e.target.value)} />
+        <Field
+          label="Price (ETH)"
+          type="number"
+          step="0.0001"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+        <Field
+          label="Edition Supply"
+          type="number"
+          value={supply}
+          onChange={(e) => setSupply(e.target.value)}
+        />
       </div>
 
       <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/60 font-mono leading-relaxed">
-        <p><span className="text-accent">●</span> Network: Base mainnet</p>
-        <p><span className="text-accent">●</span> Standard: ERC-1155 edition (Zora)</p>
-        <p><span className="text-accent">●</span> Metadata: on-chain data URI (no IPFS)</p>
+        <p>
+          <span className="text-accent">●</span> Network: Base mainnet
+        </p>
+        <p>
+          <span className="text-accent">●</span> Standard: ERC-1155 edition (Zora)
+        </p>
+        <p>
+          <span className="text-accent">●</span> Metadata: on-chain data URI (no IPFS)
+        </p>
       </div>
 
       <DeployProgress steps={steps} onRetry={onMint} />
@@ -475,4 +526,3 @@ function NFTForm() {
     </div>
   );
 }
-

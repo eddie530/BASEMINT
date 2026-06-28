@@ -23,9 +23,17 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Basemint — Mint on Base" },
-      { name: "description", content: "Live Zora coin feed on Base. Trending tokens, recent launches, and one-tap minting." },
+      {
+        name: "description",
+        content:
+          "Live Zora coin feed on Base. Trending tokens, recent launches, and one-tap minting.",
+      },
       { property: "og:title", content: "Basemint — Mint on Base" },
-      { property: "og:description", content: "Live Zora coin feed on Base. Trending tokens, recent launches, and one-tap minting." },
+      {
+        property: "og:description",
+        content:
+          "Live Zora coin feed on Base. Trending tokens, recent launches, and one-tap minting.",
+      },
       { property: "og:url", content: "https://basemint.dev/" },
     ],
     links: [{ rel: "canonical", href: "https://basemint.dev/" }],
@@ -90,8 +98,12 @@ function FeedPage() {
       {recent.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-bold text-xl uppercase tracking-wider">Just Launched</h2>
-            <span className="text-[10px] text-white/40 font-mono uppercase tracking-widest">Newest first</span>
+            <h2 className="font-display font-bold text-xl uppercase tracking-wider">
+              Just Launched
+            </h2>
+            <span className="text-[10px] text-white/40 font-mono uppercase tracking-widest">
+              Newest first
+            </span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {recent.map((c) => (

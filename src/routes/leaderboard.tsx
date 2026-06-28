@@ -43,19 +43,22 @@ function LeaderboardPage() {
                   i === 0
                     ? "text-yellow-400"
                     : i === 1
-                    ? "text-zinc-300"
-                    : i === 2
-                    ? "text-amber-600"
-                    : "text-white/40"
+                      ? "text-zinc-300"
+                      : i === 2
+                        ? "text-amber-600"
+                        : "text-white/40"
                 }`}
               >
                 {i + 1}
               </span>
               <div className="min-w-0">
                 <div className="text-sm font-bold truncate">
-                  {r.display_name || `${r.wallet_address.slice(0, 6)}…${r.wallet_address.slice(-4)}`}
+                  {r.display_name ||
+                    `${r.wallet_address.slice(0, 6)}…${r.wallet_address.slice(-4)}`}
                 </div>
-                <div className="text-[10px] text-white/40 font-mono truncate">{r.wallet_address}</div>
+                <div className="text-[10px] text-white/40 font-mono truncate">
+                  {r.wallet_address}
+                </div>
               </div>
             </div>
             <div className="text-right">

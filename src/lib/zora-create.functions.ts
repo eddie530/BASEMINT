@@ -55,16 +55,15 @@ export const buildCreateCoinCalls = createServerFn({ method: "POST" })
       );
     }
 
-    const {
-      createCoinCall,
-      setApiKey,
-      createMetadataBuilder,
-      ZoraUploader,
-    } = await import("@zoralabs/coins-sdk");
+    const { createCoinCall, setApiKey, createMetadataBuilder, ZoraUploader } =
+      await import("@zoralabs/coins-sdk");
     setApiKey(apiKey);
 
     const creator = data.creator as `0x${string}`;
-    const symbol = data.symbol.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11);
+    const symbol = data.symbol
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 11);
     if (!symbol) throw new Error("Symbol must contain at least one A-Z/0-9 character.");
 
     // 1. Build + upload metadata to Zora's IPFS uploader.

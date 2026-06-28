@@ -42,9 +42,7 @@ function DeployPage() {
   return (
     <MiniAppShell>
       <div className="flex items-center justify-between">
-        <h1 className="font-display font-bold text-2xl uppercase tracking-tight">
-          Deploy on Base
-        </h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-tight">Deploy on Base</h1>
         <Rocket className="size-5 text-accent" />
       </div>
 
@@ -107,9 +105,7 @@ function Field({
 }: { label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">
-        {label}
-      </span>
+      <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">{label}</span>
       <input
         {...props}
         className="mt-1.5 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-accent/50 placeholder:text-white/25"
@@ -121,8 +117,8 @@ function Field({
 function FactoryMissing({ chainId }: { chainId: 8453 | 84532 }) {
   return (
     <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200">
-      No factory configured for {chainId === base.id ? "Base mainnet" : "Base Sepolia"}. Deploy
-      the factory via <code className="text-red-100">forge script</code> in{" "}
+      No factory configured for {chainId === base.id ? "Base mainnet" : "Base Sepolia"}. Deploy the
+      factory via <code className="text-red-100">forge script</code> in{" "}
       <code className="text-red-100">/contracts</code>, then set the matching{" "}
       <code className="text-red-100">VITE_*_FACTORY_*</code> env var.
     </div>
@@ -248,24 +244,51 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
 
   return (
     <div className="space-y-4">
-      <Field label="Name" placeholder="Basemint Token" value={name} onChange={(e) => setName(e.target.value)} />
+      <Field
+        label="Name"
+        placeholder="Basemint Token"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
       <Field
         label="Ticker"
         placeholder="BMT"
         value={symbol}
         onChange={(e) =>
-          setSymbol(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11))
+          setSymbol(
+            e.target.value
+              .toUpperCase()
+              .replace(/[^A-Z0-9]/g, "")
+              .slice(0, 11),
+          )
         }
       />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Decimals" type="number" value={decimals} onChange={(e) => setDecimals(e.target.value)} />
-        <Field label="Initial Supply" type="number" value={supply} onChange={(e) => setSupply(e.target.value)} />
+        <Field
+          label="Decimals"
+          type="number"
+          value={decimals}
+          onChange={(e) => setDecimals(e.target.value)}
+        />
+        <Field
+          label="Initial Supply"
+          type="number"
+          value={supply}
+          onChange={(e) => setSupply(e.target.value)}
+        />
       </div>
 
       <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/60 font-mono leading-relaxed">
-        <p><span className="text-accent">●</span> Network: {chainId === base.id ? "Base mainnet" : "Base Sepolia"}</p>
-        <p><span className="text-accent">●</span> Standard: ERC20 + Pausable + ReentrancyGuard</p>
-        <p><span className="text-accent">●</span> Creation fee: {creationFee.toString()} wei</p>
+        <p>
+          <span className="text-accent">●</span> Network:{" "}
+          {chainId === base.id ? "Base mainnet" : "Base Sepolia"}
+        </p>
+        <p>
+          <span className="text-accent">●</span> Standard: ERC20 + Pausable + ReentrancyGuard
+        </p>
+        <p>
+          <span className="text-accent">●</span> Creation fee: {creationFee.toString()} wei
+        </p>
       </div>
 
       {!factory && <FactoryMissing chainId={chainId} />}
@@ -374,25 +397,58 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
 
   return (
     <div className="space-y-4">
-      <Field label="Name" placeholder="Basemint Collection" value={name} onChange={(e) => setName(e.target.value)} />
+      <Field
+        label="Name"
+        placeholder="Basemint Collection"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
       <Field
         label="Symbol"
         placeholder="BMNFT"
         value={symbol}
         onChange={(e) =>
-          setSymbol(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11))
+          setSymbol(
+            e.target.value
+              .toUpperCase()
+              .replace(/[^A-Z0-9]/g, "")
+              .slice(0, 11),
+          )
         }
       />
-      <Field label="Base URI" placeholder="ipfs://CID/" value={baseURI} onChange={(e) => setBaseURI(e.target.value)} />
+      <Field
+        label="Base URI"
+        placeholder="ipfs://CID/"
+        value={baseURI}
+        onChange={(e) => setBaseURI(e.target.value)}
+      />
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Max Supply" type="number" value={maxSupply} onChange={(e) => setMaxSupply(e.target.value)} />
-        <Field label="Mint Price (ETH)" type="number" step="0.0001" value={mintPrice} onChange={(e) => setMintPrice(e.target.value)} />
+        <Field
+          label="Max Supply"
+          type="number"
+          value={maxSupply}
+          onChange={(e) => setMaxSupply(e.target.value)}
+        />
+        <Field
+          label="Mint Price (ETH)"
+          type="number"
+          step="0.0001"
+          value={mintPrice}
+          onChange={(e) => setMintPrice(e.target.value)}
+        />
       </div>
 
       <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/60 font-mono leading-relaxed">
-        <p><span className="text-accent">●</span> Network: {chainId === base.id ? "Base mainnet" : "Base Sepolia"}</p>
-        <p><span className="text-accent">●</span> Standard: ERC721 + Pausable + ReentrancyGuard</p>
-        <p><span className="text-accent">●</span> Creation fee: {creationFee.toString()} wei</p>
+        <p>
+          <span className="text-accent">●</span> Network:{" "}
+          {chainId === base.id ? "Base mainnet" : "Base Sepolia"}
+        </p>
+        <p>
+          <span className="text-accent">●</span> Standard: ERC721 + Pausable + ReentrancyGuard
+        </p>
+        <p>
+          <span className="text-accent">●</span> Creation fee: {creationFee.toString()} wei
+        </p>
       </div>
 
       {!factory && <FactoryMissing chainId={chainId} />}

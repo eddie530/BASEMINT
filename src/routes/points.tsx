@@ -15,7 +15,10 @@ export const Route = createFileRoute("/points")({
   head: () => ({
     meta: [
       { title: "Points · Basemint" },
-      { name: "description", content: "Earn Basemint Points for creating, collecting, referring, and showing up daily." },
+      {
+        name: "description",
+        content: "Earn Basemint Points for creating, collecting, referring, and showing up daily.",
+      },
     ],
   }),
   component: PointsPage,
@@ -60,7 +63,8 @@ function PointsPage() {
           <Sparkles className="size-10 text-accent mx-auto" />
           <h1 className="font-display font-bold text-2xl uppercase">Basemint Points</h1>
           <p className="text-white/60 text-sm px-6">
-            Earn points for launching, collecting, referring, and checking in daily. Connect your wallet to start.
+            Earn points for launching, collecting, referring, and checking in daily. Connect your
+            wallet to start.
           </p>
           <button
             onClick={connectWallet}
@@ -91,7 +95,9 @@ function PointsPage() {
       </div>
 
       <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-accent/20 via-black to-black p-5">
-        <div className="text-[11px] font-bold uppercase tracking-widest text-white/50">Your balance</div>
+        <div className="text-[11px] font-bold uppercase tracking-widest text-white/50">
+          Your balance
+        </div>
         <div className="mt-1 flex items-baseline gap-2">
           <span className="font-display font-bold text-5xl text-accent">{s?.balance ?? 0}</span>
           <span className="text-xs font-mono text-white/60">pts</span>
@@ -106,7 +112,8 @@ function PointsPage() {
         <div className="flex-1">
           <div className="text-sm font-bold">Daily check-in</div>
           <div className="text-[11px] text-white/50">
-            Streak: {s?.daily.streak ?? 0} day{(s?.daily.streak ?? 0) === 1 ? "" : "s"} · Next: +{s?.daily.next_reward ?? 10}
+            Streak: {s?.daily.streak ?? 0} day{(s?.daily.streak ?? 0) === 1 ? "" : "s"} · Next: +
+            {s?.daily.next_reward ?? 10}
           </div>
         </div>
         <button
@@ -148,7 +155,9 @@ function PointsPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 px-1">Recent activity</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 px-1">
+          Recent activity
+        </h2>
         <div className="rounded-2xl border border-white/10 bg-white/5 divide-y divide-white/5">
           {(s?.recent ?? []).slice(0, 8).map((e) => (
             <div key={e.id} className="px-4 py-2.5 flex items-center justify-between text-xs">
@@ -173,7 +182,9 @@ function PointsPage() {
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 px-1">Top earners</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-white/50 px-1">
+          Top earners
+        </h2>
         <div className="rounded-2xl border border-white/10 bg-white/5 divide-y divide-white/5">
           {(board.data ?? []).slice(0, 5).map((r, i) => (
             <Link
@@ -185,7 +196,8 @@ function PointsPage() {
               <div className="flex items-center gap-3">
                 <span className="text-white/40 font-mono w-5">{i + 1}</span>
                 <span className="font-medium truncate max-w-[160px]">
-                  {r.display_name || `${r.wallet_address.slice(0, 6)}…${r.wallet_address.slice(-4)}`}
+                  {r.display_name ||
+                    `${r.wallet_address.slice(0, 6)}…${r.wallet_address.slice(-4)}`}
                 </span>
               </div>
               <span className="font-mono text-accent">{r.total}</span>

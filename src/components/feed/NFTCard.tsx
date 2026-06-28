@@ -22,7 +22,10 @@ export function NFTCard({ nft }: { nft: CoinDTO }) {
           <div className="min-w-0">
             <h3 className="font-bold text-base truncate">{nft.name}</h3>
             <p className="text-white/40 text-xs truncate">
-              by {nft.creatorHandle ? `@${nft.creatorHandle}` : (nft.creatorAddress?.slice(0, 6) ?? "—")}
+              by{" "}
+              {nft.creatorHandle
+                ? `@${nft.creatorHandle}`
+                : (nft.creatorAddress?.slice(0, 6) ?? "—")}
             </p>
           </div>
           <div className="text-right">
