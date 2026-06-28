@@ -1,10 +1,15 @@
 import { http, createConfig } from "wagmi";
-import { base } from "wagmi/chains";
+import { base, baseSepolia } from "wagmi/chains";
 import { injected, coinbaseWallet } from "wagmi/connectors";
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 
+const BASE_RPC_URL =
+  import.meta.env.VITE_BASE_RPC_URL || "https://mainnet.base.org";
+const BASE_SEPOLIA_RPC_URL =
+  import.meta.env.VITE_BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
+
 export const wagmiConfig = createConfig({
-  chains: [base],
+  chains: [base, baseSepolia],
   connectors: [
     farcasterMiniApp(),
     injected(),
@@ -14,7 +19,8 @@ export const wagmiConfig = createConfig({
     }),
   ],
   transports: {
-    [base.id]: http("https://mainnet.base.org"),
+    [base.id]: http(BASE_RPC_URL),
+    [baseSepolia.id]: http(BASE_SEPOLIA_RPC_URL),
   },
   ssr: true,
 });
