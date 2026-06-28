@@ -118,7 +118,7 @@ function Field({
   );
 }
 
-function FactoryMissing({ chainId }: { chainId: number }) {
+function FactoryMissing({ chainId }: { chainId: 8453 | 84532 }) {
   return (
     <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200">
       No factory configured for {chainId === base.id ? "Base mainnet" : "Base Sepolia"}. Deploy
@@ -134,7 +134,7 @@ function ResultLinks({
   txHash,
   contract,
 }: {
-  chainId: number;
+  chainId: 8453 | 84532;
   txHash?: `0x${string}`;
   contract?: `0x${string}`;
 }) {
@@ -165,7 +165,7 @@ function ResultLinks({
   );
 }
 
-function TokenDeployForm({ chainId }: { chainId: number }) {
+function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.tokenFactory;
   const { isConnected, address } = useAccount();
   const { connectWallet, message: connectMessage } = useConnectWallet();
@@ -286,7 +286,7 @@ function TokenDeployForm({ chainId }: { chainId: number }) {
   );
 }
 
-function NFTDeployForm({ chainId }: { chainId: number }) {
+function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.nftFactory;
   const { isConnected, address } = useAccount();
   const { connectWallet, message: connectMessage } = useConnectWallet();

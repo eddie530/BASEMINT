@@ -13,6 +13,7 @@ import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as DeployRouteImport } from './routes/deploy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as IndexRouteImport } from './routes/index'
@@ -39,6 +40,11 @@ const PointsRoute = PointsRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeployRoute = DeployRouteImport.update({
+  id: '/deploy',
+  path: '/deploy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/deploy': typeof DeployRoute
   '/leaderboard': typeof LeaderboardRoute
   '/points': typeof PointsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/deploy': typeof DeployRoute
   '/leaderboard': typeof LeaderboardRoute
   '/points': typeof PointsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
+  '/deploy': typeof DeployRoute
   '/leaderboard': typeof LeaderboardRoute
   '/points': typeof PointsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/dashboard'
+    | '/deploy'
     | '/leaderboard'
     | '/points'
     | '/sitemap.xml'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/dashboard'
+    | '/deploy'
     | '/leaderboard'
     | '/points'
     | '/sitemap.xml'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/create'
     | '/dashboard'
+    | '/deploy'
     | '/leaderboard'
     | '/points'
     | '/sitemap.xml'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
+  DeployRoute: typeof DeployRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PointsRoute: typeof PointsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deploy': {
+      id: '/deploy'
+      path: '/deploy'
+      fullPath: '/deploy'
+      preLoaderRoute: typeof DeployRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
+  DeployRoute: DeployRoute,
   LeaderboardRoute: LeaderboardRoute,
   PointsRoute: PointsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
