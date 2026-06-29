@@ -82,6 +82,8 @@ export default defineConfig({
         // Farcaster SDK pulls @solana/web3.js -> rpc-websockets, which breaks browser bundling.
         { find: /^rpc-websockets$/, replacement: shimRpcWs },
         { find: /^rpc-websockets\/dist\/.*$/, replacement: shimRpcWs },
+        // @coinbase/cdp-react CSS contains a remote @import url(...) Lightning CSS can't fetch.
+        { find: /@coinbase\/cdp-react\/.*\.css$/, replacement: shimEmptyCss },
       ],
     },
   },
