@@ -29,8 +29,8 @@ export type SendResult = {
  * failure of the sponsored path. Always returns the final on-chain receipt.
  */
 export async function sendSponsoredOrFallback(args: {
-  walletClient: WalletClient;
-  publicClient: PublicClient;
+  walletClient: AnyWalletClient;
+  publicClient: AnyPublicClient;
   account: `0x${string}`;
   chainId: number;
   connectorId: string | undefined;
