@@ -161,6 +161,16 @@ function CoinForm() {
       reset([{ id: "validate", label: "Add a name and ticker.", status: "error" }]);
       return;
     }
+    if (!media) {
+      reset([
+        {
+          id: "validate",
+          label: "Upload an image — required to deploy a coin.",
+          status: "error",
+        },
+      ]);
+      return;
+    }
     if (!walletClient || !publicClient || !address) {
       reset([{ id: "wallet", label: "Wallet not ready.", status: "error" }]);
       return;
