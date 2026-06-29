@@ -29,7 +29,12 @@ export default defineConfig({
         // We don't use Solana, so stub it out.
         { find: /^rpc-websockets$/, replacement: shimRpcWs },
         { find: /^rpc-websockets\/dist\/.*$/, replacement: shimRpcWs },
+        // srvx (Nitro/Vercel SSR runtime) imports `node:stream/promises`. The nodePolyfills
+        // plugin rewrites that to `stream-browserify/promises`, which doesn't exist and
+        // breaks the Vercel build. Force it back to the real Node built-in.
+        { find: /^stream-browserify\/promises$/, replacement: "node:stream/promises" },
       ],
     },
+
   },
 });
