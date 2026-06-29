@@ -15,13 +15,12 @@ export function openCdpSignIn() {
   openListeners.forEach((l) => l());
 }
 
-const cdpTheme = {
-  "colors-background": "#0a0a0a",
-  "colors-backgroundOverlay": "rgba(0,0,0,0.7)",
-  "colors-text": "#ffffff",
-  "colors-textSecondary": "rgba(255,255,255,0.6)",
-  "colors-primary": "#3b82f6",
-  "colors-borderLine": "rgba(255,255,255,0.1)",
+const cdpTheme: Partial<Record<string, string>> = {
+  "colors-bg-primary": "#0a0a0a",
+  "colors-bg-secondary": "#0a0a0a",
+  "colors-fg-primary": "#ffffff",
+  "colors-fg-secondary": "rgba(255,255,255,0.6)",
+  "colors-line-primary": "rgba(255,255,255,0.1)",
 };
 
 export function Web3Providers({ children }: { children: ReactNode }) {
