@@ -363,8 +363,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
       }
-      const hash = await walletClient.writeContract({
-        address: factory,
+      const data = encodeFunctionData({
         abi: NFT_FACTORY_ABI,
         functionName: "createCollection",
         args: [
@@ -374,13 +373,17 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
           BigInt(maxSupply || "0"),
           parseEther(mintPrice || "0"),
         ],
-        value: creationFee,
-        chain: chainId === base.id ? base : baseSepolia,
-        account: address,
       });
-      setTxHash(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      for (const log of receipt.logs) {
+      const result = await sendSponsoredOrFallback({
+        walletClient,
+        publicClient,
+        account: address,
+        chainId,
+        connectorId: connector?.id,
+        calls: [{ to: factory, data, value: creationFee }],
+      });
+      setTxHash(result.txHash);
+      for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
             abi: NFT_FACTORY_ABI,
