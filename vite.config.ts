@@ -3,10 +3,7 @@ import path from "node:path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 const shimRpcWs = path.resolve(process.cwd(), "src/lib/shims/rpc-websockets.ts");
-const shimStreamPromises = path.resolve(
-  process.cwd(),
-  "src/lib/shims/node-stream-promises.mjs",
-);
+const shimStreamPromises = path.resolve(process.cwd(), "src/lib/shims/node-stream-promises.mjs");
 const shimStreamWeb = path.resolve(process.cwd(), "src/lib/shims/node-stream-web.mjs");
 
 export default defineConfig({
