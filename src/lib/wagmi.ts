@@ -41,7 +41,7 @@ export const wagmiConfig = createConfig({
       appName: "Basemint",
       appLogoUrl: "https://basemint.dev/icon-512.png",
       preference: "smartWalletOnly",
-      paymasterUrls: CDP_PAYMASTER_URLS,
+      paymasterUrls: CDP_PAYMASTER_URLS as Record<number, string>,
     }),
   ],
   transports: {
