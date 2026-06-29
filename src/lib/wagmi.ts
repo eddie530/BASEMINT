@@ -33,9 +33,11 @@ export const cdpConfig = {
   appName: "Basemint",
   appLogoUrl: "https://basemint.dev/icon-512.png",
   ethereum: { createOnLogin: "eoa" as const },
-  authMethods: ["email", "oauth:google", "oauth:apple"] as Array<
-    "email" | "sms" | "oauth:google" | "oauth:apple"
-  >,
+  authMethods: ["email", "oauth:google", "oauth:apple"] as [
+    "email",
+    "oauth:google",
+    "oauth:apple",
+  ],
 };
 
 const connectors = [
