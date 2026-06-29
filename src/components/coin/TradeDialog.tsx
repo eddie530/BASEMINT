@@ -1,9 +1,11 @@
 import { useCallback, useState } from "react";
 import { useAccount, useBalance, usePublicClient, useReadContract, useWalletClient } from "wagmi";
-import { erc20Abi, formatEther, parseEther, parseUnits, maxUint256 } from "viem";
-import { Loader2, X } from "lucide-react";
+import { encodeFunctionData, erc20Abi, formatEther, parseEther, parseUnits, maxUint256 } from "viem";
+import { Loader2, X, Zap } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
+import { isGaslessEligible } from "@/lib/wagmi";
 
 type Side = "buy" | "sell";
 
