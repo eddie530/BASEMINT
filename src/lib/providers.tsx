@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, type ReactNode } from "react";
 import { WagmiProvider } from "wagmi";
-import { CDPReactProvider } from "@coinbase/cdp-react";
+import { CDPReactProvider } from "@coinbase/cdp-react/components/CDPReactProvider";
 import { wagmiConfig, cdpConfig } from "./wagmi";
 
 /**
@@ -81,7 +81,7 @@ function CdpSignInModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     let cancelled = false;
-    import("@coinbase/cdp-react").then((m) => {
+    import("@coinbase/cdp-react/components/SignIn").then((m) => {
       if (!cancelled) setMod({ SignIn: m.SignIn as never });
     });
     return () => {
