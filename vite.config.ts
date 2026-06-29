@@ -49,14 +49,22 @@ export default defineConfig({
         load(id: string) {
           for (const sub of STREAM_SUBPATHS) {
             if (id === resolvedShimIdFor(sub)) {
+              // Use string concatenation so the bundler can't statically
+              // resolve (and rewrite) the specifier. Top-level await is
+              // supported in the Vercel/Nitro SSR ESM output.
               return `
-const load = () => import("node:" + "stream/${sub}");
-const mod = await load();
-export default mod.default ?? mod;
-export const {
-${Object.keys({}).join("")}
-} = {};
-export * from "node:stream/${sub}";
+const mod = await import("node:" + "stream/${sub}");
+const _default = mod.default ?? mod;
+export default _default;
+export const pipeline = mod.pipeline;
+export const finished = mod.finished;
+export const ReadableStream = mod.ReadableStream ?? globalThis.ReadableStream;
+export const WritableStream = mod.WritableStream ?? globalThis.WritableStream;
+export const TransformStream = mod.TransformStream ?? globalThis.TransformStream;
+export const ByteLengthQueuingStrategy = mod.ByteLengthQueuingStrategy ?? globalThis.ByteLengthQueuingStrategy;
+export const CountQueuingStrategy = mod.CountQueuingStrategy ?? globalThis.CountQueuingStrategy;
+export const TextDecoderStream = mod.TextDecoderStream ?? globalThis.TextDecoderStream;
+export const TextEncoderStream = mod.TextEncoderStream ?? globalThis.TextEncoderStream;
 `;
             }
           }
