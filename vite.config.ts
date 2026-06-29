@@ -23,6 +23,8 @@ export default defineConfig({
         resolveId(id: string) {
           if (
             id === nodeStreamPromisesShim ||
+            id === "node:stream/promises" ||
+            id === "stream/promises" ||
             id === "stream-browserify/promises" ||
             id.endsWith("/node_modules/stream-browserify/promises") ||
             id.endsWith("/stream-browserify/promises")
