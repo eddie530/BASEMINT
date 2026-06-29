@@ -5,6 +5,24 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 const shimRpcWs = path.resolve(process.cwd(), "src/lib/shims/rpc-websockets.ts");
 const shimStreamPromises = path.resolve(process.cwd(), "src/lib/shims/node-stream-promises.mjs");
 const shimStreamWeb = path.resolve(process.cwd(), "src/lib/shims/node-stream-web.mjs");
+const shimEmptyCss = path.resolve(process.cwd(), "src/lib/shims/empty.css");
+
+// @coinbase/cdp-react ships CSS files that (a) Node SSR can't import as ESM
+// and (b) contain a remote `@import url(https://fonts.googleapis.com/...)`
+// that Lightning CSS tries to read from disk. We swap every cdp-react CSS
+// asset for an empty stylesheet — the SignIn modal still renders with its
+// inline theme tokens.
+const cdpReactCssShimPlugin = {
+  name: "basemint:shim-cdp-react-css",
+  enforce: "pre" as const,
+  resolveId(id: string) {
+    if (id.includes("@coinbase/cdp-react") && id.endsWith(".css")) {
+      return shimEmptyCss;
+    }
+    return null;
+  },
+};
+
 
 // Pre-resolver that catches both bare specifiers AND absolute node_modules
 // paths the polyfill plugin rewrites to (e.g. `/vercel/path0/node_modules/
