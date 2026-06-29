@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
 import { useConnect } from "wagmi";
 import { base } from "wagmi/chains";
+import { openCdpSignIn } from "./providers";
 
 export function useConnectWallet() {
   const { connect, connectors, isPending } = useConnect();
   const [message, setMessage] = useState<string>();
 
   const connectWith = useCallback(
-    (preferred?: "farcaster" | "injected" | "coinbase") => {
+    (preferred?: "farcaster" | "injected" | "coinbase" | "cdp") => {
       setMessage(undefined);
       const fc = connectors.find((c) => c.id === "farcasterMiniApp" || c.id === "farcaster");
       const inj = connectors.find((c) => c.type === "injected");
@@ -19,6 +20,13 @@ export function useConnectWallet() {
           /Warpcast|Farcaster/i.test(navigator.userAgent));
 
       const hasInjectedWallet = typeof window !== "undefined" && "ethereum" in window;
+
+      if (preferred === "cdp") {
+        // Open the CDP <SignIn /> modal; the cdp-embedded-wallet wagmi
+        // connector auto-connects when sign-in resolves.
+        openCdpSignIn();
+        return;
+      }
 
       let chosen;
       if (preferred === "farcaster") chosen = fc;

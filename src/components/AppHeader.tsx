@@ -47,6 +47,14 @@ export function AppHeader() {
           </button>
           {open ? (
             <div className="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-black/95 p-2 shadow-xl z-40">
+              <MenuItem
+                label="Email / Google / Apple"
+                hint="CDP Embedded Wallet"
+                onClick={() => {
+                  setOpen(false);
+                  connectWith("cdp");
+                }}
+              />
               {hasInjected ? (
                 <MenuItem
                   label="Browser wallet"
