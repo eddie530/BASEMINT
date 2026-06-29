@@ -1,4 +1,13 @@
-import type { PublicClient, TransactionReceipt, WalletClient } from "viem";
+import type { TransactionReceipt } from "viem";
+// Wagmi's client types are chain-narrowed which conflicts with viem's generic
+// WalletClient/PublicClient; we accept loose types here to stay decoupled.
+type AnyWalletClient = {
+  sendTransaction: (p: unknown) => Promise<`0x${string}`>;
+  chain?: { id: number } | null;
+};
+type AnyPublicClient = {
+  waitForTransactionReceipt: (p: { hash: `0x${string}` }) => Promise<TransactionReceipt>;
+};
 import { base, baseSepolia } from "wagmi/chains";
 import { CDP_PAYMASTER_URLS, isGaslessEligible } from "@/lib/wagmi";
 
