@@ -29,14 +29,16 @@ export type SendResult = {
  * failure of the sponsored path. Always returns the final on-chain receipt.
  */
 export async function sendSponsoredOrFallback(args: {
-  walletClient: AnyWalletClient;
-  publicClient: AnyPublicClient;
+  walletClient: unknown;
+  publicClient: unknown;
   account: `0x${string}`;
   chainId: number;
   connectorId: string | undefined;
   calls: Call[];
 }): Promise<SendResult> {
-  const { walletClient, publicClient, account, chainId, connectorId, calls } = args;
+  const walletClient = args.walletClient as AnyWalletClient;
+  const publicClient = args.publicClient as AnyPublicClient;
+  const { account, chainId, connectorId, calls } = args;
   const paymasterUrl = CDP_PAYMASTER_URLS[chainId];
   const eligible = isGaslessEligible(connectorId, chainId) && !!paymasterUrl;
 
