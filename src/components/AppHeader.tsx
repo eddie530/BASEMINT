@@ -58,8 +58,8 @@ export function AppHeader() {
                 />
               ) : null}
               <MenuItem
-                label="Coinbase Wallet"
-                hint="Smart Wallet · no install"
+                label="Base Account"
+                hint="Smart Wallet · passkey, no install"
                 onClick={() => {
                   setOpen(false);
                   connectWith("coinbase");
