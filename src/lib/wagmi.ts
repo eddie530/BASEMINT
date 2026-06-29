@@ -13,7 +13,7 @@ const BASE_SEPOLIA_RPC_URL =
  * `wallet_sendCalls` (and `wallet_getCapabilities` reports
  * `paymasterService.supported: true`).
  */
-export const CDP_PAYMASTER_URLS: Record<number, string> = {
+export const CDP_PAYMASTER_URLS: Record<number, string | undefined> = {
   ...(import.meta.env.VITE_CDP_PAYMASTER_URL_BASE
     ? { [base.id]: import.meta.env.VITE_CDP_PAYMASTER_URL_BASE as string }
     : {}),
