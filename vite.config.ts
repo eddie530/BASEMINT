@@ -10,10 +10,24 @@ export default defineConfig({
   },
   vite: {
     plugins: [
+      // srvx (Nitro/Vercel SSR runtime) imports `node:stream/promises`. The
+      // nodePolyfills plugin rewrites that to `stream-browserify/promises`,
+      // which doesn't exist on disk. Intercept the bare specifier with a
+      // pre-resolver and externalize it back to the real Node built-in so
+      // the Nitro/Vercel build doesn't try to bundle it.
+      {
+        name: "basemint:force-node-stream-promises",
+        enforce: "pre" as const,
+        resolveId(id: string) {
+          if (id === "stream-browserify/promises" || id === "node:stream/promises") {
+            return { id: "node:stream/promises", external: true };
+          }
+          return null;
+        },
+      },
       // Polyfills are only needed for the browser bundle. Scoping them to the
       // client environment prevents them from aliasing `stream` -> `stream-browserify`
-      // in the SSR/Nitro/Worker builds, which breaks srvx's `stream/promises` import
-      // on Vercel.
+      // in the SSR/Nitro/Worker builds.
       ...nodePolyfills({
         include: ["buffer", "util", "stream", "events"],
         globals: { Buffer: true, global: true, process: false },
@@ -29,12 +43,7 @@ export default defineConfig({
         // We don't use Solana, so stub it out.
         { find: /^rpc-websockets$/, replacement: shimRpcWs },
         { find: /^rpc-websockets\/dist\/.*$/, replacement: shimRpcWs },
-        // srvx (Nitro/Vercel SSR runtime) imports `node:stream/promises`. The nodePolyfills
-        // plugin rewrites that to `stream-browserify/promises`, which doesn't exist and
-        // breaks the Vercel build. Force it back to the real Node built-in.
-        { find: /^stream-browserify\/promises$/, replacement: "node:stream/promises" },
       ],
     },
-
   },
 });
