@@ -297,7 +297,14 @@ function CoinForm() {
 
   return (
     <div className="space-y-4">
-      <MediaPicker onChange={setMedia} />
+      <div>
+        <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">
+          Image <span className="text-accent">*required</span>
+        </span>
+        <div className="mt-1.5">
+          <MediaPicker onChange={setMedia} />
+        </div>
+      </div>
       <Field
         label="Name"
         placeholder="Based Cat"
