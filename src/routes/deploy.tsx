@@ -297,6 +297,13 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         </p>
       </div>
 
+      {sponsored && (
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+          <Zap className="size-3" /> Gasless via Base paymaster
+        </div>
+      )}
+
+
       {!factory && <FactoryMissing chainId={chainId} />}
       {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
       {err && <p className="text-xs text-red-300 break-words">{err}</p>}
