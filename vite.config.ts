@@ -57,6 +57,7 @@ export default defineConfig({
   },
   vite: {
     plugins: [
+      cdpReactCssShimPlugin,
       streamSubpathShimPlugin,
       // Polyfills are only needed for the browser bundle. Scoping them to the
       // client environment prevents them from aliasing `stream` -> `stream-browserify`
