@@ -2,10 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
-import { decodeEventLog, parseEther, parseUnits } from "viem";
-import { Loader2, ExternalLink, Rocket } from "lucide-react";
+import { decodeEventLog, encodeFunctionData, parseEther, parseUnits } from "viem";
+import { Loader2, ExternalLink, Rocket, Zap } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
+import { isGaslessEligible } from "@/lib/wagmi";
 import {
   FACTORY_ADDRESSES,
   NFT_FACTORY_ABI,
@@ -163,7 +165,8 @@ function ResultLinks({
 
 function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.tokenFactory;
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
   const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
@@ -209,18 +212,21 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       }
       const dec = Number(decimals) || 18;
       const initial = parseUnits(supply || "0", dec);
-      const hash = await walletClient.writeContract({
-        address: factory,
+      const data = encodeFunctionData({
         abi: TOKEN_FACTORY_ABI,
         functionName: "createToken",
         args: [name, symbol.toUpperCase(), dec, initial],
-        value: creationFee,
-        chain: chainId === base.id ? base : baseSepolia,
-        account: address,
       });
-      setTxHash(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      for (const log of receipt.logs) {
+      const result = await sendSponsoredOrFallback({
+        walletClient,
+        publicClient,
+        account: address,
+        chainId,
+        connectorId: connector?.id,
+        calls: [{ to: factory, data, value: creationFee }],
+      });
+      setTxHash(result.txHash);
+      for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
             abi: TOKEN_FACTORY_ABI,
@@ -291,6 +297,13 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         </p>
       </div>
 
+      {sponsored && (
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+          <Zap className="size-3" /> Gasless via Base paymaster
+        </div>
+      )}
+
+
       {!factory && <FactoryMissing chainId={chainId} />}
       {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
       {err && <p className="text-xs text-red-300 break-words">{err}</p>}
@@ -311,7 +324,8 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
 
 function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.nftFactory;
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
   const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
@@ -356,8 +370,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
       }
-      const hash = await walletClient.writeContract({
-        address: factory,
+      const data = encodeFunctionData({
         abi: NFT_FACTORY_ABI,
         functionName: "createCollection",
         args: [
@@ -367,13 +380,17 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
           BigInt(maxSupply || "0"),
           parseEther(mintPrice || "0"),
         ],
-        value: creationFee,
-        chain: chainId === base.id ? base : baseSepolia,
-        account: address,
       });
-      setTxHash(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      for (const log of receipt.logs) {
+      const result = await sendSponsoredOrFallback({
+        walletClient,
+        publicClient,
+        account: address,
+        chainId,
+        connectorId: connector?.id,
+        calls: [{ to: factory, data, value: creationFee }],
+      });
+      setTxHash(result.txHash);
+      for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
             abi: NFT_FACTORY_ABI,
@@ -450,6 +467,14 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
           <span className="text-accent">●</span> Creation fee: {creationFee.toString()} wei
         </p>
       </div>
+
+      {sponsored && (
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+          <Zap className="size-3" /> Gasless via Base paymaster
+        </div>
+      )}
+
+
 
       {!factory && <FactoryMissing chainId={chainId} />}
       {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}

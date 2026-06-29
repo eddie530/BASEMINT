@@ -1,9 +1,11 @@
 import { useCallback, useState } from "react";
 import { useAccount, useBalance, usePublicClient, useReadContract, useWalletClient } from "wagmi";
-import { erc20Abi, formatEther, parseEther, parseUnits, maxUint256 } from "viem";
-import { Loader2, X } from "lucide-react";
+import { encodeFunctionData, erc20Abi, formatEther, parseEther, parseUnits, maxUint256 } from "viem";
+import { Loader2, X, Zap } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
+import { isGaslessEligible } from "@/lib/wagmi";
 
 type Side = "buy" | "sell";
 
@@ -18,7 +20,8 @@ export function TradeDialog({
   coinSymbol: string;
   onClose: () => void;
 }) {
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected, chainId, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
   const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
@@ -132,7 +135,10 @@ export function TradeDialog({
         detail: `~${outAmt.toFixed(6)} ${outSymbol} (slip ${(prep.slippage * 100).toFixed(1)}%)`,
       });
 
-      // 3. approve if sell
+      // 3. approve if sell — batched into sendCalls when sponsored
+      const callsToSend: { to: `0x${string}`; data: `0x${string}`; value?: bigint }[] = [];
+      let approveHashLegacy: `0x${string}` | undefined;
+      let approveSkipped = false;
       if (side === "sell") {
         update("approve", { status: "active" });
         try {
@@ -142,17 +148,31 @@ export function TradeDialog({
             functionName: "allowance",
             args: [address, prep.call.target],
           })) as bigint;
-          if (allowance < amountInWei) {
-            const approveHash = await walletClient.writeContract({
+          if (allowance >= amountInWei) {
+            approveSkipped = true;
+            update("approve", { status: "success", detail: "Already approved." });
+          } else if (sponsored) {
+            callsToSend.push({
+              to: coinAddress,
+              data: encodeFunctionData({
+                abi: erc20Abi,
+                functionName: "approve",
+                args: [prep.call.target, maxUint256],
+              }),
+            });
+            update("approve", {
+              status: "success",
+              detail: "Batched into sponsored bundle ⚡",
+            });
+          } else {
+            approveHashLegacy = await walletClient.writeContract({
               address: coinAddress,
               abi: erc20Abi,
               functionName: "approve",
               args: [prep.call.target, maxUint256],
             });
-            await publicClient.waitForTransactionReceipt({ hash: approveHash });
-            update("approve", { status: "success", txHash: approveHash });
-          } else {
-            update("approve", { status: "success", detail: "Already approved." });
+            await publicClient.waitForTransactionReceipt({ hash: approveHashLegacy });
+            update("approve", { status: "success", txHash: approveHashLegacy });
           }
         } catch (e) {
           const { detail, hint } = explainError(e);
@@ -161,31 +181,39 @@ export function TradeDialog({
         }
       }
 
-      // 4. sign / broadcast
+      // 4. sign / broadcast (sponsored via sendCalls or fallback sendTransaction)
+      callsToSend.push({
+        to: prep.call.target,
+        data: prep.call.data,
+        value: BigInt(prep.call.value),
+      });
       update("sign", { status: "active" });
       let hash: `0x${string}`;
+      let wasSponsored = false;
       try {
-        hash = await walletClient.sendTransaction({
-          to: prep.call.target,
-          data: prep.call.data,
-          value: BigInt(prep.call.value),
+        const result = await sendSponsoredOrFallback({
+          walletClient,
+          publicClient,
+          account: address,
+          chainId: 8453,
+          connectorId: connector?.id,
+          calls: callsToSend,
         });
+        hash = result.txHash;
+        wasSponsored = result.sponsored;
       } catch (e) {
         const { detail, hint } = explainError(e);
         update("sign", { status: "error", detail, hint });
         return;
       }
-      update("sign", { status: "success", txHash: hash });
+      update("sign", {
+        status: "success",
+        txHash: hash,
+        detail: wasSponsored ? "⚡ Sponsored via Base paymaster (gasless)" : undefined,
+      });
 
-      // 5. confirm
+      // 5. confirm — receipt already fetched inside helper, but keep step for UX parity
       update("confirm", { status: "active" });
-      try {
-        await publicClient.waitForTransactionReceipt({ hash });
-      } catch (e) {
-        const { detail, hint } = explainError(e);
-        update("confirm", { status: "error", detail, hint });
-        return;
-      }
       update("confirm", {
         status: "success",
         txHash: hash,
@@ -220,6 +248,14 @@ export function TradeDialog({
             <X className="size-5" />
           </button>
         </div>
+
+        {sponsored && (
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+            <Zap className="size-3" /> Gasless via Base paymaster
+          </div>
+        )}
+
+
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/40 font-mono">
