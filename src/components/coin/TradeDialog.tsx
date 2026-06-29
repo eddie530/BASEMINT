@@ -249,6 +249,14 @@ export function TradeDialog({
           </button>
         </div>
 
+        {sponsored && (
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+            <Zap className="size-3" /> Gasless via Base paymaster
+          </div>
+        )}
+
+
+
         <div className="space-y-2">
           <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/40 font-mono">
             <span>You pay ({inSymbol})</span>
