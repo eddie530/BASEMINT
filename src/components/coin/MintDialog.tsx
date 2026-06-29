@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { encodeFunctionData } from "viem";
 import { Loader2, X } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
 
 /**
  * MintDialog — purchase / collect flow for a Zora ERC-1155 edition.
