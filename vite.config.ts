@@ -6,12 +6,40 @@ const shimRpcWs = path.resolve(process.cwd(), "src/lib/shims/rpc-websockets.ts")
 const shimStreamPromises = path.resolve(process.cwd(), "src/lib/shims/node-stream-promises.mjs");
 const shimStreamWeb = path.resolve(process.cwd(), "src/lib/shims/node-stream-web.mjs");
 
+// Pre-resolver that catches both bare specifiers AND absolute node_modules
+// paths the polyfill plugin rewrites to (e.g. `/vercel/path0/node_modules/
+// stream-browserify/promises`), routing them to our runtime shim.
+const streamSubpathShimPlugin = {
+  name: "basemint:shim-stream-subpaths",
+  enforce: "pre" as const,
+  resolveId(id: string) {
+    if (
+      id === "node:stream/promises" ||
+      id === "stream/promises" ||
+      id === "stream-browserify/promises" ||
+      id.endsWith("/stream-browserify/promises")
+    ) {
+      return shimStreamPromises;
+    }
+    if (
+      id === "node:stream/web" ||
+      id === "stream/web" ||
+      id === "stream-browserify/web" ||
+      id.endsWith("/stream-browserify/web")
+    ) {
+      return shimStreamWeb;
+    }
+    return null;
+  },
+};
+
 export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
   vite: {
     plugins: [
+      streamSubpathShimPlugin,
       // Polyfills are only needed for the browser bundle. Scoping them to the
       // client environment prevents them from aliasing `stream` -> `stream-browserify`
       // in the SSR/Nitro/Worker builds.
@@ -29,19 +57,8 @@ export default defineConfig({
         // Farcaster SDK pulls @solana/web3.js -> rpc-websockets, which breaks browser bundling.
         { find: /^rpc-websockets$/, replacement: shimRpcWs },
         { find: /^rpc-websockets\/dist\/.*$/, replacement: shimRpcWs },
-        // The polyfill plugin can rewrite `node:stream/{promises,web}` to
-        // non-existent `stream-browserify/{promises,web}` paths during the
-        // Vercel/Nitro SSR build. Force both the original node: specifier and
-        // the rewritten stream-browserify subpaths to a real shim file that
-        // re-imports the genuine Node module at runtime via string concat
-        // (so the bundler can't statically resolve it again).
-        { find: "node:stream/promises", replacement: shimStreamPromises },
-        { find: "stream/promises", replacement: shimStreamPromises },
-        { find: "stream-browserify/promises", replacement: shimStreamPromises },
-        { find: "node:stream/web", replacement: shimStreamWeb },
-        { find: "stream/web", replacement: shimStreamWeb },
-        { find: "stream-browserify/web", replacement: shimStreamWeb },
       ],
     },
   },
 });
+
