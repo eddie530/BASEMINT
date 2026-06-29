@@ -46,7 +46,7 @@ export function Web3Providers({ children }: { children: ReactNode }) {
   if (!hasCdp) return tree;
 
   return (
-    <CDPReactProvider config={cdpConfig} theme={cdpTheme}>
+    <CDPReactProvider config={cdpConfig} theme={cdpTheme as never}>
       {tree}
       <CdpSignInPortal />
     </CDPReactProvider>
