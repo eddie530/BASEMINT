@@ -3,8 +3,30 @@ import path from "node:path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 const shimRpcWs = path.resolve(process.cwd(), "src/lib/shims/rpc-websockets.ts");
-const nodeStreamPromisesShim = "virtual:basemint-node-stream-promises";
-const resolvedNodeStreamPromisesShim = `\0${nodeStreamPromisesShim}`;
+
+// Subpaths of node:stream that the polyfill plugin can rewrite to non-existent
+// `stream-browserify/<sub>` files during the Vercel/Nitro SSR build.
+const STREAM_SUBPATHS = ["promises", "web"] as const;
+type StreamSub = (typeof STREAM_SUBPATHS)[number];
+
+const shimIdFor = (sub: StreamSub) => `virtual:basemint-node-stream-${sub}`;
+const resolvedShimIdFor = (sub: StreamSub) => `\0${shimIdFor(sub)}`;
+
+function matchStreamSub(id: string): StreamSub | null {
+  for (const sub of STREAM_SUBPATHS) {
+    if (
+      id === shimIdFor(sub) ||
+      id === `node:stream/${sub}` ||
+      id === `stream/${sub}` ||
+      id === `stream-browserify/${sub}` ||
+      id.endsWith(`/node_modules/stream-browserify/${sub}`) ||
+      id.endsWith(`/stream-browserify/${sub}`)
+    ) {
+      return sub;
+    }
+  }
+  return null;
+}
 
 export default defineConfig({
   tanstackStart: {
@@ -12,56 +34,40 @@ export default defineConfig({
   },
   vite: {
     plugins: [
-      // srvx (Nitro/Vercel SSR runtime) imports `node:stream/promises`. The
-      // client polyfill plugin can rewrite that to the non-existent package
-      // subpath `stream-browserify/promises` during Vercel's server build.
-      // Patch the srvx import to a virtual shim before dependency resolution,
-      // and handle any already-rewritten specifier as a fallback.
+      // srvx and @tanstack/router-core import `node:stream/promises` and
+      // `node:stream/web`. The client polyfill plugin can rewrite those to
+      // non-existent `stream-browserify/<sub>` paths during Vercel's server
+      // build. Intercept before resolution and route to a virtual shim that
+      // re-imports the real `node:stream/<sub>` at runtime.
       {
-        name: "basemint:shim-node-stream-promises",
+        name: "basemint:shim-node-stream-subpaths",
         enforce: "pre" as const,
         resolveId(id: string) {
-          if (
-            id === nodeStreamPromisesShim ||
-            id === "node:stream/promises" ||
-            id === "stream/promises" ||
-            id === "stream-browserify/promises" ||
-            id.endsWith("/node_modules/stream-browserify/promises") ||
-            id.endsWith("/stream-browserify/promises")
-          ) {
-            return resolvedNodeStreamPromisesShim;
-          }
-          return null;
+          const sub = matchStreamSub(id);
+          return sub ? resolvedShimIdFor(sub) : null;
         },
         load(id: string) {
-          if (id === resolvedNodeStreamPromisesShim) {
-            return `
-const loadStreamPromises = () => import("node:" + "stream/promises");
-
-export async function pipeline(...args) {
-  const mod = await loadStreamPromises();
-  return mod.pipeline(...args);
-}
-
-export async function finished(...args) {
-  const mod = await loadStreamPromises();
-  return mod.finished(...args);
-}
-
-export default { pipeline, finished };
+          for (const sub of STREAM_SUBPATHS) {
+            if (id === resolvedShimIdFor(sub)) {
+              return `
+const load = () => import("node:" + "stream/${sub}");
+const mod = await load();
+export default mod.default ?? mod;
+export const {
+${Object.keys({}).join("")}
+} = {};
+export * from "node:stream/${sub}";
 `;
+            }
           }
           return null;
         },
         transform(code: string, id: string) {
-          if (
-            id.includes("/srvx/dist/adapters/node.mjs") ||
-            id.includes("\\srvx\\dist\\adapters\\node.mjs")
-          ) {
+          if (id.includes("/srvx/dist/adapters/node.mjs")) {
             return {
               code: code
-                .replaceAll('"node:stream/promises"', JSON.stringify(nodeStreamPromisesShim))
-                .replaceAll("'node:stream/promises'", JSON.stringify(nodeStreamPromisesShim)),
+                .replaceAll('"node:stream/promises"', JSON.stringify(shimIdFor("promises")))
+                .replaceAll("'node:stream/promises'", JSON.stringify(shimIdFor("promises"))),
               map: null,
             };
           }
