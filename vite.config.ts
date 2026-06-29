@@ -3,6 +3,8 @@ import path from "node:path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 const shimRpcWs = path.resolve(process.cwd(), "src/lib/shims/rpc-websockets.ts");
+const nodeStreamPromisesShim = "virtual:basemint-node-stream-promises";
+const resolvedNodeStreamPromisesShim = `\0${nodeStreamPromisesShim}`;
 
 export default defineConfig({
   tanstackStart: {
@@ -11,26 +13,52 @@ export default defineConfig({
   vite: {
     plugins: [
       // srvx (Nitro/Vercel SSR runtime) imports `node:stream/promises`. The
-      // nodePolyfills plugin rewrites that to `stream-browserify/promises`,
-      // which doesn't exist on disk. Intercept the bare specifier with a
-      // pre-resolver and externalize it back to the real Node built-in so
-      // the Nitro/Vercel build doesn't try to bundle it.
+      // client polyfill plugin can rewrite that to the non-existent package
+      // subpath `stream-browserify/promises` during Vercel's server build.
+      // Patch the srvx import to a virtual shim before dependency resolution,
+      // and handle any already-rewritten specifier as a fallback.
       {
-        name: "basemint:stub-stream-browserify-promises",
+        name: "basemint:shim-node-stream-promises",
         enforce: "pre" as const,
         resolveId(id: string) {
-          if (id === "stream-browserify/promises") {
-            return "\0virtual:stream-browserify-promises";
+          if (
+            id === nodeStreamPromisesShim ||
+            id === "stream-browserify/promises" ||
+            id.endsWith("/node_modules/stream-browserify/promises") ||
+            id.endsWith("/stream-browserify/promises")
+          ) {
+            return resolvedNodeStreamPromisesShim;
           }
           return null;
         },
         load(id: string) {
-          if (
-            id === "\0virtual:stream-browserify-promises" ||
-            id.endsWith("/node_modules/stream-browserify/promises") ||
-            id.endsWith("/stream-browserify/promises")
-          ) {
-            return "export * from 'node:stream/promises';\nexport { default } from 'node:stream/promises';\n";
+          if (id === resolvedNodeStreamPromisesShim) {
+            return `
+const loadStreamPromises = () => import("node:" + "stream/promises");
+
+export async function pipeline(...args) {
+  const mod = await loadStreamPromises();
+  return mod.pipeline(...args);
+}
+
+export async function finished(...args) {
+  const mod = await loadStreamPromises();
+  return mod.finished(...args);
+}
+
+export default { pipeline, finished };
+`;
+          }
+          return null;
+        },
+        transform(code: string, id: string) {
+          if (id.includes("/srvx/dist/adapters/node.mjs") || id.includes("\\srvx\\dist\\adapters\\node.mjs")) {
+            return {
+              code: code
+                .replaceAll('"node:stream/promises"', JSON.stringify(nodeStreamPromisesShim))
+                .replaceAll("'node:stream/promises'", JSON.stringify(nodeStreamPromisesShim)),
+              map: null,
+            };
           }
           return null;
         },
