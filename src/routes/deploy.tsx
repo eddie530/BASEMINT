@@ -212,18 +212,21 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       }
       const dec = Number(decimals) || 18;
       const initial = parseUnits(supply || "0", dec);
-      const hash = await walletClient.writeContract({
-        address: factory,
+      const data = encodeFunctionData({
         abi: TOKEN_FACTORY_ABI,
         functionName: "createToken",
         args: [name, symbol.toUpperCase(), dec, initial],
-        value: creationFee,
-        chain: chainId === base.id ? base : baseSepolia,
-        account: address,
       });
-      setTxHash(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      for (const log of receipt.logs) {
+      const result = await sendSponsoredOrFallback({
+        walletClient,
+        publicClient,
+        account: address,
+        chainId,
+        connectorId: connector?.id,
+        calls: [{ to: factory, data, value: creationFee }],
+      });
+      setTxHash(result.txHash);
+      for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
             abi: TOKEN_FACTORY_ABI,
