@@ -20,7 +20,8 @@ export function TradeDialog({
   coinSymbol: string;
   onClose: () => void;
 }) {
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected, chainId, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
   const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
