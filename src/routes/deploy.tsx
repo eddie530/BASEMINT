@@ -165,7 +165,8 @@ function ResultLinks({
 
 function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.tokenFactory;
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
   const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
