@@ -16,15 +16,26 @@ export default defineConfig({
       // pre-resolver and externalize it back to the real Node built-in so
       // the Nitro/Vercel build doesn't try to bundle it.
       {
-        name: "basemint:force-node-stream-promises",
+        name: "basemint:stub-stream-browserify-promises",
         enforce: "pre" as const,
         resolveId(id: string) {
-          if (id === "stream-browserify/promises" || id === "node:stream/promises") {
-            return { id: "node:stream/promises", external: true };
+          if (id === "stream-browserify/promises") {
+            return "\0virtual:stream-browserify-promises";
+          }
+          return null;
+        },
+        load(id: string) {
+          if (
+            id === "\0virtual:stream-browserify-promises" ||
+            id.endsWith("/node_modules/stream-browserify/promises") ||
+            id.endsWith("/stream-browserify/promises")
+          ) {
+            return "export * from 'node:stream/promises';\nexport { default } from 'node:stream/promises';\n";
           }
           return null;
         },
       },
+
       // Polyfills are only needed for the browser bundle. Scoping them to the
       // client environment prevents them from aliasing `stream` -> `stream-browserify`
       // in the SSR/Nitro/Worker builds.
