@@ -1,6 +1,13 @@
 import { useCallback, useState } from "react";
 import { useAccount, useBalance, usePublicClient, useReadContract, useWalletClient } from "wagmi";
-import { encodeFunctionData, erc20Abi, formatEther, parseEther, parseUnits, maxUint256 } from "viem";
+import {
+  encodeFunctionData,
+  erc20Abi,
+  formatEther,
+  parseEther,
+  parseUnits,
+  maxUint256,
+} from "viem";
 import { Loader2, X, Zap } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
@@ -254,8 +261,6 @@ export function TradeDialog({
             <Zap className="size-3" /> Gasless via Base paymaster
           </div>
         )}
-
-
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/40 font-mono">

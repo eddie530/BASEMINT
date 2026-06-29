@@ -4,7 +4,12 @@ import { z } from "zod";
 const addrSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 
 export type PointKind =
-  "create_coin" | "buy_coin" | "referral_signup" | "referral_mint" | "daily_checkin" | "share_cast";
+  | "create_coin"
+  | "buy_coin"
+  | "referral_signup"
+  | "referral_mint"
+  | "daily_checkin"
+  | "share_cast";
 
 export const POINT_RULES: Record<PointKind, number> = {
   create_coin: 100,
