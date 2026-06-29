@@ -303,7 +303,6 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         </div>
       )}
 
-
       {!factory && <FactoryMissing chainId={chainId} />}
       {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
       {err && <p className="text-xs text-red-300 break-words">{err}</p>}
@@ -473,8 +472,6 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
           <Zap className="size-3" /> Gasless via Base paymaster
         </div>
       )}
-
-
 
       {!factory && <FactoryMissing chainId={chainId} />}
       {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}

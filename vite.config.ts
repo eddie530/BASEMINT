@@ -54,7 +54,10 @@ export default { pipeline, finished };
           return null;
         },
         transform(code: string, id: string) {
-          if (id.includes("/srvx/dist/adapters/node.mjs") || id.includes("\\srvx\\dist\\adapters\\node.mjs")) {
+          if (
+            id.includes("/srvx/dist/adapters/node.mjs") ||
+            id.includes("\\srvx\\dist\\adapters\\node.mjs")
+          ) {
             return {
               code: code
                 .replaceAll('"node:stream/promises"', JSON.stringify(nodeStreamPromisesShim))
