@@ -16,8 +16,9 @@ function normalize(addr: string) {
 }
 
 function accountNameFor(addr: string) {
-  // CDP account names: alphanumeric + hyphens, 2-36 chars
-  return `basemint-${addr.toLowerCase().slice(2, 34)}`;
+  // CDP account names: alphanumeric + hyphens, 2-36 chars.
+  // "basemint-" is 9 chars, leaving 27 for the address slug.
+  return `basemint-${addr.toLowerCase().replace(/^0x/, "").slice(0, 27)}`;
 }
 
 export const getServerWallet = createServerFn({ method: "POST" })
