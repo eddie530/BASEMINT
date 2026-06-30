@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { z } from "zod";
-import { useAccount } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { getProfile, upsertProfile } from "@/lib/profiles.functions";
+import { getServerWallet, provisionServerWallet } from "@/lib/cdp-wallets.functions";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 const searchSchema = z.object({ address: z.string().optional() });
@@ -133,6 +134,8 @@ function SettingsProfile() {
       >
         {mutation.isPending ? "Saving…" : "Save profile"}
       </button>
+
+      <ServerWalletPanel wallet={wallet} />
 
       <p className="text-[10px] text-white/40 font-mono leading-relaxed">
         Anyone with this wallet can update its profile. For higher trust, wire wallet-signature
