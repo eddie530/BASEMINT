@@ -176,3 +176,45 @@ function Field({
     </label>
   );
 }
+
+function ServerWalletPanel({ wallet }: { wallet: string }) {
+  const { signMessageAsync } = useSignMessage();
+  const query = useQuery({
+    queryKey: ["cdp-wallet", wallet.toLowerCase()],
+    queryFn: () => getServerWallet({ data: { ownerWallet: wallet } }),
+  });
+
+  const provision = useMutation({
+    mutationFn: async () => {
+      const message = `Basemint: provision server wallet for ${wallet.toLowerCase()} at ${new Date().toISOString()}`;
+      const signature = await signMessageAsync({ message });
+      return provisionServerWallet({ data: { ownerWallet: wallet, message, signature } });
+    },
+    onSuccess: () => query.refetch(),
+  });
+
+  return (
+    <div className="mt-8 border border-white/10 rounded-2xl p-4 space-y-3">
+      <div>
+        <h2 className="font-display font-bold text-sm uppercase tracking-widest">Server wallet</h2>
+        <p className="text-[11px] text-white/50 mt-1">
+          A Coinbase-managed wallet bound to your address. Used for gasless, scripted, or delegated actions.
+        </p>
+      </div>
+      {query.data ? (
+        <div className="text-[11px] font-mono text-white/70 break-all">{query.data.cdp_address}</div>
+      ) : (
+        <button
+          onClick={() => provision.mutate()}
+          disabled={provision.isPending}
+          className="w-full bg-white/10 hover:bg-white/15 py-3 rounded-xl font-bold uppercase tracking-widest text-xs disabled:opacity-60"
+        >
+          {provision.isPending ? "Signing…" : "Provision server wallet"}
+        </button>
+      )}
+      {provision.isError && (
+        <p className="text-destructive text-xs font-mono">{(provision.error as Error).message}</p>
+      )}
+    </div>
+  );
+}
