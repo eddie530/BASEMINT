@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      cdp_wallets: {
+        Row: {
+          cdp_account_name: string
+          cdp_address: string
+          created_at: string
+          owner_wallet: string
+        }
+        Insert: {
+          cdp_account_name: string
+          cdp_address: string
+          created_at?: string
+          owner_wallet: string
+        }
+        Update: {
+          cdp_account_name?: string
+          cdp_address?: string
+          created_at?: string
+          owner_wallet?: string
+        }
+        Relationships: []
+      }
       daily_checkins: {
         Row: {
           checkin_date: string
