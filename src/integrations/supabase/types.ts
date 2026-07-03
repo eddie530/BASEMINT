@@ -143,6 +143,30 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_contracts: {
+        Row: {
+          chain_id: number
+          contract_address: string
+          created_at: string
+          verified_at: string
+          wallet_address: string
+        }
+        Insert: {
+          chain_id: number
+          contract_address: string
+          created_at?: string
+          verified_at?: string
+          wallet_address: string
+        }
+        Update: {
+          chain_id?: number
+          contract_address?: string
+          created_at?: string
+          verified_at?: string
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
