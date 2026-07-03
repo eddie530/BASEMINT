@@ -136,6 +136,7 @@ function SettingsProfile() {
         {mutation.isPending ? "Saving…" : "Save profile"}
       </button>
 
+      <ProfileContractsPanel wallet={wallet} editable />
       <ServerWalletPanel wallet={wallet} />
 
       <p className="text-[10px] text-white/40 font-mono leading-relaxed">
