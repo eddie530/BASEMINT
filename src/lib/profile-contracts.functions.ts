@@ -65,33 +65,111 @@ export const addProfileContract = createServerFn({ method: "POST" })
     const code = await client.getBytecode({ address: getAddress(contract) });
     if (!code || code === "0x") throw new Error("No contract found at that address on Base.");
 
-    // 3. Contract owner() must equal the signer. (Ownable pattern.)
-    let onchainOwner: `0x${string}`;
-    try {
-      onchainOwner = (await client.readContract({
-        address: getAddress(contract),
-        abi: [
-          {
-            type: "function",
-            name: "owner",
-            stateMutability: "view",
-            inputs: [],
-            outputs: [{ type: "address" }],
-          },
-        ],
-        functionName: "owner",
-      })) as `0x${string}`;
-    } catch {
+    // 3. Ownership check — try in order:
+    //    a) Ownable / ERC-173 `owner()` view
+    //    b) OpenZeppelin AccessControl `hasRole(DEFAULT_ADMIN_ROLE, signer)`
+    //       where DEFAULT_ADMIN_ROLE = bytes32(0)
+    //    c) Transparent-proxy style `admin()` view
+    const signer = getAddress(owner);
+    const target = getAddress(contract);
+
+    const tryOwner = async (): Promise<`0x${string}` | null> => {
+      try {
+        return (await client.readContract({
+          address: target,
+          abi: [
+            {
+              type: "function",
+              name: "owner",
+              stateMutability: "view",
+              inputs: [],
+              outputs: [{ type: "address" }],
+            },
+          ],
+          functionName: "owner",
+        })) as `0x${string}`;
+      } catch {
+        return null;
+      }
+    };
+
+    const tryAdmin = async (): Promise<`0x${string}` | null> => {
+      try {
+        return (await client.readContract({
+          address: target,
+          abi: [
+            {
+              type: "function",
+              name: "admin",
+              stateMutability: "view",
+              inputs: [],
+              outputs: [{ type: "address" }],
+            },
+          ],
+          functionName: "admin",
+        })) as `0x${string}`;
+      } catch {
+        return null;
+      }
+    };
+
+    const tryDefaultAdminRole = async (): Promise<boolean> => {
+      try {
+        return (await client.readContract({
+          address: target,
+          abi: [
+            {
+              type: "function",
+              name: "hasRole",
+              stateMutability: "view",
+              inputs: [
+                { name: "role", type: "bytes32" },
+                { name: "account", type: "address" },
+              ],
+              outputs: [{ type: "bool" }],
+            },
+          ],
+          functionName: "hasRole",
+          args: [
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            signer,
+          ],
+        })) as boolean;
+      } catch {
+        return false;
+      }
+    };
+
+    const [ownerAddr, adminAddr, hasAdminRole] = await Promise.all([
+      tryOwner(),
+      tryAdmin(),
+      tryDefaultAdminRole(),
+    ]);
+
+    const matchedVia =
+      ownerAddr && isAddressEqual(ownerAddr, signer)
+        ? "owner()"
+        : adminAddr && isAddressEqual(adminAddr, signer)
+          ? "admin()"
+          : hasAdminRole
+            ? "AccessControl DEFAULT_ADMIN_ROLE"
+            : null;
+
+    if (!matchedVia) {
+      const details: string[] = [];
+      if (ownerAddr) details.push(`owner()=${ownerAddr}`);
+      if (adminAddr) details.push(`admin()=${adminAddr}`);
+      if (!ownerAddr && !adminAddr && !hasAdminRole) {
+        throw new Error(
+          "Could not verify ownership: contract does not expose owner(), admin(), or AccessControl.hasRole().",
+        );
+      }
       throw new Error(
-        "Contract does not expose owner(). Only Ownable-style contracts can be verified.",
+        `You are not the owner of this contract${details.length ? ` (${details.join(", ")})` : ""}.`,
       );
     }
 
-    if (!isAddressEqual(onchainOwner, getAddress(owner))) {
-      throw new Error(
-        `You are not the owner of this contract. On-chain owner is ${onchainOwner}.`,
-      );
-    }
+
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("profile_contracts").upsert(
