@@ -152,6 +152,8 @@ function ProfilePage() {
         </button>
       </section>
 
+      <ProfileContractsPanel wallet={address} editable={false} />
+
       <section>
         <h2 className="font-display font-bold text-lg uppercase tracking-wider mb-3">
           Coins by creator
