@@ -18,13 +18,10 @@ export const listProfileContracts = createServerFn({ method: "GET" })
     z.object({ address: z.string().regex(/^0x[a-fA-F0-9]{40}$/) }).parse(input),
   )
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false } },
-    );
-    const { data: rows, error } = await sb
+    // Reads go through the service-role client scoped to a single wallet so
+    // the underlying table cannot be enumerated. RLS blocks all direct access.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
       .from("profile_contracts")
       .select("contract_address, chain_id, verified_at")
       .eq("wallet_address", data.address.toLowerCase())
