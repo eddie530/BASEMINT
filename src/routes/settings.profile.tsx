@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useAccount, useSignMessage } from "wagmi";
 import { MiniAppShell } from "@/components/MiniAppShell";
+import { ProfileContractsPanel } from "@/components/profile/ProfileContractsPanel";
 import { getProfile, upsertProfile } from "@/lib/profiles.functions";
 import { getServerWallet, provisionServerWallet } from "@/lib/cdp-wallets.functions";
 import { useMutation, useQuery } from "@tanstack/react-query";
