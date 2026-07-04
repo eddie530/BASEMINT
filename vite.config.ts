@@ -21,6 +21,18 @@ const cdpReactCssShimPlugin = {
     }
     return null;
   },
+  transform(code: string, id: string) {
+    if (!id.includes("node_modules/.vite/deps/") || !code.includes("@coinbase/cdp-react")) {
+      return null;
+    }
+
+    const transformed = code.replace(
+      /import\s+["'][^"']*node_modules\/@coinbase\/cdp-react\/[^"']+\.css(?:\?[^"']*)?["'];?/g,
+      "",
+    );
+
+    return transformed === code ? null : { code: transformed, map: null };
+  },
   load(id: string) {
     if (id.includes("@coinbase/cdp-react") && id.endsWith(".css")) {
       return "";
@@ -107,11 +119,27 @@ export default defineConfig({
             setup(build: {
               onResolve: (
                 opts: { filter: RegExp },
-                cb: (args: { path: string }) => { path: string } | undefined,
+                cb: (args: { path: string; importer?: string }) =>
+                  | { path: string; namespace?: string }
+                  | undefined,
+              ) => void;
+              onLoad: (
+                opts: { filter: RegExp; namespace: string },
+                cb: () => { contents: string; loader: "js" },
               ) => void;
             }) {
-              build.onResolve({ filter: /@coinbase\/cdp-react\/.*\.css$/ }, () => ({
-                path: shimEmptyCss,
+              build.onResolve({ filter: /\.css$/ }, (args) => {
+                const fromCdpReact =
+                  args.path.includes("@coinbase/cdp-react") ||
+                  (args.importer ?? "").includes("node_modules/@coinbase/cdp-react");
+
+                if (!fromCdpReact) return undefined;
+
+                return { path: args.path, namespace: "cdp-react-empty-css" };
+              });
+              build.onLoad({ filter: /.*/, namespace: "cdp-react-empty-css" }, () => ({
+                contents: "",
+                loader: "js",
               }));
             },
           },
