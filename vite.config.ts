@@ -93,10 +93,14 @@ export default defineConfig({
       noExternal: ["@coinbase/cdp-react"],
     },
     optimizeDeps: {
-      // esbuild pre-bundling rewrites cdp-react's CSS imports to absolute
-      // filesystem paths that bypass our alias/plugin shim. Excluding it
-      // keeps the CSS imports going through Vite's normal resolve pipeline.
-      exclude: ["@coinbase/cdp-react"],
+      // Force cdp-react (and its subpath entrypoints) through Vite's dep
+      // optimizer so the CSS shim plugin/alias intercepts the stylesheet
+      // imports on the client too.
+      include: [
+        "@coinbase/cdp-react",
+        "@coinbase/cdp-react/components/CDPReactProvider",
+        "@coinbase/cdp-react/components/SignIn",
+      ],
     },
   },
 });
