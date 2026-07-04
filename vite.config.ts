@@ -86,6 +86,12 @@ export default defineConfig({
         { find: /@coinbase\/cdp-react\/.*\.css$/, replacement: shimEmptyCss },
       ],
     },
+    ssr: {
+      // Force Vite to bundle cdp-react in SSR so the CSS shim plugin above
+      // intercepts its `.css` imports. Otherwise Node's ESM loader tries to
+      // import the raw .css file and throws ERR_UNKNOWN_FILE_EXTENSION.
+      noExternal: ["@coinbase/cdp-react"],
+    },
   },
 });
 
