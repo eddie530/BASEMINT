@@ -92,6 +92,12 @@ export default defineConfig({
       // import the raw .css file and throws ERR_UNKNOWN_FILE_EXTENSION.
       noExternal: ["@coinbase/cdp-react"],
     },
+    optimizeDeps: {
+      // esbuild pre-bundling rewrites cdp-react's CSS imports to absolute
+      // filesystem paths that bypass our alias/plugin shim. Excluding it
+      // keeps the CSS imports going through Vite's normal resolve pipeline.
+      exclude: ["@coinbase/cdp-react"],
+    },
   },
 });
 
