@@ -27,7 +27,7 @@ const cdpReactCssShimPlugin = {
     }
 
     const transformed = code.replace(
-      /import\s+["'][^"']*node_modules\/@@coinbase\/cdp-react\/[^"']+\.css(?:\?[^"']*)?["'];?/g,
+      /import\s+["'][^"']*node_modules\/@coinbase\/cdp-react\/[^"']+\.css(?:\?[^"']*)?["'];?/g,
       "",
     );
 
