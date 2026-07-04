@@ -94,13 +94,29 @@ export default defineConfig({
     },
     optimizeDeps: {
       // Force cdp-react (and its subpath entrypoints) through Vite's dep
-      // optimizer so the CSS shim plugin/alias intercepts the stylesheet
-      // imports on the client too.
+      // optimizer so the CSS shim below intercepts stylesheet imports.
       include: [
         "@coinbase/cdp-react",
         "@coinbase/cdp-react/components/CDPReactProvider",
         "@coinbase/cdp-react/components/SignIn",
       ],
+      esbuildOptions: {
+        plugins: [
+          {
+            name: "basemint:shim-cdp-react-css-esbuild",
+            setup(build: {
+              onResolve: (
+                opts: { filter: RegExp },
+                cb: (args: { path: string }) => { path: string } | undefined,
+              ) => void;
+            }) {
+              build.onResolve({ filter: /@coinbase\/cdp-react\/.*\.css$/ }, () => ({
+                path: shimEmptyCss,
+              }));
+            },
+          },
+        ],
+      },
     },
   },
 });
