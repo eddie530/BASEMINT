@@ -314,6 +314,10 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       connectWallet();
       return;
     }
+    if (!approved) {
+      setErr("Approve the deployment before continuing.");
+      return;
+    }
     if (!factory || !walletClient || !publicClient || !address) {
       setErr("Wallet or factory not ready.");
       return;
