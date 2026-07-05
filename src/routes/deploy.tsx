@@ -245,6 +245,90 @@ function WalletApproval({
   );
 }
 
+type VerifyState =
+  | { status: "idle" }
+  | { status: "verifying" }
+  | {
+      status: "success";
+      address: `0x${string}`;
+      name?: string;
+      symbol?: string;
+      totalSupply?: string;
+      maxSupply?: string;
+    }
+  | { status: "failure"; reason: string };
+
+const ERC20_METADATA_ABI = [
+  { type: "function", name: "name", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+const ERC721_METADATA_ABI = [
+  { type: "function", name: "name", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "maxSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+function VerificationBanner({ state, chainId }: { state: VerifyState; chainId: 8453 | 84532 }) {
+  if (state.status === "idle") return null;
+  if (state.status === "verifying") {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white/70 flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Verifying deployment on-chain…
+      </div>
+    );
+  }
+  if (state.status === "failure") {
+    return (
+      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200 space-y-1">
+        <p className="font-bold uppercase tracking-widest text-[10px]">Verification failed</p>
+        <p className="break-words">{state.reason}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 space-y-1 font-mono">
+      <p className="font-bold uppercase tracking-widest text-[10px]">✓ Verified on-chain</p>
+      <p className="break-all">
+        <span className="text-emerald-100/70">addr </span>
+        <a
+          className="underline"
+          href={basescanUrl(chainId, state.address)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {state.address}
+        </a>
+      </p>
+      {state.name && (
+        <p>
+          <span className="text-emerald-100/70">name </span>
+          {state.name}
+        </p>
+      )}
+      {state.symbol && (
+        <p>
+          <span className="text-emerald-100/70">symbol </span>
+          {state.symbol}
+        </p>
+      )}
+      {state.totalSupply && (
+        <p>
+          <span className="text-emerald-100/70">totalSupply </span>
+          {state.totalSupply}
+        </p>
+      )}
+      {state.maxSupply && (
+        <p>
+          <span className="text-emerald-100/70">maxSupply </span>
+          {state.maxSupply}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ResultLinks({
   chainId,
   txHash,
@@ -298,6 +382,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
   const [deployed, setDeployed] = useState<`0x${string}`>();
+  const [verify, setVerify] = useState<VerifyState>({ status: "idle" });
 
   const { data: feeData } = useReadContract({
     chainId,
@@ -329,6 +414,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
     setBusy(true);
     setTxHash(undefined);
     setDeployed(undefined);
+    setVerify({ status: "idle" });
     try {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
@@ -349,6 +435,13 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         calls: [{ to: factory, data, value: creationFee }],
       });
       setTxHash(result.txHash);
+
+      if (result.receipt.status !== "success") {
+        setVerify({ status: "failure", reason: "Transaction reverted on-chain." });
+        return;
+      }
+
+      let tokenAddr: `0x${string}` | undefined;
       for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
@@ -357,15 +450,48 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
             topics: log.topics,
           });
           if (ev.eventName === "TokenCreated") {
-            setDeployed((ev.args as { token: `0x${string}` }).token);
+            tokenAddr = (ev.args as { token: `0x${string}` }).token;
+            setDeployed(tokenAddr);
             break;
           }
         } catch {
           /* not our event */
         }
       }
+
+      if (!tokenAddr) {
+        setVerify({ status: "failure", reason: "No TokenCreated event found in receipt logs." });
+        return;
+      }
+
+      setVerify({ status: "verifying" });
+      const code = await publicClient.getCode({ address: tokenAddr });
+      if (!code || code === "0x") {
+        setVerify({ status: "failure", reason: `No bytecode at ${tokenAddr}.` });
+        return;
+      }
+      const [onchainName, onchainSymbol, onchainSupply] = await Promise.all([
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "name" })
+          .catch(() => undefined),
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "symbol" })
+          .catch(() => undefined),
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "totalSupply" })
+          .catch(() => undefined),
+      ]);
+      setVerify({
+        status: "success",
+        address: tokenAddr,
+        name: onchainName as string | undefined,
+        symbol: onchainSymbol as string | undefined,
+        totalSupply: onchainSupply != null ? (onchainSupply as bigint).toString() : undefined,
+      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Deploy failed");
+      const msg = e instanceof Error ? e.message : "Deploy failed";
+      setErr(msg);
+      setVerify({ status: "failure", reason: msg });
     } finally {
       setBusy(false);
     }
@@ -447,6 +573,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
               : "Deploy on Base"}
       </button>
 
+      <VerificationBanner state={verify} chainId={chainId} />
       <ResultLinks chainId={chainId} txHash={txHash} contract={deployed} />
     </div>
   );
@@ -470,6 +597,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
   const [deployed, setDeployed] = useState<`0x${string}`>();
+  const [verify, setVerify] = useState<VerifyState>({ status: "idle" });
 
   const { data: feeData } = useReadContract({
     chainId,
@@ -501,6 +629,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
     setBusy(true);
     setTxHash(undefined);
     setDeployed(undefined);
+    setVerify({ status: "idle" });
     try {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
@@ -525,6 +654,13 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         calls: [{ to: factory, data, value: creationFee }],
       });
       setTxHash(result.txHash);
+
+      if (result.receipt.status !== "success") {
+        setVerify({ status: "failure", reason: "Transaction reverted on-chain." });
+        return;
+      }
+
+      let collectionAddr: `0x${string}` | undefined;
       for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
@@ -533,15 +669,63 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
             topics: log.topics,
           });
           if (ev.eventName === "CollectionCreated") {
-            setDeployed((ev.args as { collection: `0x${string}` }).collection);
+            collectionAddr = (ev.args as { collection: `0x${string}` }).collection;
+            setDeployed(collectionAddr);
             break;
           }
         } catch {
           /* not our event */
         }
       }
+
+      if (!collectionAddr) {
+        setVerify({
+          status: "failure",
+          reason: "No CollectionCreated event found in receipt logs.",
+        });
+        return;
+      }
+
+      setVerify({ status: "verifying" });
+      const code = await publicClient.getCode({ address: collectionAddr });
+      if (!code || code === "0x") {
+        setVerify({ status: "failure", reason: `No bytecode at ${collectionAddr}.` });
+        return;
+      }
+      const [onchainName, onchainSymbol, onchainMax] = await Promise.all([
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "name",
+          })
+          .catch(() => undefined),
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "symbol",
+          })
+          .catch(() => undefined),
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "maxSupply",
+          })
+          .catch(() => undefined),
+      ]);
+      setVerify({
+        status: "success",
+        address: collectionAddr,
+        name: onchainName as string | undefined,
+        symbol: onchainSymbol as string | undefined,
+        maxSupply: onchainMax != null ? (onchainMax as bigint).toString() : undefined,
+      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Deploy failed");
+      const msg = e instanceof Error ? e.message : "Deploy failed";
+      setErr(msg);
+      setVerify({ status: "failure", reason: msg });
     } finally {
       setBusy(false);
     }
@@ -630,6 +814,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
               : "Deploy on Base"}
       </button>
 
+      <VerificationBanner state={verify} chainId={chainId} />
       <ResultLinks chainId={chainId} txHash={txHash} contract={deployed} />
     </div>
   );
