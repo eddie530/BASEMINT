@@ -456,7 +456,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.nftFactory;
   const { isConnected, address, connector } = useAccount();
   const sponsored = isGaslessEligible(connector?.id, chainId);
-  const { connectWallet, message: connectMessage } = useConnectWallet();
+  const { connectWallet } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
 
@@ -465,6 +465,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [baseURI, setBaseURI] = useState("ipfs://");
   const [maxSupply, setMaxSupply] = useState("1000");
   const [mintPrice, setMintPrice] = useState("0.001");
+  const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
