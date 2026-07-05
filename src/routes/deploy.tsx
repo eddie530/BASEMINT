@@ -629,6 +629,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
     setBusy(true);
     setTxHash(undefined);
     setDeployed(undefined);
+    setVerify({ status: "idle" });
     try {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
@@ -653,6 +654,13 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         calls: [{ to: factory, data, value: creationFee }],
       });
       setTxHash(result.txHash);
+
+      if (result.receipt.status !== "success") {
+        setVerify({ status: "failure", reason: "Transaction reverted on-chain." });
+        return;
+      }
+
+      let collectionAddr: `0x${string}` | undefined;
       for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
@@ -661,15 +669,63 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
             topics: log.topics,
           });
           if (ev.eventName === "CollectionCreated") {
-            setDeployed((ev.args as { collection: `0x${string}` }).collection);
+            collectionAddr = (ev.args as { collection: `0x${string}` }).collection;
+            setDeployed(collectionAddr);
             break;
           }
         } catch {
           /* not our event */
         }
       }
+
+      if (!collectionAddr) {
+        setVerify({
+          status: "failure",
+          reason: "No CollectionCreated event found in receipt logs.",
+        });
+        return;
+      }
+
+      setVerify({ status: "verifying" });
+      const code = await publicClient.getCode({ address: collectionAddr });
+      if (!code || code === "0x") {
+        setVerify({ status: "failure", reason: `No bytecode at ${collectionAddr}.` });
+        return;
+      }
+      const [onchainName, onchainSymbol, onchainMax] = await Promise.all([
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "name",
+          })
+          .catch(() => undefined),
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "symbol",
+          })
+          .catch(() => undefined),
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "maxSupply",
+          })
+          .catch(() => undefined),
+      ]);
+      setVerify({
+        status: "success",
+        address: collectionAddr,
+        name: onchainName as string | undefined,
+        symbol: onchainSymbol as string | undefined,
+        maxSupply: onchainMax != null ? (onchainMax as bigint).toString() : undefined,
+      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Deploy failed");
+      const msg = e instanceof Error ? e.message : "Deploy failed";
+      setErr(msg);
+      setVerify({ status: "failure", reason: msg });
     } finally {
       setBusy(false);
     }
