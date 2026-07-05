@@ -245,6 +245,90 @@ function WalletApproval({
   );
 }
 
+type VerifyState =
+  | { status: "idle" }
+  | { status: "verifying" }
+  | {
+      status: "success";
+      address: `0x${string}`;
+      name?: string;
+      symbol?: string;
+      totalSupply?: string;
+      maxSupply?: string;
+    }
+  | { status: "failure"; reason: string };
+
+const ERC20_METADATA_ABI = [
+  { type: "function", name: "name", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+const ERC721_METADATA_ABI = [
+  { type: "function", name: "name", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "maxSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+function VerificationBanner({ state, chainId }: { state: VerifyState; chainId: 8453 | 84532 }) {
+  if (state.status === "idle") return null;
+  if (state.status === "verifying") {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white/70 flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Verifying deployment on-chain…
+      </div>
+    );
+  }
+  if (state.status === "failure") {
+    return (
+      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200 space-y-1">
+        <p className="font-bold uppercase tracking-widest text-[10px]">Verification failed</p>
+        <p className="break-words">{state.reason}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 space-y-1 font-mono">
+      <p className="font-bold uppercase tracking-widest text-[10px]">✓ Verified on-chain</p>
+      <p className="break-all">
+        <span className="text-emerald-100/70">addr </span>
+        <a
+          className="underline"
+          href={basescanUrl(chainId, state.address)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {state.address}
+        </a>
+      </p>
+      {state.name && (
+        <p>
+          <span className="text-emerald-100/70">name </span>
+          {state.name}
+        </p>
+      )}
+      {state.symbol && (
+        <p>
+          <span className="text-emerald-100/70">symbol </span>
+          {state.symbol}
+        </p>
+      )}
+      {state.totalSupply && (
+        <p>
+          <span className="text-emerald-100/70">totalSupply </span>
+          {state.totalSupply}
+        </p>
+      )}
+      {state.maxSupply && (
+        <p>
+          <span className="text-emerald-100/70">maxSupply </span>
+          {state.maxSupply}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ResultLinks({
   chainId,
   txHash,
