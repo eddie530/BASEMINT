@@ -414,6 +414,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
     setBusy(true);
     setTxHash(undefined);
     setDeployed(undefined);
+    setVerify({ status: "idle" });
     try {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
@@ -434,6 +435,13 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         calls: [{ to: factory, data, value: creationFee }],
       });
       setTxHash(result.txHash);
+
+      if (result.receipt.status !== "success") {
+        setVerify({ status: "failure", reason: "Transaction reverted on-chain." });
+        return;
+      }
+
+      let tokenAddr: `0x${string}` | undefined;
       for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
@@ -442,15 +450,48 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
             topics: log.topics,
           });
           if (ev.eventName === "TokenCreated") {
-            setDeployed((ev.args as { token: `0x${string}` }).token);
+            tokenAddr = (ev.args as { token: `0x${string}` }).token;
+            setDeployed(tokenAddr);
             break;
           }
         } catch {
           /* not our event */
         }
       }
+
+      if (!tokenAddr) {
+        setVerify({ status: "failure", reason: "No TokenCreated event found in receipt logs." });
+        return;
+      }
+
+      setVerify({ status: "verifying" });
+      const code = await publicClient.getCode({ address: tokenAddr });
+      if (!code || code === "0x") {
+        setVerify({ status: "failure", reason: `No bytecode at ${tokenAddr}.` });
+        return;
+      }
+      const [onchainName, onchainSymbol, onchainSupply] = await Promise.all([
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "name" })
+          .catch(() => undefined),
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "symbol" })
+          .catch(() => undefined),
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "totalSupply" })
+          .catch(() => undefined),
+      ]);
+      setVerify({
+        status: "success",
+        address: tokenAddr,
+        name: onchainName as string | undefined,
+        symbol: onchainSymbol as string | undefined,
+        totalSupply: onchainSupply != null ? (onchainSupply as bigint).toString() : undefined,
+      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Deploy failed");
+      const msg = e instanceof Error ? e.message : "Deploy failed";
+      setErr(msg);
+      setVerify({ status: "failure", reason: msg });
     } finally {
       setBusy(false);
     }
