@@ -427,16 +427,24 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       )}
 
       {!factory && <FactoryMissing chainId={chainId} />}
-      {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
+
+      <WalletApproval approved={approved} onApprovedChange={setApproved} chainId={chainId} />
+
       {err && <p className="text-xs text-red-300 break-words">{err}</p>}
 
       <button
         onClick={onDeploy}
-        disabled={busy || !factory}
-        className="w-full bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-60 flex items-center justify-center gap-2"
+        disabled={busy || !factory || (isConnected && !approved)}
+        className="w-full bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-40 flex items-center justify-center gap-2"
       >
         {busy && <Loader2 className="size-4 animate-spin" />}
-        {isConnected ? (busy ? "Deploying…" : "Deploy on Base") : "Connect Wallet"}
+        {!isConnected
+          ? "Connect Wallet"
+          : !approved
+            ? "Approve to Deploy"
+            : busy
+              ? "Deploying…"
+              : "Deploy on Base"}
       </button>
 
       <ResultLinks chainId={chainId} txHash={txHash} contract={deployed} />
