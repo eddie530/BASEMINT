@@ -180,6 +180,71 @@ function FactoryMissing({ chainId }: { chainId: 8453 | 84532 }) {
   );
 }
 
+function WalletApproval({
+  approved,
+  onApprovedChange,
+  chainId,
+}: {
+  approved: boolean;
+  onApprovedChange: (v: boolean) => void;
+  chainId: 8453 | 84532;
+}) {
+  const { isConnected, address, connector } = useAccount();
+  const { connectWallet, message } = useConnectWallet();
+  const label = chainId === base.id ? "Base mainnet" : "Base Sepolia";
+
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+          Step 1 · Wallet
+        </span>
+        <span
+          className={`text-[10px] uppercase tracking-widest font-mono ${
+            isConnected ? "text-accent" : "text-white/40"
+          }`}
+        >
+          {isConnected ? "Connected" : "Not connected"}
+        </span>
+      </div>
+
+      {isConnected ? (
+        <div className="text-xs text-white/70 font-mono break-all">
+          {address?.slice(0, 6)}…{address?.slice(-4)}
+          {connector?.name ? ` · ${connector.name}` : ""}
+        </div>
+      ) : (
+        <button
+          onClick={() => connectWallet()}
+          className="w-full bg-white text-black py-3 rounded-xl font-bold uppercase tracking-widest text-xs active:scale-[0.98] transition"
+        >
+          Connect Wallet
+        </button>
+      )}
+      {message && <p className="text-[11px] text-white/50">{message}</p>}
+
+      <div className="border-t border-white/5 pt-3">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={approved}
+            disabled={!isConnected}
+            onChange={(e) => onApprovedChange(e.target.checked)}
+            className="mt-0.5 size-4 accent-accent shrink-0 disabled:opacity-40"
+          />
+          <span className="text-[11px] text-white/70 leading-relaxed">
+            <span className="block text-[10px] uppercase tracking-widest text-white/40 font-mono mb-0.5">
+              Step 2 · Approve
+            </span>
+            I approve deploying this contract to <strong>{label}</strong> from my wallet. I
+            understand the transaction is irreversible and I'll be prompted to sign it.
+          </span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function ResultLinks({
   chainId,
   txHash,
