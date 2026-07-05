@@ -597,6 +597,7 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
   const [deployed, setDeployed] = useState<`0x${string}`>();
+  const [verify, setVerify] = useState<VerifyState>({ status: "idle" });
 
   const { data: feeData } = useReadContract({
     chainId,
