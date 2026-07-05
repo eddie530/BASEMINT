@@ -573,6 +573,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
               : "Deploy on Base"}
       </button>
 
+      <VerificationBanner state={verify} chainId={chainId} />
       <ResultLinks chainId={chainId} txHash={txHash} contract={deployed} />
     </div>
   );
