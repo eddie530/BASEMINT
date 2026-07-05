@@ -285,7 +285,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.tokenFactory;
   const { isConnected, address, connector } = useAccount();
   const sponsored = isGaslessEligible(connector?.id, chainId);
-  const { connectWallet, message: connectMessage } = useConnectWallet();
+  const { connectWallet } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
 
@@ -293,6 +293,7 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [symbol, setSymbol] = useState("");
   const [decimals, setDecimals] = useState("18");
   const [supply, setSupply] = useState("1000000");
+  const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
