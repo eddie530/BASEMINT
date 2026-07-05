@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
 import { decodeEventLog, encodeFunctionData, parseEther, parseUnits } from "viem";
@@ -8,12 +10,59 @@ import { MiniAppShell } from "@/components/MiniAppShell";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
 import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
 import { isGaslessEligible } from "@/lib/wagmi";
+import { getCreationConfig } from "@/lib/zora-create.functions";
 import {
   FACTORY_ADDRESSES,
   NFT_FACTORY_ABI,
   TOKEN_FACTORY_ABI,
   basescanUrl,
 } from "@/lib/basemint-contracts";
+
+function short(addr?: string) {
+  return addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "—";
+}
+
+function CreationConfigPanel({ chainId }: { chainId: 8453 | 84532 }) {
+  const fetchConfig = useServerFn(getCreationConfig);
+  const { data, isLoading } = useQuery({
+    queryKey: ["creation-config", chainId],
+    queryFn: () => fetchConfig({ data: { chainId } }),
+    staleTime: 60_000,
+  });
+
+  return (
+    <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/70 font-mono leading-relaxed space-y-1">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] uppercase tracking-widest text-white/40">
+          Base Builder config
+        </span>
+        {isLoading && <Loader2 className="size-3 animate-spin text-white/40" />}
+      </div>
+      <p>
+        <span className="text-accent">●</span> Chain: {data?.chainName ?? "…"} ({chainId})
+      </p>
+      <p>
+        <span className="text-accent">●</span> Currencies:{" "}
+        {data?.currencies.map((c) => c.symbol).join(" · ") ?? "…"}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Zora factory: {short(data?.zoraFactory)}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Basemint token factory:{" "}
+        {short(data?.basemintTokenFactory)}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Basemint NFT factory:{" "}
+        {short(data?.basemintNftFactory)}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Sponsored mint:{" "}
+        {data?.supportsSponsoredMint ? "enabled" : "disabled"}
+      </p>
+    </div>
+  );
+}
 
 type Mode = "token" | "nft";
 
@@ -70,6 +119,10 @@ function DeployPage() {
           Base Mainnet
         </Tab>
       </div>
+
+      <CreationConfigPanel chainId={network} />
+
+
 
       {mode === "token" ? (
         <TokenDeployForm chainId={network} />
