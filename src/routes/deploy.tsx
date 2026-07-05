@@ -120,6 +120,10 @@ function DeployPage() {
         </Tab>
       </div>
 
+      <CreationConfigPanel chainId={network} />
+
+
+
       {mode === "token" ? (
         <TokenDeployForm chainId={network} />
       ) : (
