@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { Search } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
 import { NFTCard } from "@/components/feed/NFTCard";
 import { SpinDiscover } from "@/components/feed/SpinDiscover";
 import { getTrendingCoins, getRecentCoins } from "@/lib/zora.functions";
 import { isCurated, RESIDENT_LABS } from "@/lib/curated";
+import type { CoinDTO } from "@/lib/zora.types";
 
 const trendingQO = queryOptions({
   queryKey: ["zora", "trending", 8],
