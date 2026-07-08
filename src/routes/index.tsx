@@ -48,16 +48,67 @@ export const Route = createFileRoute("/")({
   component: FeedPage,
 });
 
+function matchesSearch(coin: CoinDTO, query: string): boolean {
+  const q = query.toLowerCase().trim();
+  if (!q) return true;
+  return (
+    coin.name.toLowerCase().includes(q) ||
+    coin.symbol.toLowerCase().includes(q) ||
+    coin.address.toLowerCase().includes(q) ||
+    coin.creatorHandle?.toLowerCase().includes(q) === true
+  );
+}
+
 function FeedPage() {
   const { data: trending } = useSuspenseQuery(trendingQO);
   const { data: recent } = useSuspenseQuery(recentQO);
+  const [query, setQuery] = useState("");
 
   // Priority 3: pull curated picks out of live feeds into a dedicated section.
-  const curated = [...trending, ...recent].filter((c) => isCurated(c.address));
-  const spinPool = trending.length > 0 ? trending : recent;
+  const curated = useMemo(
+    () => [...trending, ...recent].filter((c) => isCurated(c.address) && matchesSearch(c, query)),
+    [trending, recent, query],
+  );
+  const spinPool = useMemo(
+    () => (trending.length > 0 ? trending : recent).filter((c) => matchesSearch(c, query)),
+    [trending, recent, query],
+  );
+  const filteredTrending = useMemo(
+    () => trending.filter((c) => matchesSearch(c, query)),
+    [trending, query],
+  );
+  const filteredRecent = useMemo(
+    () => recent.filter((c) => matchesSearch(c, query)),
+    [recent, query],
+  );
+
+  const hasResults = curated.length > 0 || filteredTrending.length > 0 || filteredRecent.length > 0;
 
   return (
     <MiniAppShell>
+      <section className="relative">
+        <label htmlFor="coin-search" className="sr-only">
+          Search tokens, creators, or addresses
+        </label>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/40" aria-hidden="true" />
+          <input
+            id="coin-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tokens, creators, or addresses…"
+            className="w-full bg-card border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm placeholder:text-white/40 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition"
+          />
+        </div>
+      </section>
+
+      {query && !hasResults ? (
+        <p className="text-sm text-white/50 font-mono text-center py-6">
+          No tokens match “{query}”.
+        </p>
+      ) : null}
+
       {curated.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
@@ -87,18 +138,20 @@ function FeedPage() {
           </span>
         </div>
 
-        {trending.length === 0 ? (
-          <p className="text-sm text-white/50 font-mono">Zora feed temporarily unavailable.</p>
+        {filteredTrending.length === 0 ? (
+          <p className="text-sm text-white/50 font-mono">
+            {query ? "No tokens match your search." : "Zora feed temporarily unavailable."}
+          </p>
         ) : (
           <div className="space-y-4">
-            {trending.map((coin) => (
+            {filteredTrending.map((coin) => (
               <CoinCard key={coin.address} coin={coin} />
             ))}
           </div>
         )}
       </section>
 
-      {recent.length > 0 && (
+      {filteredRecent.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-display font-bold text-xl uppercase tracking-wider">
@@ -109,7 +162,7 @@ function FeedPage() {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {recent.map((c) => (
+            {filteredRecent.map((c) => (
               <NFTCard key={c.address} nft={c} />
             ))}
           </div>
