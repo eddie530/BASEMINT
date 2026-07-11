@@ -161,6 +161,16 @@ function CoinForm() {
       reset([{ id: "validate", label: "Add a name and ticker.", status: "error" }]);
       return;
     }
+    if (!media) {
+      reset([
+        {
+          id: "validate",
+          label: "Upload an image — required to deploy a coin.",
+          status: "error",
+        },
+      ]);
+      return;
+    }
     if (!walletClient || !publicClient || !address) {
       reset([{ id: "wallet", label: "Wallet not ready.", status: "error" }]);
       return;
@@ -287,7 +297,14 @@ function CoinForm() {
 
   return (
     <div className="space-y-4">
-      <MediaPicker onChange={setMedia} />
+      <div>
+        <span className="text-[11px] font-bold uppercase tracking-widest text-white/50">
+          Image <span className="text-accent">*required</span>
+        </span>
+        <div className="mt-1.5">
+          <MediaPicker onChange={setMedia} />
+        </div>
+      </div>
       <Field
         label="Name"
         placeholder="Based Cat"

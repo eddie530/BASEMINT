@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
+import { ProfileContractsPanel } from "@/components/profile/ProfileContractsPanel";
 import { getCoinsByCreator } from "@/lib/zora.functions";
 import { getProfile, getReferralStats } from "@/lib/profiles.functions";
 import { Globe, Twitter } from "lucide-react";
@@ -150,6 +151,8 @@ function ProfilePage() {
           {refUrl}
         </button>
       </section>
+
+      <ProfileContractsPanel wallet={address} editable={false} />
 
       <section>
         <h2 className="font-display font-bold text-lg uppercase tracking-wider mb-3">

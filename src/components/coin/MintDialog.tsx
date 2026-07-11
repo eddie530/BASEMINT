@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { encodeFunctionData } from "viem";
 import { Loader2, X } from "lucide-react";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
 
 /**
  * MintDialog — purchase / collect flow for a Zora ERC-1155 edition.
@@ -20,7 +22,7 @@ export function MintDialog({
   title: string;
   onClose: () => void;
 }) {
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected, chainId, connector } = useAccount();
   const { connectWallet, message: connectMessage } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
@@ -94,27 +96,45 @@ export function MintDialog({
       }
       update("prepare", { status: "success", detail: `Qty ${qty} · token #${tokenId.toString()}` });
 
-      // 3. sign / broadcast
+      // 3. sign / broadcast (sponsored via sendCalls when on Smart Wallet)
       update("sign", { status: "active" });
       let hash: `0x${string}`;
+      let wasSponsored = false;
       try {
-        hash = await walletClient.writeContract(parameters);
+        const data = encodeFunctionData({
+          abi: parameters.abi,
+          functionName: parameters.functionName,
+          args: parameters.args,
+        });
+        const result = await sendSponsoredOrFallback({
+          walletClient,
+          publicClient,
+          account: address,
+          chainId: 8453,
+          connectorId: connector?.id,
+          calls: [
+            {
+              to: parameters.address,
+              data,
+              value: (parameters.value as bigint | undefined) ?? 0n,
+            },
+          ],
+        });
+        hash = result.txHash;
+        wasSponsored = result.sponsored;
       } catch (e) {
         const { detail, hint } = explainError(e);
         update("sign", { status: "error", detail, hint });
         return;
       }
-      update("sign", { status: "success", txHash: hash });
+      update("sign", {
+        status: "success",
+        txHash: hash,
+        detail: wasSponsored ? "⚡ Sponsored via Base paymaster (gasless)" : undefined,
+      });
 
-      // 4. confirm
+      // 4. confirm — receipt fetched inside helper
       update("confirm", { status: "active" });
-      try {
-        await publicClient.waitForTransactionReceipt({ hash });
-      } catch (e) {
-        const { detail, hint } = explainError(e);
-        update("confirm", { status: "error", detail, hint });
-        return;
-      }
       update("confirm", {
         status: "success",
         txHash: hash,

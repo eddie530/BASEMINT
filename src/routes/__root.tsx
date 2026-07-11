@@ -82,6 +82,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#000000" },
       { name: "base:app_id", content: "6a359ca4b5c7cf28ed894db2" },
+      {
+        name: "talentapp:project_verification",
+        content:
+          "fc7475d11dc717f6715f6169cb816bffc71cdafccc25a765eee28ef8b2d42566dd60a555195f860260c67a8088817c7863ad1927f9e43d18878e554f304a44d6",
+      },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "Basemint" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -37,17 +37,38 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   });
 }
 
+// Coinbase Smart Wallet (keys.coinbase.com) opens in a popup and posts
+// messages back via `window.opener`. Browsers null `opener` unless the
+// opener document sets COOP to `same-origin-allow-popups` (or `unsafe-none`).
+// Apply on HTML document responses only — don't touch JSON/asset responses.
+function applyWalletPopupHeaders(response: Response): Response {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/html")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  headers.set("Cross-Origin-Embedder-Policy", "unsafe-none");
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      return applyWalletPopupHeaders(normalized);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+        },
       });
     }
   },

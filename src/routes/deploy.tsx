@@ -1,17 +1,68 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
-import { decodeEventLog, parseEther, parseUnits } from "viem";
-import { Loader2, ExternalLink, Rocket } from "lucide-react";
+import { decodeEventLog, encodeFunctionData, parseEther, parseUnits } from "viem";
+import { Loader2, ExternalLink, Rocket, Zap } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
+import { isGaslessEligible } from "@/lib/wagmi";
+import { getCreationConfig } from "@/lib/zora-create.functions";
 import {
   FACTORY_ADDRESSES,
   NFT_FACTORY_ABI,
   TOKEN_FACTORY_ABI,
   basescanUrl,
 } from "@/lib/basemint-contracts";
+
+function short(addr?: string) {
+  return addr ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : "—";
+}
+
+function CreationConfigPanel({ chainId }: { chainId: 8453 | 84532 }) {
+  const fetchConfig = useServerFn(getCreationConfig);
+  const { data, isLoading } = useQuery({
+    queryKey: ["creation-config", chainId],
+    queryFn: () => fetchConfig({ data: { chainId } }),
+    staleTime: 60_000,
+  });
+
+  return (
+    <div className="bg-white/5 rounded-2xl border border-white/5 p-4 text-[11px] text-white/70 font-mono leading-relaxed space-y-1">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] uppercase tracking-widest text-white/40">
+          Base Builder config
+        </span>
+        {isLoading && <Loader2 className="size-3 animate-spin text-white/40" />}
+      </div>
+      <p>
+        <span className="text-accent">●</span> Chain: {data?.chainName ?? "…"} ({chainId})
+      </p>
+      <p>
+        <span className="text-accent">●</span> Currencies:{" "}
+        {data?.currencies.map((c) => c.symbol).join(" · ") ?? "…"}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Zora factory: {short(data?.zoraFactory)}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Basemint token factory:{" "}
+        {short(data?.basemintTokenFactory)}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Basemint NFT factory:{" "}
+        {short(data?.basemintNftFactory)}
+      </p>
+      <p>
+        <span className="text-accent">●</span> Sponsored mint:{" "}
+        {data?.supportsSponsoredMint ? "enabled" : "disabled"}
+      </p>
+    </div>
+  );
+}
 
 type Mode = "token" | "nft";
 
@@ -69,6 +120,10 @@ function DeployPage() {
         </Tab>
       </div>
 
+      <CreationConfigPanel chainId={network} />
+
+
+
       {mode === "token" ? (
         <TokenDeployForm chainId={network} />
       ) : (
@@ -125,6 +180,155 @@ function FactoryMissing({ chainId }: { chainId: 8453 | 84532 }) {
   );
 }
 
+function WalletApproval({
+  approved,
+  onApprovedChange,
+  chainId,
+}: {
+  approved: boolean;
+  onApprovedChange: (v: boolean) => void;
+  chainId: 8453 | 84532;
+}) {
+  const { isConnected, address, connector } = useAccount();
+  const { connectWallet, message } = useConnectWallet();
+  const label = chainId === base.id ? "Base mainnet" : "Base Sepolia";
+
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+          Step 1 · Wallet
+        </span>
+        <span
+          className={`text-[10px] uppercase tracking-widest font-mono ${
+            isConnected ? "text-accent" : "text-white/40"
+          }`}
+        >
+          {isConnected ? "Connected" : "Not connected"}
+        </span>
+      </div>
+
+      {isConnected ? (
+        <div className="text-xs text-white/70 font-mono break-all">
+          {address?.slice(0, 6)}…{address?.slice(-4)}
+          {connector?.name ? ` · ${connector.name}` : ""}
+        </div>
+      ) : (
+        <button
+          onClick={() => connectWallet()}
+          className="w-full bg-white text-black py-3 rounded-xl font-bold uppercase tracking-widest text-xs active:scale-[0.98] transition"
+        >
+          Connect Wallet
+        </button>
+      )}
+      {message && <p className="text-[11px] text-white/50">{message}</p>}
+
+      <div className="border-t border-white/5 pt-3">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={approved}
+            disabled={!isConnected}
+            onChange={(e) => onApprovedChange(e.target.checked)}
+            className="mt-0.5 size-4 accent-accent shrink-0 disabled:opacity-40"
+          />
+          <span className="text-[11px] text-white/70 leading-relaxed">
+            <span className="block text-[10px] uppercase tracking-widest text-white/40 font-mono mb-0.5">
+              Step 2 · Approve
+            </span>
+            I approve deploying this contract to <strong>{label}</strong> from my wallet. I
+            understand the transaction is irreversible and I'll be prompted to sign it.
+          </span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
+type VerifyState =
+  | { status: "idle" }
+  | { status: "verifying" }
+  | {
+      status: "success";
+      address: `0x${string}`;
+      name?: string;
+      symbol?: string;
+      totalSupply?: string;
+      maxSupply?: string;
+    }
+  | { status: "failure"; reason: string };
+
+const ERC20_METADATA_ABI = [
+  { type: "function", name: "name", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "totalSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+const ERC721_METADATA_ABI = [
+  { type: "function", name: "name", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "symbol", stateMutability: "view", inputs: [], outputs: [{ type: "string" }] },
+  { type: "function", name: "maxSupply", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+function VerificationBanner({ state, chainId }: { state: VerifyState; chainId: 8453 | 84532 }) {
+  if (state.status === "idle") return null;
+  if (state.status === "verifying") {
+    return (
+      <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-white/70 flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Verifying deployment on-chain…
+      </div>
+    );
+  }
+  if (state.status === "failure") {
+    return (
+      <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-200 space-y-1">
+        <p className="font-bold uppercase tracking-widest text-[10px]">Verification failed</p>
+        <p className="break-words">{state.reason}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 text-xs text-emerald-200 space-y-1 font-mono">
+      <p className="font-bold uppercase tracking-widest text-[10px]">✓ Verified on-chain</p>
+      <p className="break-all">
+        <span className="text-emerald-100/70">addr </span>
+        <a
+          className="underline"
+          href={basescanUrl(chainId, state.address)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {state.address}
+        </a>
+      </p>
+      {state.name && (
+        <p>
+          <span className="text-emerald-100/70">name </span>
+          {state.name}
+        </p>
+      )}
+      {state.symbol && (
+        <p>
+          <span className="text-emerald-100/70">symbol </span>
+          {state.symbol}
+        </p>
+      )}
+      {state.totalSupply && (
+        <p>
+          <span className="text-emerald-100/70">totalSupply </span>
+          {state.totalSupply}
+        </p>
+      )}
+      {state.maxSupply && (
+        <p>
+          <span className="text-emerald-100/70">maxSupply </span>
+          {state.maxSupply}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ResultLinks({
   chainId,
   txHash,
@@ -163,8 +367,9 @@ function ResultLinks({
 
 function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.tokenFactory;
-  const { isConnected, address } = useAccount();
-  const { connectWallet, message: connectMessage } = useConnectWallet();
+  const { isConnected, address, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
+  const { connectWallet } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
 
@@ -172,10 +377,12 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [symbol, setSymbol] = useState("");
   const [decimals, setDecimals] = useState("18");
   const [supply, setSupply] = useState("1000000");
+  const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
   const [deployed, setDeployed] = useState<`0x${string}`>();
+  const [verify, setVerify] = useState<VerifyState>({ status: "idle" });
 
   const { data: feeData } = useReadContract({
     chainId,
@@ -192,6 +399,10 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       connectWallet();
       return;
     }
+    if (!approved) {
+      setErr("Approve the deployment before continuing.");
+      return;
+    }
     if (!factory || !walletClient || !publicClient || !address) {
       setErr("Wallet or factory not ready.");
       return;
@@ -203,24 +414,35 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
     setBusy(true);
     setTxHash(undefined);
     setDeployed(undefined);
+    setVerify({ status: "idle" });
     try {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
       }
       const dec = Number(decimals) || 18;
       const initial = parseUnits(supply || "0", dec);
-      const hash = await walletClient.writeContract({
-        address: factory,
+      const data = encodeFunctionData({
         abi: TOKEN_FACTORY_ABI,
         functionName: "createToken",
         args: [name, symbol.toUpperCase(), dec, initial],
-        value: creationFee,
-        chain: chainId === base.id ? base : baseSepolia,
-        account: address,
       });
-      setTxHash(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      for (const log of receipt.logs) {
+      const result = await sendSponsoredOrFallback({
+        walletClient,
+        publicClient,
+        account: address,
+        chainId,
+        connectorId: connector?.id,
+        calls: [{ to: factory, data, value: creationFee }],
+      });
+      setTxHash(result.txHash);
+
+      if (result.receipt.status !== "success") {
+        setVerify({ status: "failure", reason: "Transaction reverted on-chain." });
+        return;
+      }
+
+      let tokenAddr: `0x${string}` | undefined;
+      for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
             abi: TOKEN_FACTORY_ABI,
@@ -228,15 +450,48 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
             topics: log.topics,
           });
           if (ev.eventName === "TokenCreated") {
-            setDeployed((ev.args as { token: `0x${string}` }).token);
+            tokenAddr = (ev.args as { token: `0x${string}` }).token;
+            setDeployed(tokenAddr);
             break;
           }
         } catch {
           /* not our event */
         }
       }
+
+      if (!tokenAddr) {
+        setVerify({ status: "failure", reason: "No TokenCreated event found in receipt logs." });
+        return;
+      }
+
+      setVerify({ status: "verifying" });
+      const code = await publicClient.getCode({ address: tokenAddr });
+      if (!code || code === "0x") {
+        setVerify({ status: "failure", reason: `No bytecode at ${tokenAddr}.` });
+        return;
+      }
+      const [onchainName, onchainSymbol, onchainSupply] = await Promise.all([
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "name" })
+          .catch(() => undefined),
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "symbol" })
+          .catch(() => undefined),
+        publicClient
+          .readContract({ address: tokenAddr, abi: ERC20_METADATA_ABI, functionName: "totalSupply" })
+          .catch(() => undefined),
+      ]);
+      setVerify({
+        status: "success",
+        address: tokenAddr,
+        name: onchainName as string | undefined,
+        symbol: onchainSymbol as string | undefined,
+        totalSupply: onchainSupply != null ? (onchainSupply as bigint).toString() : undefined,
+      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Deploy failed");
+      const msg = e instanceof Error ? e.message : "Deploy failed";
+      setErr(msg);
+      setVerify({ status: "failure", reason: msg });
     } finally {
       setBusy(false);
     }
@@ -291,19 +546,34 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         </p>
       </div>
 
+      {sponsored && (
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+          <Zap className="size-3" /> Gasless via Base paymaster
+        </div>
+      )}
+
       {!factory && <FactoryMissing chainId={chainId} />}
-      {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
+
+      <WalletApproval approved={approved} onApprovedChange={setApproved} chainId={chainId} />
+
       {err && <p className="text-xs text-red-300 break-words">{err}</p>}
 
       <button
         onClick={onDeploy}
-        disabled={busy || !factory}
-        className="w-full bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-60 flex items-center justify-center gap-2"
+        disabled={busy || !factory || (isConnected && !approved)}
+        className="w-full bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-40 flex items-center justify-center gap-2"
       >
         {busy && <Loader2 className="size-4 animate-spin" />}
-        {isConnected ? (busy ? "Deploying…" : "Deploy on Base") : "Connect Wallet"}
+        {!isConnected
+          ? "Connect Wallet"
+          : !approved
+            ? "Approve to Deploy"
+            : busy
+              ? "Deploying…"
+              : "Deploy on Base"}
       </button>
 
+      <VerificationBanner state={verify} chainId={chainId} />
       <ResultLinks chainId={chainId} txHash={txHash} contract={deployed} />
     </div>
   );
@@ -311,8 +581,9 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
 
 function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const factory = FACTORY_ADDRESSES[chainId]?.nftFactory;
-  const { isConnected, address } = useAccount();
-  const { connectWallet, message: connectMessage } = useConnectWallet();
+  const { isConnected, address, connector } = useAccount();
+  const sponsored = isGaslessEligible(connector?.id, chainId);
+  const { connectWallet } = useConnectWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId });
 
@@ -321,10 +592,12 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
   const [baseURI, setBaseURI] = useState("ipfs://");
   const [maxSupply, setMaxSupply] = useState("1000");
   const [mintPrice, setMintPrice] = useState("0.001");
+  const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string>();
   const [txHash, setTxHash] = useState<`0x${string}`>();
   const [deployed, setDeployed] = useState<`0x${string}`>();
+  const [verify, setVerify] = useState<VerifyState>({ status: "idle" });
 
   const { data: feeData } = useReadContract({
     chainId,
@@ -341,6 +614,10 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
       connectWallet();
       return;
     }
+    if (!approved) {
+      setErr("Approve the deployment before continuing.");
+      return;
+    }
     if (!factory || !walletClient || !publicClient || !address) {
       setErr("Wallet or factory not ready.");
       return;
@@ -352,12 +629,12 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
     setBusy(true);
     setTxHash(undefined);
     setDeployed(undefined);
+    setVerify({ status: "idle" });
     try {
       if (walletClient.chain?.id !== chainId) {
         await walletClient.switchChain({ id: chainId });
       }
-      const hash = await walletClient.writeContract({
-        address: factory,
+      const data = encodeFunctionData({
         abi: NFT_FACTORY_ABI,
         functionName: "createCollection",
         args: [
@@ -367,13 +644,24 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
           BigInt(maxSupply || "0"),
           parseEther(mintPrice || "0"),
         ],
-        value: creationFee,
-        chain: chainId === base.id ? base : baseSepolia,
-        account: address,
       });
-      setTxHash(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      for (const log of receipt.logs) {
+      const result = await sendSponsoredOrFallback({
+        walletClient,
+        publicClient,
+        account: address,
+        chainId,
+        connectorId: connector?.id,
+        calls: [{ to: factory, data, value: creationFee }],
+      });
+      setTxHash(result.txHash);
+
+      if (result.receipt.status !== "success") {
+        setVerify({ status: "failure", reason: "Transaction reverted on-chain." });
+        return;
+      }
+
+      let collectionAddr: `0x${string}` | undefined;
+      for (const log of result.receipt.logs) {
         try {
           const ev = decodeEventLog({
             abi: NFT_FACTORY_ABI,
@@ -381,15 +669,63 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
             topics: log.topics,
           });
           if (ev.eventName === "CollectionCreated") {
-            setDeployed((ev.args as { collection: `0x${string}` }).collection);
+            collectionAddr = (ev.args as { collection: `0x${string}` }).collection;
+            setDeployed(collectionAddr);
             break;
           }
         } catch {
           /* not our event */
         }
       }
+
+      if (!collectionAddr) {
+        setVerify({
+          status: "failure",
+          reason: "No CollectionCreated event found in receipt logs.",
+        });
+        return;
+      }
+
+      setVerify({ status: "verifying" });
+      const code = await publicClient.getCode({ address: collectionAddr });
+      if (!code || code === "0x") {
+        setVerify({ status: "failure", reason: `No bytecode at ${collectionAddr}.` });
+        return;
+      }
+      const [onchainName, onchainSymbol, onchainMax] = await Promise.all([
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "name",
+          })
+          .catch(() => undefined),
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "symbol",
+          })
+          .catch(() => undefined),
+        publicClient
+          .readContract({
+            address: collectionAddr,
+            abi: ERC721_METADATA_ABI,
+            functionName: "maxSupply",
+          })
+          .catch(() => undefined),
+      ]);
+      setVerify({
+        status: "success",
+        address: collectionAddr,
+        name: onchainName as string | undefined,
+        symbol: onchainSymbol as string | undefined,
+        maxSupply: onchainMax != null ? (onchainMax as bigint).toString() : undefined,
+      });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Deploy failed");
+      const msg = e instanceof Error ? e.message : "Deploy failed";
+      setErr(msg);
+      setVerify({ status: "failure", reason: msg });
     } finally {
       setBusy(false);
     }
@@ -451,19 +787,34 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         </p>
       </div>
 
+      {sponsored && (
+        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-accent font-mono">
+          <Zap className="size-3" /> Gasless via Base paymaster
+        </div>
+      )}
+
       {!factory && <FactoryMissing chainId={chainId} />}
-      {connectMessage && <p className="text-xs text-white/60">{connectMessage}</p>}
+
+      <WalletApproval approved={approved} onApprovedChange={setApproved} chainId={chainId} />
+
       {err && <p className="text-xs text-red-300 break-words">{err}</p>}
 
       <button
         onClick={onDeploy}
-        disabled={busy || !factory}
-        className="w-full bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-60 flex items-center justify-center gap-2"
+        disabled={busy || !factory || (isConnected && !approved)}
+        className="w-full bg-accent text-accent-foreground py-4 rounded-2xl font-bold uppercase tracking-widest text-sm active:scale-[0.98] transition disabled:opacity-40 flex items-center justify-center gap-2"
       >
         {busy && <Loader2 className="size-4 animate-spin" />}
-        {isConnected ? (busy ? "Deploying…" : "Deploy on Base") : "Connect Wallet"}
+        {!isConnected
+          ? "Connect Wallet"
+          : !approved
+            ? "Approve to Deploy"
+            : busy
+              ? "Deploying…"
+              : "Deploy on Base"}
       </button>
 
+      <VerificationBanner state={verify} chainId={chainId} />
       <ResultLinks chainId={chainId} txHash={txHash} contract={deployed} />
     </div>
   );

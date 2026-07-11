@@ -3,6 +3,71 @@ import path from "node:path";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 const shimRpcWs = path.resolve(process.cwd(), "src/lib/shims/rpc-websockets.ts");
+const shimStreamPromises = path.resolve(process.cwd(), "src/lib/shims/node-stream-promises.mjs");
+const shimStreamWeb = path.resolve(process.cwd(), "src/lib/shims/node-stream-web.mjs");
+const shimEmptyCss = path.resolve(process.cwd(), "src/lib/shims/empty.css");
+
+// @coinbase/cdp-react ships CSS files that (a) Node SSR can't import as ESM
+// and (b) contain a remote `@import url(https://fonts.googleapis.com/...)`
+// that Lightning CSS tries to read from disk. We swap every cdp-react CSS
+// asset for an empty stylesheet — the SignIn modal still renders with its
+// inline theme tokens.
+const cdpReactCssShimPlugin = {
+  name: "basemint:shim-cdp-react-css",
+  enforce: "pre" as const,
+  resolveId(id: string) {
+    if (id.includes("@coinbase/cdp-react") && id.endsWith(".css")) {
+      return { id: shimEmptyCss, moduleSideEffects: false };
+    }
+    return null;
+  },
+  transform(code: string, id: string) {
+    if (!id.includes("node_modules/.vite/deps/") || !code.includes("@coinbase/cdp-react")) {
+      return null;
+    }
+
+    const transformed = code.replace(
+      /import\s+["'][^"']*node_modules\/@coinbase\/cdp-react\/[^"']+\.css(?:\?[^"']*)?["'];?/g,
+      "",
+    );
+
+    return transformed === code ? null : { code: transformed, map: null };
+  },
+  load(id: string) {
+    if (id.includes("@coinbase/cdp-react") && id.endsWith(".css")) {
+      return "";
+    }
+    return null;
+  },
+};
+
+
+// Pre-resolver that catches both bare specifiers AND absolute node_modules
+// paths the polyfill plugin rewrites to (e.g. `/vercel/path0/node_modules/
+// stream-browserify/promises`), routing them to our runtime shim.
+const streamSubpathShimPlugin = {
+  name: "basemint:shim-stream-subpaths",
+  enforce: "pre" as const,
+  resolveId(id: string) {
+    if (
+      id === "node:stream/promises" ||
+      id === "stream/promises" ||
+      id === "stream-browserify/promises" ||
+      id.endsWith("/stream-browserify/promises")
+    ) {
+      return shimStreamPromises;
+    }
+    if (
+      id === "node:stream/web" ||
+      id === "stream/web" ||
+      id === "stream-browserify/web" ||
+      id.endsWith("/stream-browserify/web")
+    ) {
+      return shimStreamWeb;
+    }
+    return null;
+  },
+};
 
 export default defineConfig({
   tanstackStart: {
@@ -10,10 +75,11 @@ export default defineConfig({
   },
   vite: {
     plugins: [
+      cdpReactCssShimPlugin,
+      streamSubpathShimPlugin,
       // Polyfills are only needed for the browser bundle. Scoping them to the
       // client environment prevents them from aliasing `stream` -> `stream-browserify`
-      // in the SSR/Nitro/Worker builds, which breaks srvx's `stream/promises` import
-      // on Vercel.
+      // in the SSR/Nitro/Worker builds.
       ...nodePolyfills({
         include: ["buffer", "util", "stream", "events"],
         globals: { Buffer: true, global: true, process: false },
@@ -26,10 +92,60 @@ export default defineConfig({
     resolve: {
       alias: [
         // Farcaster SDK pulls @solana/web3.js -> rpc-websockets, which breaks browser bundling.
-        // We don't use Solana, so stub it out.
         { find: /^rpc-websockets$/, replacement: shimRpcWs },
         { find: /^rpc-websockets\/dist\/.*$/, replacement: shimRpcWs },
+        // @coinbase/cdp-react CSS contains a remote @import url(...) Lightning CSS can't fetch.
+        { find: /@coinbase\/cdp-react\/.*\.css$/, replacement: shimEmptyCss },
       ],
+    },
+    ssr: {
+      // Force Vite to bundle cdp-react in SSR so the CSS shim plugin above
+      // intercepts its `.css` imports. Otherwise Node's ESM loader tries to
+      // import the raw .css file and throws ERR_UNKNOWN_FILE_EXTENSION.
+      noExternal: ["@coinbase/cdp-react"],
+    },
+    optimizeDeps: {
+      // Force cdp-react (and its subpath entrypoints) through Vite's dep
+      // optimizer so the CSS shim below intercepts stylesheet imports.
+      include: [
+        "@coinbase/cdp-react",
+        "@coinbase/cdp-react/components/CDPReactProvider",
+        "@coinbase/cdp-react/components/SignIn",
+      ],
+      esbuildOptions: {
+        plugins: [
+          {
+            name: "basemint:shim-cdp-react-css-esbuild",
+            setup(build: {
+              onResolve: (
+                opts: { filter: RegExp },
+                cb: (args: { path: string; importer?: string }) =>
+                  | { path: string; namespace?: string }
+                  | undefined,
+              ) => void;
+              onLoad: (
+                opts: { filter: RegExp; namespace: string },
+                cb: () => { contents: string; loader: "js" },
+              ) => void;
+            }) {
+              build.onResolve({ filter: /\.css$/ }, (args) => {
+                const fromCdpReact =
+                  args.path.includes("@coinbase/cdp-react") ||
+                  (args.importer ?? "").includes("node_modules/@coinbase/cdp-react");
+
+                if (!fromCdpReact) return undefined;
+
+                return { path: args.path, namespace: "cdp-react-empty-css" };
+              });
+              build.onLoad({ filter: /.*/, namespace: "cdp-react-empty-css" }, () => ({
+                contents: "",
+                loader: "js",
+              }));
+            },
+          },
+        ],
+      },
     },
   },
 });
+
