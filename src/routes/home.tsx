@@ -332,25 +332,8 @@ function HomePage() {
       </section>
 
       {/* 7. Recent Activity */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display font-bold text-lg uppercase tracking-wider">
-            Recent activity
-          </h2>
-          <Link
-            to="/vault"
-            className="text-[11px] font-mono uppercase tracking-widest text-accent hover:text-accent/80"
-          >
-            View activity →
-          </Link>
-        </div>
-        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
-          <Activity className="size-6 text-white/30 mx-auto mb-2" />
-          <p className="text-sm text-white/60">
-            Your Resident Labs activity will appear here.
-          </p>
-        </div>
-      </section>
+      <RecentActivity address={address} isConnected={isConnected} />
+
 
       {/* 8. Ecosystem status */}
       <section>
