@@ -513,3 +513,122 @@ function TrendingPreview() {
     </section>
   );
 }
+
+const KIND_META: Record<PointKind, { icon: typeof Coins; label: string; tone: string }> = {
+  create_coin: { icon: Rocket, label: "Launched a coin", tone: "text-accent" },
+  buy_coin: { icon: ShoppingCart, label: "Bought a coin", tone: "text-primary" },
+  referral_signup: { icon: Users, label: "Referral signup", tone: "text-white/80" },
+  referral_mint: { icon: Users, label: "Referral mint", tone: "text-accent" },
+  daily_checkin: { icon: CheckCircle2, label: "Daily check-in", tone: "text-primary" },
+  share_cast: { icon: Share2, label: "Shared a cast", tone: "text-white/80" },
+};
+
+function timeAgo(iso: string): string {
+  const s = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function RecentActivity({
+  address,
+  isConnected,
+}: {
+  address: `0x${string}` | undefined;
+  isConnected: boolean;
+}) {
+  const fetchSummary = useServerFn(getPointsSummary);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["points-summary", address?.toLowerCase()],
+    queryFn: () => fetchSummary({ data: { address: address! } }),
+    enabled: Boolean(isConnected && address),
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const events = (data?.recent ?? []).slice(0, 6);
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-display font-bold text-lg uppercase tracking-wider">
+          Recent activity
+        </h2>
+        <Link
+          to="/points"
+          className="text-[11px] font-mono uppercase tracking-widest text-accent hover:text-accent/80"
+        >
+          View all →
+        </Link>
+      </div>
+
+      {!isConnected ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
+          <Activity className="size-6 text-white/30 mx-auto mb-2" />
+          <p className="text-sm text-white/60">
+            Connect a wallet to see your Resident Labs activity.
+          </p>
+        </div>
+      ) : isLoading ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
+          <p className="text-sm text-white/50 font-mono">Loading activity…</p>
+        </div>
+      ) : error ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
+          <p className="text-sm text-white/50 font-mono">Couldn't load activity.</p>
+        </div>
+      ) : events.length === 0 ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
+          <Activity className="size-6 text-white/30 mx-auto mb-2" />
+          <p className="text-sm text-white/60">
+            No activity yet. Launch a coin, trade, or claim your daily check-in.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2 justify-center">
+            <Link
+              to="/launch"
+              className="px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider"
+            >
+              Launch
+            </Link>
+            <Link
+              to="/points"
+              className="px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-bold uppercase tracking-wider text-white/85"
+            >
+              Daily check-in
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <ul className="rounded-3xl border border-white/10 bg-white/[0.02] divide-y divide-white/5 overflow-hidden">
+          {events.map((e: PointEventDTO) => {
+            const meta = KIND_META[e.kind] ?? {
+              icon: Activity,
+              label: e.kind,
+              tone: "text-white/80",
+            };
+            const Icon = meta.icon;
+            return (
+              <li key={e.id} className="flex items-center gap-3 px-4 py-3">
+                <div
+                  className={`size-9 rounded-xl bg-white/[0.04] border border-white/10 grid place-items-center ${meta.tone}`}
+                >
+                  <Icon className="size-4" strokeWidth={2.4} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm truncate">{meta.label}</p>
+                  <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono mt-0.5">
+                    {timeAgo(e.created_at)}
+                  </p>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-accent shrink-0">
+                  +{e.points}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}
