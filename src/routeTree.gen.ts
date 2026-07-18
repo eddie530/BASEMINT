@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -43,6 +44,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PointsRoute = PointsRouteImport.update({
@@ -106,9 +112,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileIndexRoute = ProfileIndexRouteImport.update({
-  id: '/profile/',
-  path: '/profile/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
   id: '/settings/profile',
@@ -116,9 +122,9 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileAddressRoute = ProfileAddressRouteImport.update({
-  id: '/profile/$address',
-  path: '/profile/$address',
-  getParentRoute: () => rootRouteImport,
+  id: '/$address',
+  path: '/$address',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const CoinIdRoute = CoinIdRouteImport.update({
   id: '/coin/$id',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
@@ -189,6 +196,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
@@ -213,6 +221,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/play'
     | '/points'
+    | '/profile'
     | '/search'
     | '/sitemap.xml'
     | '/vault'
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/play'
     | '/points'
+    | '/profile'
     | '/search'
     | '/sitemap.xml'
     | '/vault'
@@ -280,13 +290,12 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   PlayRoute: typeof PlayRoute
   PointsRoute: typeof PointsRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
-  ProfileAddressRoute: typeof ProfileAddressRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
-  ProfileIndexRoute: typeof ProfileIndexRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
 
@@ -311,6 +320,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/points': {
@@ -399,10 +415,10 @@ declare module '@tanstack/react-router' {
     }
     '/profile/': {
       id: '/profile/'
-      path: '/profile'
+      path: '/'
       fullPath: '/profile/'
       preLoaderRoute: typeof ProfileIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/settings/profile': {
       id: '/settings/profile'
@@ -413,10 +429,10 @@ declare module '@tanstack/react-router' {
     }
     '/profile/$address': {
       id: '/profile/$address'
-      path: '/profile/$address'
+      path: '/$address'
       fullPath: '/profile/$address'
       preLoaderRoute: typeof ProfileAddressRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/coin/$id': {
       id: '/coin/$id'
@@ -435,6 +451,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProfileRouteChildren {
+  ProfileAddressRoute: typeof ProfileAddressRoute
+  ProfileIndexRoute: typeof ProfileIndexRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileAddressRoute: ProfileAddressRoute,
+  ProfileIndexRoute: ProfileIndexRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
@@ -448,13 +477,12 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   PlayRoute: PlayRoute,
   PointsRoute: PointsRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
-  ProfileAddressRoute: ProfileAddressRoute,
   SettingsProfileRoute: SettingsProfileRoute,
-  ProfileIndexRoute: ProfileIndexRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
 export const routeTree = rootRouteImport
