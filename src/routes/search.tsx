@@ -119,17 +119,18 @@ function SearchPage() {
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageItems = results.slice(start, start + PAGE_SIZE);
 
+  type SearchState = { q: string; type: string; page: number };
   const setKind = (next: Kind) => {
-    navigate({ search: (prev) => ({ ...prev, type: next, page: 1 }) });
+    navigate({ search: (prev: SearchState) => ({ ...prev, type: next, page: 1 }) });
   };
 
   const goToPage = (p: number) => {
-    navigate({ search: (prev) => ({ ...prev, page: p }) });
+    navigate({ search: (prev: SearchState) => ({ ...prev, page: p }) });
   };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ search: (prev) => ({ ...prev, q: input.trim(), page: 1 }) });
+    navigate({ search: (prev: SearchState) => ({ ...prev, q: input.trim(), page: 1 }) });
   };
 
   const tabs: { label: string; value: Kind }[] = [
