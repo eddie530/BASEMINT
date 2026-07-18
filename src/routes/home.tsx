@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useAccount, useBalance, useChainId, useDisconnect } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
 import {
@@ -12,11 +13,17 @@ import {
   Activity,
   Radio,
   Zap,
+  Coins,
+  ShoppingCart,
+  Users,
+  CheckCircle2,
+  Share2,
 } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
 import { trendingQO } from "@/components/pages/DiscoverFeed";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { getPointsSummary, type PointEventDTO, type PointKind } from "@/lib/points.functions";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
