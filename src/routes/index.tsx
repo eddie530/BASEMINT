@@ -84,13 +84,21 @@ function FeedPage() {
 
   const hasResults = curated.length > 0 || filteredTrending.length > 0 || filteredRecent.length > 0;
 
+  const navigate = useNavigate();
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    navigate({ to: "/search", search: { q, type: "all", page: 1 } });
+  };
+
   return (
     <MiniAppShell>
       <section className="relative">
         <label htmlFor="coin-search" className="sr-only">
           Search tokens, creators, or addresses
         </label>
-        <div className="relative">
+        <form onSubmit={submitSearch} className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/40" aria-hidden="true" />
           <input
             id="coin-search"
@@ -100,7 +108,16 @@ function FeedPage() {
             placeholder="Search tokens, creators, or addresses…"
             className="w-full bg-card border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm placeholder:text-white/40 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/50 transition"
           />
-        </div>
+        </form>
+        {query.trim() && (
+          <Link
+            to="/search"
+            search={{ q: query.trim(), type: "all", page: 1 }}
+            className="mt-2 block text-[11px] text-accent font-mono uppercase tracking-widest text-right"
+          >
+            See all results →
+          </Link>
+        )}
       </section>
 
       {query && !hasResults ? (
