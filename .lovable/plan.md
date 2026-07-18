@@ -1,72 +1,140 @@
-# Plan
+# Resident Labs — Integration Plan (Phase 0: audit only)
 
-Big batch — I'll ship it in 4 phases on top of Lovable Cloud (which I'll enable first).
+You asked for Command 1 only: inventory the project, do not touch code, and lay out a safe phased path to unify BaseMint + SpinBase under the Resident Labs umbrella with the nav: Home · Discover · Launch · Play · Vault · AI · Profile.
 
-## Phase 0 — Enable Lovable Cloud
+## 1. What exists today (inventory)
 
-Needed for profiles, referrals, and analytics persistence. One click.
+### Routes (`src/routes/`)
+- `__root.tsx` — SSR shell, SEO/OG/Farcaster/Base Builder meta, JSON-LD
+- `index.tsx` — Home feed (Curated Signal + Trending + Just Launched + search)
+- `search.tsx` — full search results (?q, ?type, ?page)
+- `coin.$id.tsx` — coin detail + Buy/Sell (Zora trade)
+- `create.tsx` — Zora coin + ERC-1155 NFT creation
+- `deploy.tsx` — Basemint Foundry factories (ERC20/ERC721) w/ wallet+approval gate
+- `arcade.tsx` — "Neon Arcade" hub (placeholder tiles)
+- `vault.tsx` — existing vault page
+- `dashboard.tsx` — creator analytics
+- `points.tsx`, `leaderboard.tsx` — points/quests
+- `profile.$address.tsx`, `settings.profile.tsx` — profile view + edit (contracts, CDP server wallet)
+- `api/public/track.ts` — analytics beacon
+- `sitemap[.]xml.ts`
 
-## Phase 1 — Farcaster Mini App manifest
+### Shell components
+- `MiniAppShell` (max-w-[430px] mobile shell) → `AppHeader` + `BottomNav` (Feed/Points/Create/Vault)
+- `AnalyticsTracker`
 
-Create `src/routes/.well-known.farcaster.json.ts` returning a real manifest:
+### Reusable feature components
+- `feed/CoinCard`, `feed/NFTCard`, `feed/SpinDiscover` (already spin-styled discovery)
+- `coin/MintDialog`, `coin/TradeDialog`
+- `create/DeployProgress`, `create/LaunchReceipt`
+- `profile/ProfileContractsPanel`
+- Full `ui/` shadcn set
 
-- `accountAssociation`: left as a TODO block in the response with clear instructions (signing requires your Farcaster custody wallet — I can't sign for you; you paste the header/payload/signature from Warpcast's Mini App tool and I wire them in).
-- `frame`: `name: "Basemint"`, `version: "1"`, `iconUrl`, `homeUrl`, `splashImageUrl`, `splashBackgroundColor: "#000000"`, `subtitle`, `description`, `primaryCategory: "social"`, `tags: ["base","zora","mint","coins","nft"]`.
-- Uses absolute URLs derived from request origin so it works on preview + prod.
+### Server / data libs
+- Zora: `zora.functions.ts` (trending/recent/detail), `zora-create.functions.ts`, `zora-trade.functions.ts`
+- Basemint contracts: `basemint-contracts.ts` (factory ABIs + addresses + Basescan)
+- Points ledger: `points.functions.ts` + Supabase `point_events` / `point_balances` / `quests` / `quest_progress` / `daily_checkins`
+- Profiles: `profiles.functions.ts`, `profile-contracts.functions.ts`
+- CDP server wallets: `cdp-wallets.functions.ts`
+- Analytics: `analytics.ts` + `page_events` + `referral_codes`/`referral_events`
+- Curated Signal: `curated.ts` (Resident Labs brand constants live here already)
 
-Also add Base/Farcaster embed meta tags in `__root.tsx` (`fc:frame`, `of:version`, etc.) so links unfurl as Mini App embeds.
+### Wallet / identity stack
+- `wagmi.ts` — Base + Base Sepolia, connectors: Farcaster miniApp, injected, Coinbase Smart Wallet, CDP Embedded Wallet (email/Google/Apple)
+- `providers.tsx` — `WagmiProvider` + `CDPReactProvider` + lazy `<SignIn />` modal, calls `sdk.actions.ready()`
+- `use-connect-wallet.ts` — single hook already funnels all connectors
+- `sponsored-tx.ts` — paymaster/EIP-5792 gasless path
 
-## Phase 2 — Real data (replace mocks)
+### Database (Supabase)
+Tables: `profiles`, `profile_contracts`, `cdp_wallets`, `point_events`, `point_balances`, `quests`, `quest_progress`, `daily_checkins`, `page_events`, `referral_codes`, `referral_events`. RLS/GRANTs already hardened (service-role writes for sensitive tables; public read where safe).
 
-Source: **Zora Coins SDK GraphQL** (`api-sdk.zora.engineering`) — no API key needed, covers Zora coins on Base + recent launches + trending. Wrap in server functions so we don't leak CORS issues client-side.
+### Env vars (client-visible `VITE_*`)
+- `VITE_BASE_RPC_URL`, `VITE_BASE_SEPOLIA_RPC_URL`
+- `VITE_CDP_PROJECT_ID`, `VITE_CDP_PAYMASTER_URL_BASE(_SEPOLIA)`
+- `VITE_TOKEN_FACTORY_BASE(_SEPOLIA)`, `VITE_NFT_FACTORY_BASE(_SEPOLIA)`
+- Server secrets: `ZORA_API_KEY`, `CDP_API_KEY_ID/SECRET`, `CDP_WALLET_SECRET`, `LOVABLE_API_KEY`, Supabase keys
 
-New server functions in `src/lib/zora.functions.ts`:
+### Mini-app manifests
+- `public/.well-known/farcaster.json` (signed accountAssociation for basemint.dev, `baseBuilder.appId=bc_iv004g9z`)
+- `public/manifest.webmanifest`, apple-touch icons, favicon
 
-- `getTrendingCoins({ chain: "base", limit })` → top by 24h volume
-- `getRecentCoins({ chain: "base", limit })` → newest
-- `getCoinDetails({ address })`
-- `getCoinsByCreator({ address })`
+## 2. Mapping: current → Resident Labs nav
 
-Wire into existing feed/vault/coin-detail screens via TanStack Query (`ensureQueryData` + `useSuspenseQuery`). Keep a typed DTO so UI stops depending on mock shape.
+```text
+Resident Labs nav      Source in current app                          Status
+─────────────────────  ────────────────────────────────────────────  ──────────────────
+Home                   NEW dashboard (reuse index feed widgets)       BUILD (Cmd 3)
+Discover  (BaseMint)   routes/index.tsx + search.tsx + coin.$id.tsx  MIGRATE (Cmd 4)
+Launch    (BaseMint)   routes/create.tsx + routes/deploy.tsx          CONSOLIDATE (Cmd 5)
+Play      (SpinBase)   routes/arcade.tsx + feed/SpinDiscover          EVOLVE (Cmd 6)
+Vault     (Resident)   routes/vault.tsx + routes/dashboard.tsx        EXTEND (Cmd 7)
+AI        (Resident)   — none yet (LOVABLE_API_KEY present)           NEW (Cmd 8)
+Profile   (Resident)   routes/profile.$address + settings.profile +   UNIFY (Cmd 9)
+                       routes/points.tsx + leaderboard.tsx
+```
 
-## Phase 3 — Creator profiles
+## 3. Duplicates / conflicts to resolve (later, not now)
 
-- DB: `profiles` (wallet PK, display_name, bio, avatar_url, twitter, farcaster, website, created_at)
-- Public route `/profile/$address` showing:
-  - Header (avatar/handle/bio/socials) from `profiles` if present, else derived from on-chain/Zora data
-  - Coins created by that address (from `getCoinsByCreator`)
-  - Referral stats (public count only)
-- Authenticated `/settings/profile` edit page (wallet must match signed-in user — link via existing auth)
-- RLS: anyone SELECT, only owner UPDATE/INSERT; proper GRANTs
+- **Two launch surfaces**: `/create` (Zora coin + 1155) and `/deploy` (Basemint factories). Keep both engines, unify under one `/launch` hub with cards → sub-flows. Do NOT collapse the underlying functions.
+- **Two "home-ish" pages**: `/` (feed) and `/dashboard` (creator analytics). New `/home` becomes the shell dashboard; `/` becomes `/discover`; `/dashboard` folds into Vault or Profile.
+- **Two profile-adjacent surfaces**: `/points` + `/leaderboard` overlap with Profile. Keep as sub-routes under Profile.
+- **Two shell chromes**: `MiniAppShell` (430px mobile) vs. desktop needs. Extend, don't replace — add a responsive layout wrapper that upgrades to sidebar ≥ md.
+- **Arcade vs. Play**: `/arcade` is a placeholder; becomes `/play` (SpinBase) with real spin mechanics from `SpinDiscover`.
+- **BottomNav** currently has 4 slots (Feed/Points/Create/Vault). Needs to become the mobile projection of the 7-item nav (5 visible + "More" sheet).
 
-## Phase 4 — Referrals + analytics
+## 4. Which project is the shell?
 
-- DB:
-  - `referral_codes` (code PK, owner_user_id, created_at)
-  - `referral_events` (id, code, event_type ['visit','signup','mint'], coin_address?, value_wei?, ip_hash, ua, created_at)
-  - `page_events` (id, session_id, path, referrer, ref_code?, user_id?, created_at) — lightweight pageview log
-- Capture: root layout reads `?ref=` from URL, persists to localStorage + cookie, fires a `visit` event via a public server route `/api/public/track` (rate-limited by IP hash, no PII). On signup/mint, dedupe and attribute.
-- Server functions:
-  - `getMyReferralStats` (auth) → visits/signups/mints/volume for owner
-  - `getCreatorReferralPublicCount(address)` for profile page
-- UI:
-  - `/dashboard` (auth) → personal analytics: visits, signups, mints, referral leaderboard, recent events, top coins
-  - Referral link generator on profile + dashboard (`?ref=<code>`)
-- All inserts via service-role inside server route after validation; reads via RLS-scoped server fn.
+**This BaseMint project is the shell.** Reasons: it already has the signed Farcaster manifest for `basemint.dev`, Base Builder ID, wagmi with 4 connectors, CDP embedded wallet, Supabase schema with points/profiles/analytics, Zora + Basemint contracts wired, and Resident Labs brand strings in `curated.ts`. SpinBase is not a separate repo in this sandbox — it will be built into `/play` reusing `SpinDiscover`.
 
-## Technical notes
+Rebrand is a shell + copy change; product engines (BaseMint, SpinBase) stay named inside their sections.
 
-- Stack: TanStack Start + Lovable Cloud (Supabase). Server fns in `src/lib/*.functions.ts`.
-- Zora API: server-side fetch only (avoids CORS, keeps response shapes stable). 30s `staleTime` for trending, 10s for recent.
-- Analytics is first-party only (no third-party scripts). Charts via existing Recharts if already installed, else a simple table + sparkline.
-- No new secrets needed for Zora. Farcaster `accountAssociation` requires you to paste signed values once.
+## 5. Safe phased migration path
 
-## What I need from you after Phase 1 ships
+**Phase A — Shell & nav (Cmd 2)**  Non-destructive.
+- Add `ResidentShell` responsive layout (desktop sidebar / mobile bottom-nav) that wraps existing `MiniAppShell` chrome.
+- Add new routes as thin redirects/wrappers: `/home`, `/discover`, `/launch`, `/play`, `/ai`, `/profile`.
+- Existing routes keep working: `/` still renders (either redirect to `/discover` or keep as legacy alias — decide in Cmd 2).
+- No DB changes. No provider changes.
 
-The signed `accountAssociation` triplet (header/payload/signature) from Warpcast → Settings → Developer → Mini Apps → Domain manifest tool, for domain `foxy-token-forge.lovable.app` (or your custom domain). I'll paste it into the manifest fn.
+**Phase B — Home dashboard (Cmd 3)**  Additive.
+- Reuse `zora.functions.ts` queries, `CoinCard`, wallet hooks — zero new API endpoints.
 
-## Out of scope (ask if you want them)
+**Phase C — Discover (Cmd 4)**  Move, don't rewrite.
+- `/discover` becomes the current `/` feed body; `/` stays as an alias redirect to preserve inbound links & manifest `homeUrl`.
+- `/coin/$id` unchanged.
 
-- On-chain mint execution from referral links
-- Email notifications for referral milestones
-- Public leaderboard across all creators
+**Phase D — Launch (Cmd 5)**  Hub page linking to existing `/create` + `/deploy`; both keep working standalone.
+
+**Phase E — Play / SpinBase (Cmd 6)**  Build on `/play` using `SpinDiscover` + local cooldown; no fake txs.
+
+**Phase F — Vault extend (Cmd 7)**  Add tabs to existing `/vault`; keep current data sources.
+
+**Phase G — AI (Cmd 8)**  New `/ai` using existing `LOVABLE_API_KEY` via a server function; label as AI, no auto-tx.
+
+**Phase H — Profile unify (Cmd 9)**  `/profile` = my-profile shortcut → `/profile/$address`; fold points/leaderboard as tabs.
+
+**Phase I — Provider consolidation (Cmd 10)**  Audit only; current stack is already single-provider — likely no code change beyond confirming.
+
+**Phase J — Points ledger review (Cmd 11)**  Existing schema already ledger-based (`point_events` → trigger → `point_balances`). Extend with `source_module` + unique `ref_key` if not present; migration proposed before applied.
+
+**Phase K — Activity feed (Cmd 12)**  Unified reader over `point_events` + `referral_events` + `page_events`; no new tables initially.
+
+**Phase L — Mobile / mini-app / flags / regression / branding / deploy checklist (Cmds 13-18)**  Sequential polish; each is a non-breaking pass.
+
+## 6. Non-negotiables to preserve across every phase
+
+- `public/.well-known/farcaster.json` signature + `basemint.dev` domain
+- `baseBuilder.appId = bc_iv004g9z`
+- Wagmi connectors and CDP provider wiring
+- Zora coin/trade/create server functions
+- Basemint Foundry factory ABIs + env addresses
+- Supabase schema, RLS policies, GRANTs (any changes go through `supabase--migration` with additive-only DDL)
+- SSR shell in `__root.tsx` (title, description, OG, JSON-LD)
+
+## 7. What I need from you before Command 2
+
+Confirm two things:
+1. **Legacy `/` behavior**: redirect `/` → `/home`, or keep `/` as the Discover feed and add `/home` alongside? (Manifest `homeUrl` currently points to `/`.)
+2. **Domain**: stay on `basemint.dev` for now (keeps Farcaster signature valid) and rebrand copy only, correct?
+
+Once you confirm, I'll execute Command 2.
