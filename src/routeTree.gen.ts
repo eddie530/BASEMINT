@@ -12,12 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PointsRouteImport } from './routes/points'
+import { Route as PlayRouteImport } from './routes/play'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as LaunchRouteImport } from './routes/launch'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as DeployRouteImport } from './routes/deploy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateRouteImport } from './routes/create'
 import { Route as ArcadeRouteImport } from './routes/arcade'
+import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as ProfileAddressRouteImport } from './routes/profile.$address'
@@ -39,14 +45,39 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PointsRoute = PointsRouteImport.update({
   id: '/points',
   path: '/points',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlayRoute = PlayRouteImport.update({
+  id: '/play',
+  path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LaunchRoute = LaunchRouteImport.update({
+  id: '/launch',
+  path: '/launch',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiscoverRoute = DiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeployRoute = DeployRouteImport.update({
@@ -69,6 +100,11 @@ const ArcadeRoute = ArcadeRouteImport.update({
   path: '/arcade',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AiRoute = AiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -80,9 +116,9 @@ const SettingsProfileRoute = SettingsProfileRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileAddressRoute = ProfileAddressRouteImport.update({
-  id: '/profile/$address',
-  path: '/profile/$address',
-  getParentRoute: () => rootRouteImport,
+  id: '/$address',
+  path: '/$address',
+  getParentRoute: () => ProfileRoute,
 } as any)
 const CoinIdRoute = CoinIdRouteImport.update({
   id: '/coin/$id',
@@ -97,12 +133,18 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/arcade': typeof ArcadeRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
+  '/discover': typeof DiscoverRoute
+  '/home': typeof HomeRoute
+  '/launch': typeof LaunchRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
@@ -113,12 +155,18 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/arcade': typeof ArcadeRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
+  '/discover': typeof DiscoverRoute
+  '/home': typeof HomeRoute
+  '/launch': typeof LaunchRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
@@ -130,12 +178,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ai': typeof AiRoute
   '/arcade': typeof ArcadeRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
+  '/discover': typeof DiscoverRoute
+  '/home': typeof HomeRoute
+  '/launch': typeof LaunchRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
@@ -148,12 +202,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ai'
     | '/arcade'
     | '/create'
     | '/dashboard'
     | '/deploy'
+    | '/discover'
+    | '/home'
+    | '/launch'
     | '/leaderboard'
+    | '/play'
     | '/points'
+    | '/profile'
     | '/search'
     | '/sitemap.xml'
     | '/vault'
@@ -164,12 +224,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ai'
     | '/arcade'
     | '/create'
     | '/dashboard'
     | '/deploy'
+    | '/discover'
+    | '/home'
+    | '/launch'
     | '/leaderboard'
+    | '/play'
     | '/points'
+    | '/profile'
     | '/search'
     | '/sitemap.xml'
     | '/vault'
@@ -180,12 +246,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ai'
     | '/arcade'
     | '/create'
     | '/dashboard'
     | '/deploy'
+    | '/discover'
+    | '/home'
+    | '/launch'
     | '/leaderboard'
+    | '/play'
     | '/points'
+    | '/profile'
     | '/search'
     | '/sitemap.xml'
     | '/vault'
@@ -197,17 +269,22 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AiRoute: typeof AiRoute
   ArcadeRoute: typeof ArcadeRoute
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
   DeployRoute: typeof DeployRoute
+  DiscoverRoute: typeof DiscoverRoute
+  HomeRoute: typeof HomeRoute
+  LaunchRoute: typeof LaunchRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  PlayRoute: typeof PlayRoute
   PointsRoute: typeof PointsRoute
+  ProfileRoute: typeof ProfileRouteWithChildren
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
-  ProfileAddressRoute: typeof ProfileAddressRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
 }
@@ -235,6 +312,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/points': {
       id: '/points'
       path: '/points'
@@ -242,11 +326,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PointsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/play': {
+      id: '/play'
+      path: '/play'
+      fullPath: '/play'
+      preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leaderboard': {
       id: '/leaderboard'
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/launch': {
+      id: '/launch'
+      path: '/launch'
+      fullPath: '/launch'
+      preLoaderRoute: typeof LaunchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/discover': {
+      id: '/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof DiscoverRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/deploy': {
@@ -277,6 +389,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArcadeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ai': {
+      id: '/ai'
+      path: '/ai'
+      fullPath: '/ai'
+      preLoaderRoute: typeof AiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -293,10 +412,10 @@ declare module '@tanstack/react-router' {
     }
     '/profile/$address': {
       id: '/profile/$address'
-      path: '/profile/$address'
+      path: '/$address'
       fullPath: '/profile/$address'
       preLoaderRoute: typeof ProfileAddressRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ProfileRoute
     }
     '/coin/$id': {
       id: '/coin/$id'
@@ -315,19 +434,35 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProfileRouteChildren {
+  ProfileAddressRoute: typeof ProfileAddressRoute
+}
+
+const ProfileRouteChildren: ProfileRouteChildren = {
+  ProfileAddressRoute: ProfileAddressRoute,
+}
+
+const ProfileRouteWithChildren =
+  ProfileRoute._addFileChildren(ProfileRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AiRoute: AiRoute,
   ArcadeRoute: ArcadeRoute,
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
   DeployRoute: DeployRoute,
+  DiscoverRoute: DiscoverRoute,
+  HomeRoute: HomeRoute,
+  LaunchRoute: LaunchRoute,
   LeaderboardRoute: LeaderboardRoute,
+  PlayRoute: PlayRoute,
   PointsRoute: PointsRoute,
+  ProfileRoute: ProfileRouteWithChildren,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
-  ProfileAddressRoute: ProfileAddressRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
 }
