@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as DeployRouteImport } from './routes/deploy'
@@ -31,6 +32,11 @@ const VaultRoute = VaultRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PointsRoute = PointsRouteImport.update({
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/deploy': typeof DeployRoute
   '/leaderboard': typeof LeaderboardRoute
   '/points': typeof PointsRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/deploy': typeof DeployRoute
   '/leaderboard': typeof LeaderboardRoute
   '/points': typeof PointsRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/deploy': typeof DeployRoute
   '/leaderboard': typeof LeaderboardRoute
   '/points': typeof PointsRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/coin/$id': typeof CoinIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/deploy'
     | '/leaderboard'
     | '/points'
+    | '/search'
     | '/sitemap.xml'
     | '/vault'
     | '/coin/$id'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/deploy'
     | '/leaderboard'
     | '/points'
+    | '/search'
     | '/sitemap.xml'
     | '/vault'
     | '/coin/$id'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/deploy'
     | '/leaderboard'
     | '/points'
+    | '/search'
     | '/sitemap.xml'
     | '/vault'
     | '/coin/$id'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   DeployRoute: typeof DeployRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PointsRoute: typeof PointsRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CoinIdRoute: typeof CoinIdRoute
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/points': {
@@ -303,6 +323,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeployRoute: DeployRoute,
   LeaderboardRoute: LeaderboardRoute,
   PointsRoute: PointsRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CoinIdRoute: CoinIdRoute,
