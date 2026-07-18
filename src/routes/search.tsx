@@ -40,9 +40,9 @@ const isAddress = (s: string) => /^0x[a-fA-F0-9]{40}$/.test(s.trim());
 const addressLookupQO = (addr: string) =>
   queryOptions({
     queryKey: ["zora", "coin-detail", addr.toLowerCase()],
-    queryFn: () => getCoinDetail({ data: { address: addr, chainId: 8453 } }),
+    queryFn: () =>
+      isAddress(addr) ? getCoinDetail({ data: { address: addr, chainId: 8453 } }) : null,
     staleTime: 60_000,
-    enabled: isAddress(addr),
   });
 
 export const Route = createFileRoute("/search")({
