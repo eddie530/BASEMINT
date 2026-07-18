@@ -20,25 +20,24 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 bg-black/80 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-3 min-w-0">
-        <Link to="/" className="flex items-center gap-2 min-w-0" aria-label="Basemint — Mint on Base">
+        <Link to="/home" className="flex items-center gap-2 min-w-0" aria-label="Resident Labs — Built on Base">
           <img
             src={basemintIcon.url}
             alt=""
             className="size-8 rounded-full object-cover shrink-0"
             aria-hidden="true"
           />
-          <h1 className="font-display font-bold text-lg tracking-tight truncate">Basemint</h1>
-        </Link>
-        <Link
-          to="/arcade"
-          activeProps={{ className: "border-fuchsia-400/60 text-fuchsia-200" }}
-          inactiveProps={{ className: "border-fuchsia-500/30 text-fuchsia-300/90 hover:text-fuchsia-200" }}
-          className="inline-flex items-center gap-1 rounded-full border bg-black/40 px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition"
-          style={{ textShadow: "0 0 8px rgba(217,70,239,0.5)" }}
-        >
-          <span aria-hidden>◈</span> Neon Arcade
+          <div className="min-w-0 leading-tight">
+            <h1 className="font-display font-bold text-[15px] tracking-tight truncate">
+              Resident Labs
+            </h1>
+            <p className="text-[9px] uppercase tracking-widest text-accent/80 font-mono truncate">
+              Built on Base
+            </p>
+          </div>
         </Link>
       </div>
+
 
       {isConnected ? (
         <button
