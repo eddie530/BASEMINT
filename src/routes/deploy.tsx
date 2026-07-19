@@ -8,6 +8,7 @@ import { decodeEventLog, encodeFunctionData, parseEther, parseUnits } from "viem
 import { Loader2, ExternalLink, Rocket, Zap } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { writeLastAction } from "@/lib/last-action";
 import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
 import { isGaslessEligible } from "@/lib/wagmi";
 import { getCreationConfig } from "@/lib/zora-create.functions";
