@@ -41,6 +41,12 @@ import {
   type PointsSummary,
 } from "@/lib/points.functions";
 import { readLastAction, type LastAction } from "@/lib/last-action";
+import {
+  readWatchlist,
+  subscribeWatchlist,
+  type WatchlistItem,
+} from "@/lib/watchlist";
+import { getCoinDetail } from "@/lib/zora.functions";
 import type { CoinDTO } from "@/lib/zora.types";
 
 export const Route = createFileRoute("/home")({
