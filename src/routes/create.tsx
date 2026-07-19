@@ -495,6 +495,14 @@ function NFTForm() {
         txHash: hash,
         imageUrl: media ? URL.createObjectURL(media) : undefined,
       });
+      if (contractAddress) {
+        writeLastAction({
+          kind: "create_nft",
+          ref: contractAddress,
+          label: name,
+          href: `/coin/${contractAddress}`,
+        });
+      }
     } finally {
       setBusy(false);
     }
