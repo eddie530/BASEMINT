@@ -57,6 +57,17 @@ function DetailPage() {
   const { data: item } = useSuspenseQuery(coinQO(id));
   useAccount();
   const [trade, setTrade] = useState<"buy" | "sell" | null>(null);
+  useEffect(() => {
+    if (item?.address) {
+      writeLastAction({
+        kind: "view_coin",
+        ref: item.address,
+        label: item.name,
+        sub: item.symbol ? `$${item.symbol}` : undefined,
+        href: `/coin/${item.address}`,
+      });
+    }
+  }, [item?.address, item?.name, item?.symbol]);
   if (!item) return null;
 
   const delta = item.marketCapDelta24h;
