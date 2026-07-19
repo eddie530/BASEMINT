@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { writeLastAction } from "@/lib/last-action";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
