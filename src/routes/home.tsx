@@ -571,6 +571,7 @@ const LAST_ACTION_LABELS: Record<LastAction["kind"], string> = {
   view_coin: "Last viewed",
   create_coin: "You launched",
   create_nft: "You launched",
+  spin_win: "You won on SpinBase",
 };
 
 function ContinueCard({ action }: { action: LastAction }) {
