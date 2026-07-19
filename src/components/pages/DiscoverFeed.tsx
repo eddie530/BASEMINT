@@ -98,6 +98,21 @@ export function DiscoverFeed({ showLaunchCta = true }: { showLaunchCta?: boolean
             See all results →
           </Link>
         )}
+        <Link
+          to="/shop"
+          className="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 hover:border-accent/30 hover:bg-white/[0.05] transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="size-8 rounded-xl bg-accent/20 grid place-items-center text-accent">
+              <ShoppingBag className="size-4" aria-hidden="true" />
+            </div>
+            <div className="leading-tight">
+              <p className="text-sm font-semibold text-white">Resident Pro Shop</p>
+              <p className="text-[11px] text-white/50">Premium perks, boosts & more</p>
+            </div>
+          </div>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-accent">Shop →</span>
+        </Link>
       </section>
 
       {query && !hasResults ? (
