@@ -158,7 +158,14 @@ export const recordPointEvent = createServerFn({ method: "POST" })
     z
       .object({
         address: addrSchema,
-        kind: z.enum(["create_coin", "buy_coin", "referral_signup", "referral_mint", "share_cast"]),
+        kind: z.enum([
+          "create_coin",
+          "buy_coin",
+          "referral_signup",
+          "referral_mint",
+          "share_cast",
+          "spin_win",
+        ]),
         ref_key: z.string().min(1).max(120),
         metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
       })
