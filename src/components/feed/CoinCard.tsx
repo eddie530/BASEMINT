@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router";
+import { Star } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { CoinDTO } from "@/lib/zora.types";
 import { isCurated, RESIDENT_LABS } from "@/lib/curated";
+import {
+  isWatched,
+  subscribeWatchlist,
+  toggleWatchlist,
+} from "@/lib/watchlist";
 
 function fmtPrice(p?: number): string {
   if (p == null || !Number.isFinite(p)) return "—";
