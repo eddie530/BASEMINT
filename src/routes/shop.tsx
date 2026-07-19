@@ -395,6 +395,15 @@ function ShopPage() {
       <p className="text-[11px] text-muted-foreground text-center">
         Test mode — use Stripe test card 4242 4242 4242 4242, any future expiry, any CVC.
       </p>
+
+      {tradeTarget && (
+        <TradeDialog
+          side="buy"
+          coinAddress={tradeTarget.address}
+          coinSymbol={tradeTarget.symbol}
+          onClose={() => setTradeTarget(null)}
+        />
+      )}
     </MiniAppShell>
   );
 }
