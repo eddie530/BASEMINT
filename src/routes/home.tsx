@@ -164,6 +164,7 @@ function HomePage() {
               Discover, create, play, and earn across the Base ecosystem.
             </p>
           </div>
+          <NotificationBell />
         </div>
 
         {/* Wallet chip row */}
