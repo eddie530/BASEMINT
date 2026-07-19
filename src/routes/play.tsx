@@ -250,9 +250,92 @@ function PlayPage() {
         />
         {!canSpin && (
           <p className="mt-4 text-center text-xs text-white/60">
-            Out of spins. Claim your daily bonus to refill.
+            Out of spins. Claim your daily bonus or buy more below.
           </p>
         )}
+      </section>
+
+      {/* Buy spins */}
+      <section className="rounded-3xl border border-white/10 bg-black/40 p-5 space-y-3">
+        <header className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-accent font-mono flex items-center gap-1.5">
+              <ShoppingBag className="size-3" /> Buy spins
+            </p>
+            <h2 className="font-display font-bold text-xl tracking-tight mt-0.5">
+              Extra spins
+            </h2>
+            <p className="text-[11px] text-white/50 mt-0.5">
+              One-time top-up · credited instantly on return
+            </p>
+          </div>
+          {buyOpen && activePack && (
+            <button
+              type="button"
+              onClick={() => {
+                setBuyOpen(false);
+                setActivePack(null);
+              }}
+              className="text-white/50 hover:text-white p-1"
+              aria-label="Close checkout"
+            >
+              <X className="size-4" />
+            </button>
+          )}
+        </header>
+
+        <div className="grid grid-cols-2 gap-3">
+          {SPIN_PACKS.map((pack) => {
+            const isActive = activePack?.priceId === pack.priceId && buyOpen;
+            return (
+              <button
+                key={pack.priceId}
+                type="button"
+                onClick={() => {
+                  if (!userId) {
+                    toast.error("Sign in first", {
+                      description: "Create a Resident Labs account to purchase spins.",
+                    });
+                    return;
+                  }
+                  setActivePack(pack);
+                  setBuyOpen(true);
+                }}
+                className={`text-left rounded-2xl border p-3 transition ${
+                  isActive
+                    ? "border-accent bg-accent/10"
+                    : "border-white/10 bg-black/30 hover:border-white/30"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-widest text-white/50 font-mono">
+                    {pack.best ? "Best value" : "Top-up"}
+                  </span>
+                  {isActive && <Check className="size-3 text-accent" />}
+                </div>
+                <p className="font-display font-black text-2xl mt-1">
+                  +{pack.spins}
+                </p>
+                <p className="text-[11px] text-white/60">spins · {pack.price}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {buyOpen && activePack && userId && (
+          <div className="rounded-2xl border border-white/10 bg-background p-2">
+            <StripeEmbeddedCheckout
+              priceId={activePack.priceId}
+              customerEmail={email}
+              userId={userId}
+              returnUrl={`${window.location.origin}/play?spins=${activePack.spins}&session_id={CHECKOUT_SESSION_ID}`}
+            />
+          </div>
+        )}
+
+        <p className="text-[10px] text-white/40 text-center">
+          Test mode — Stripe card 4242 4242 4242 4242
+        </p>
       </section>
 
       {/* Daily bonus + Resident Points */}
