@@ -999,6 +999,7 @@ const KIND_META: Record<PointKind, { icon: typeof Coins; label: string; tone: st
   referral_mint: { icon: Users, label: "Referral mint", tone: "text-accent" },
   daily_checkin: { icon: CheckCircle2, label: "Daily check-in", tone: "text-primary" },
   share_cast: { icon: Share2, label: "Shared a cast", tone: "text-white/80" },
+  spin_win: { icon: Gamepad2, label: "SpinBase win", tone: "text-accent" },
 };
 
 function timeAgo(iso: string): string {
