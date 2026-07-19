@@ -446,6 +446,7 @@ function UniversalSearch() {
         e.preventDefault();
         const trimmed = q.trim();
         if (!trimmed) return;
+        trackDashboard({ type: "search_used", length: trimmed.length });
         void navigate({ to: "/search", search: { q: trimmed, type: "all", page: 1 } });
       }}
       className="relative"
