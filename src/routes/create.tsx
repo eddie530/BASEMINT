@@ -291,6 +291,15 @@ function CoinForm() {
         txHash: lastHash,
         imageUrl: media ? URL.createObjectURL(media) : undefined,
       });
+      if (coinAddress) {
+        writeLastAction({
+          kind: "create_coin",
+          ref: coinAddress,
+          label: name,
+          sub: symbol ? `$${symbol}` : undefined,
+          href: `/coin/${coinAddress}`,
+        });
+      }
     } finally {
       setBusy(false);
     }
