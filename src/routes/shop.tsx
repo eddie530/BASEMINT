@@ -359,13 +359,27 @@ function ShopPage() {
                         )}
                       </div>
                     </div>
-                    <Link
-                      to="/coin/$id"
-                      params={{ id: coin.address }}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-xs font-semibold hover:opacity-90 shrink-0"
-                    >
-                      Buy <ArrowUpRight className="size-3" />
-                    </Link>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTradeTarget({
+                            address: coin.address as `0x${string}`,
+                            symbol: coin.symbol,
+                          })
+                        }
+                        className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-xs font-semibold hover:opacity-90"
+                      >
+                        Quick Buy <Zap className="size-3" />
+                      </button>
+                      <Link
+                        to="/coin/$id"
+                        params={{ id: coin.address }}
+                        className="inline-flex items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary"
+                      >
+                        Details <ArrowUpRight className="size-3" />
+                      </Link>
+                    </div>
                   </div>
                 </li>
               );
