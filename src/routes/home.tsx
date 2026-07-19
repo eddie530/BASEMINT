@@ -613,11 +613,13 @@ function OnboardingChecklist({
   inFarcaster,
   hasViewedToken,
   hasLaunched,
+  onDismiss,
 }: {
   isConnected: boolean;
   inFarcaster: boolean;
   hasViewedToken: boolean;
   hasLaunched: boolean;
+  onDismiss: () => void;
 }) {
   const items: ChecklistItem[] = [
     { label: "Connect wallet", done: isConnected },
@@ -644,7 +646,17 @@ function OnboardingChecklist({
             {doneCount} of {items.length} complete
           </p>
         </div>
-        <span className="text-[11px] font-mono text-accent">{pct}%</span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-mono text-accent">{pct}%</span>
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss onboarding"
+            className="size-6 grid place-items-center rounded-full border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
       </div>
       <div className="rounded-3xl border border-white/10 bg-white/[0.02] overflow-hidden">
         <div className="h-1 bg-white/5">
