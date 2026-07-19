@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useBalance, useChainId, useDisconnect } from "wagmi";
 import { base, baseSepolia } from "wagmi/chains";
 import {
@@ -18,12 +19,24 @@ import {
   Users,
   CheckCircle2,
   Share2,
+  Search as SearchIcon,
+  History,
+  Flame,
+  Circle,
+  Check,
 } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
 import { trendingQO } from "@/components/pages/DiscoverFeed";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
-import { getPointsSummary, type PointEventDTO, type PointKind } from "@/lib/points.functions";
+import {
+  getPointsSummary,
+  type PointEventDTO,
+  type PointKind,
+  type PointsSummary,
+} from "@/lib/points.functions";
+import { readLastAction, type LastAction } from "@/lib/last-action";
+import type { CoinDTO } from "@/lib/zora.types";
 
 export const Route = createFileRoute("/home")({
   head: () => ({
@@ -94,6 +107,33 @@ function HomePage() {
     (Boolean((window as unknown as { ReactNativeWebView?: unknown }).ReactNativeWebView) ||
       /Warpcast|Farcaster/i.test(navigator.userAgent));
 
+  // Last-action lives in localStorage; read after hydration to avoid mismatch.
+  const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  useEffect(() => {
+    setLastAction(readLastAction());
+  }, []);
+
+  // Points summary — powers activity, streak, onboarding gate.
+  const fetchSummary = useServerFn(getPointsSummary);
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryError,
+  } = useQuery({
+    queryKey: ["points-summary", address?.toLowerCase()],
+    queryFn: () => fetchSummary({ data: { address: address! } }),
+    enabled: Boolean(isConnected && address),
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+  });
+
+  const hasLaunched = Boolean(
+    summary?.recent.some((e) => e.kind === "create_coin"),
+  );
+  const hasAnyActivity = Boolean(summary && summary.recent.length > 0);
+  const isNewUser =
+    isConnected && !summaryLoading && !hasAnyActivity && !lastAction;
+
   return (
     <MiniAppShell>
       {/* 1. Header */}
@@ -162,49 +202,33 @@ function HomePage() {
         ) : null}
       </header>
 
-      {/* 2. Hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-black/40 to-primary/10 p-6 md:p-8">
-        <div
-          className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full bg-accent/20 blur-3xl"
-          aria-hidden="true"
+      {/* Universal search */}
+      <UniversalSearch />
+
+      {/* 2. Hero + persistent primary action */}
+      <SmartHero
+        isConnected={isConnected}
+        hasAnyActivity={hasAnyActivity}
+        hasLaunched={hasLaunched}
+        onConnect={() => connectWallet()}
+        isPending={isPending}
+      />
+
+      {/* Continue where you left off — only when real local state exists */}
+      {lastAction ? <ContinueCard action={lastAction} /> : null}
+
+      {/* Personalized onboarding — only for genuinely new users */}
+      {isNewUser ? (
+        <OnboardingChecklist
+          isConnected={isConnected}
+          inFarcaster={inFarcaster}
+          hasViewedToken={Boolean(lastAction)}
+          hasLaunched={hasLaunched}
         />
-        <p className="text-[10px] uppercase tracking-widest text-accent font-mono">
-          Welcome
-        </p>
-        <h2 className="font-display font-bold text-2xl md:text-3xl mt-2 tracking-tight">
-          Welcome to Resident Labs
-        </h2>
-        <p className="text-white/70 text-sm md:text-base mt-2 max-w-lg">
-          Discover tokens, launch onchain assets, play SpinBase, and manage your Base activity
-          from one unified app.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-4 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition"
-          >
-            Explore Discover <ArrowRight className="size-3.5" />
-          </Link>
-          <Link
-            to="/launch"
-            className="inline-flex items-center gap-1.5 rounded-full bg-white text-black px-4 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition"
-          >
-            Launch an asset <Rocket className="size-3.5" />
-          </Link>
-          <Link
-            to="/play"
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/85 hover:bg-white/[0.06] transition"
-          >
-            Play SpinBase
-          </Link>
-          <Link
-            to="/vault"
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/85 hover:bg-white/[0.06] transition"
-          >
-            View Vault
-          </Link>
-        </div>
-      </section>
+      ) : null}
+
+      {/* Resident Labs Today — compact daily strip; only renders if real */}
+      <ResidentLabsToday summary={summary} />
 
       {/* 3. Quick Actions */}
       <section>
@@ -332,8 +356,12 @@ function HomePage() {
       </section>
 
       {/* 7. Recent Activity */}
-      <RecentActivity address={address} isConnected={isConnected} />
-
+      <RecentActivity
+        isConnected={isConnected}
+        isLoading={summaryLoading}
+        error={summaryError as unknown}
+        events={summary?.recent ?? []}
+      />
 
       {/* 8. Ecosystem status */}
       <section>
@@ -363,10 +391,392 @@ function HomePage() {
           />
         </div>
       </section>
+
+      {/*
+        Deferred (require real backends before shipping):
+        - Watchlist movement (no watchlist table)
+        - Quests card (quests table is empty)
+        - Notifications center (no notifications backend)
+        - Ecosystem stats row (no aggregate data source)
+      */}
     </MiniAppShell>
   );
 }
 
+// -----------------------------------------------------------------------------
+// Universal search — reuses the existing /search route.
+// -----------------------------------------------------------------------------
+function UniversalSearch() {
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const trimmed = q.trim();
+        if (!trimmed) return;
+        void navigate({ to: "/search", search: { q: trimmed, type: "all", page: 1 } });
+      }}
+      className="relative"
+      role="search"
+    >
+      <SearchIcon className="size-4 text-white/40 absolute left-4 top-1/2 -translate-y-1/2" />
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search tokens, addresses…"
+        aria-label="Search Resident Labs"
+        className="w-full rounded-2xl border border-white/10 bg-white/[0.03] pl-11 pr-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-accent/50 transition"
+      />
+      <p className="text-[10px] font-mono uppercase tracking-widest text-white/35 mt-2 px-1">
+        Basenames & Farcaster profiles coming soon
+      </p>
+    </form>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Smart Hero — persistent primary action that adapts to user state.
+// -----------------------------------------------------------------------------
+function SmartHero({
+  isConnected,
+  hasAnyActivity,
+  hasLaunched,
+  onConnect,
+  isPending,
+}: {
+  isConnected: boolean;
+  hasAnyActivity: boolean;
+  hasLaunched: boolean;
+  onConnect: () => void;
+  isPending: boolean;
+}) {
+  let primary: {
+    label: string;
+    to?: string;
+    onClick?: () => void;
+    icon?: typeof ArrowRight;
+  };
+  if (!isConnected) {
+    primary = {
+      label: isPending ? "Connecting…" : "Connect wallet",
+      onClick: onConnect,
+    };
+  } else if (hasLaunched) {
+    primary = { label: "Launch an asset", to: "/launch", icon: Rocket };
+  } else if (hasAnyActivity) {
+    primary = { label: "Continue exploring", to: "/discover", icon: ArrowRight };
+  } else {
+    primary = { label: "Explore Base", to: "/", icon: Compass };
+  }
+
+  return (
+    <section className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-black/40 to-primary/10 p-6 md:p-8">
+      <div
+        className="pointer-events-none absolute -top-24 -right-24 size-64 rounded-full bg-accent/20 blur-3xl"
+        aria-hidden="true"
+      />
+      <p className="text-[10px] uppercase tracking-widest text-accent font-mono">Welcome</p>
+      <h2 className="font-display font-bold text-2xl md:text-3xl mt-2 tracking-tight">
+        Welcome to Resident Labs
+      </h2>
+      <p className="text-white/70 text-sm md:text-base mt-2 max-w-lg">
+        Discover tokens, launch onchain assets, play SpinBase, and manage your Base activity
+        from one unified app.
+      </p>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {primary.to ? (
+          <Link
+            to={primary.to}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-4 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition"
+          >
+            {primary.label}
+            {primary.icon ? <primary.icon className="size-3.5" /> : null}
+          </Link>
+        ) : (
+          <button
+            onClick={primary.onClick}
+            disabled={isPending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent text-accent-foreground px-4 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition disabled:opacity-50"
+          >
+            {primary.label}
+          </button>
+        )}
+        <Link
+          to="/launch"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white text-black px-4 py-2 text-xs font-bold uppercase tracking-wider hover:opacity-90 transition"
+        >
+          Launch <Rocket className="size-3.5" />
+        </Link>
+        <Link
+          to="/play"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/85 hover:bg-white/[0.06] transition"
+        >
+          Play SpinBase
+        </Link>
+        <Link
+          to="/vault"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/85 hover:bg-white/[0.06] transition"
+        >
+          View Vault
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Continue where you left off
+// -----------------------------------------------------------------------------
+const LAST_ACTION_LABELS: Record<LastAction["kind"], string> = {
+  view_coin: "Last viewed",
+  create_coin: "You launched",
+  create_nft: "You launched",
+};
+
+function ContinueCard({ action }: { action: LastAction }) {
+  return (
+    <section>
+      <h2 className="font-display font-bold text-lg uppercase tracking-wider mb-3 flex items-center gap-2">
+        <History className="size-4 text-accent" />
+        Continue where you left off
+      </h2>
+      <Link
+        to={action.href}
+        className="flex items-center gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-4 hover:border-accent/40 transition"
+      >
+        <div className="size-12 rounded-2xl bg-accent/15 grid place-items-center text-accent shrink-0">
+          <History className="size-5" strokeWidth={2.4} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+            {LAST_ACTION_LABELS[action.kind]}
+          </p>
+          <p className="text-sm font-semibold truncate mt-0.5">
+            {action.label ?? shortAddr(action.ref)}
+          </p>
+          {action.sub ? (
+            <p className="text-[11px] text-white/50 font-mono truncate">{action.sub}</p>
+          ) : null}
+        </div>
+        <ArrowRight className="size-4 text-white/40 shrink-0" />
+      </Link>
+    </section>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Onboarding checklist — for genuinely new, connected users only.
+// -----------------------------------------------------------------------------
+type ChecklistItem = {
+  label: string;
+  done: boolean;
+  to?: string;
+  soon?: boolean;
+};
+
+function OnboardingChecklist({
+  isConnected,
+  inFarcaster,
+  hasViewedToken,
+  hasLaunched,
+}: {
+  isConnected: boolean;
+  inFarcaster: boolean;
+  hasViewedToken: boolean;
+  hasLaunched: boolean;
+}) {
+  const items: ChecklistItem[] = [
+    { label: "Connect wallet", done: isConnected },
+    {
+      label: inFarcaster ? "Open in Farcaster" : "Open in Farcaster (coming soon)",
+      done: inFarcaster,
+    },
+    { label: "Explore a token", done: hasViewedToken, to: "/" },
+    { label: "Save an asset", done: false, soon: true },
+    { label: "Try SpinBase", done: false, soon: true },
+    { label: "Launch your first asset", done: hasLaunched, to: "/launch" },
+  ];
+  const doneCount = items.filter((i) => i.done).length;
+  const pct = Math.round((doneCount / items.length) * 100);
+
+  return (
+    <section>
+      <div className="flex items-end justify-between mb-3">
+        <div>
+          <h2 className="font-display font-bold text-lg uppercase tracking-wider">
+            Get started
+          </h2>
+          <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono mt-0.5">
+            {doneCount} of {items.length} complete
+          </p>
+        </div>
+        <span className="text-[11px] font-mono text-accent">{pct}%</span>
+      </div>
+      <div className="rounded-3xl border border-white/10 bg-white/[0.02] overflow-hidden">
+        <div className="h-1 bg-white/5">
+          <div
+            className="h-full bg-accent transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <ul className="divide-y divide-white/5">
+          {items.map((item) => {
+            const row = (
+              <div className="flex items-center gap-3 px-4 py-3">
+                {item.done ? (
+                  <Check
+                    className="size-4 text-accent shrink-0"
+                    strokeWidth={3}
+                  />
+                ) : (
+                  <Circle className="size-4 text-white/25 shrink-0" />
+                )}
+                <span
+                  className={`text-sm flex-1 truncate ${item.done ? "text-white/50 line-through" : "text-white/85"}`}
+                >
+                  {item.label}
+                </span>
+                {item.soon ? (
+                  <StatusPill status="soon" />
+                ) : !item.done && item.to ? (
+                  <ArrowRight className="size-4 text-white/40" />
+                ) : null}
+              </div>
+            );
+            if (!item.done && item.to && !item.soon) {
+              return (
+                <li key={item.label}>
+                  <Link
+                    to={item.to}
+                    className="block hover:bg-white/[0.03] transition"
+                  >
+                    {row}
+                  </Link>
+                </li>
+              );
+            }
+            return <li key={item.label}>{row}</li>;
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Resident Labs Today — real-data-only daily strip.
+// -----------------------------------------------------------------------------
+function ResidentLabsToday({
+  summary,
+}: {
+  summary: PointsSummary | undefined;
+}) {
+  const { data: trending } = useSuspenseQuery(trendingQO);
+
+  // Pick a "new launch" via createdAt when available; otherwise fall back to
+  // the last item in the trending set as a rough recency proxy.
+  const withCreated = useMemo(
+    () =>
+      [...trending]
+        .filter((c) => Boolean(c.createdAt))
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime(),
+        ),
+    [trending],
+  );
+  const trendingTop: CoinDTO | undefined = trending[0];
+  const newLaunch: CoinDTO | undefined = withCreated[0];
+  const streak = summary?.daily?.streak ?? 0;
+
+  const tiles: React.ReactNode[] = [];
+  if (trendingTop) {
+    tiles.push(
+      <TodayTile
+        key="trending"
+        to={`/coin/${trendingTop.address}`}
+        icon={Flame}
+        header="Trending"
+        title={trendingTop.name}
+        sub={trendingTop.symbol ? `$${trendingTop.symbol}` : undefined}
+      />,
+    );
+  }
+  if (newLaunch && newLaunch.address !== trendingTop?.address) {
+    tiles.push(
+      <TodayTile
+        key="new"
+        to={`/coin/${newLaunch.address}`}
+        icon={Rocket}
+        header="New launch"
+        title={newLaunch.name}
+        sub={newLaunch.symbol ? `$${newLaunch.symbol}` : undefined}
+      />,
+    );
+  }
+  if (streak > 0) {
+    tiles.push(
+      <TodayTile
+        key="streak"
+        to="/points"
+        icon={Zap}
+        header="Your streak"
+        title={`${streak} day${streak === 1 ? "" : "s"}`}
+        sub="Keep it going"
+      />,
+    );
+  }
+  if (tiles.length === 0) return null;
+
+  return (
+    <section>
+      <h2 className="font-display font-bold text-lg uppercase tracking-wider mb-3">
+        Resident Labs today
+      </h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {tiles}
+      </div>
+    </section>
+  );
+}
+
+function TodayTile({
+  to,
+  icon: Icon,
+  header,
+  title,
+  sub,
+}: {
+  to: string;
+  icon: typeof Flame;
+  header: string;
+  title: string;
+  sub?: string;
+}) {
+  return (
+    <Link
+      to={to}
+      className="group rounded-2xl border border-white/10 bg-white/[0.02] p-4 hover:border-accent/40 transition min-w-0"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <Icon className="size-3.5 text-accent" strokeWidth={2.4} />
+        <p className="text-[10px] uppercase tracking-widest text-white/50 font-mono">
+          {header}
+        </p>
+      </div>
+      <p className="text-sm font-semibold truncate">{title}</p>
+      {sub ? (
+        <p className="text-[11px] text-white/50 font-mono truncate mt-0.5">{sub}</p>
+      ) : null}
+    </Link>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Existing helpers below (unchanged behavior).
+// -----------------------------------------------------------------------------
 function QuickAction({
   to,
   icon: Icon,
@@ -532,23 +942,17 @@ function timeAgo(iso: string): string {
 }
 
 function RecentActivity({
-  address,
   isConnected,
+  isLoading,
+  error,
+  events,
 }: {
-  address: `0x${string}` | undefined;
   isConnected: boolean;
+  isLoading: boolean;
+  error: unknown;
+  events: PointEventDTO[];
 }) {
-  const fetchSummary = useServerFn(getPointsSummary);
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["points-summary", address?.toLowerCase()],
-    queryFn: () => fetchSummary({ data: { address: address! } }),
-    enabled: Boolean(isConnected && address),
-    staleTime: 30_000,
-    refetchOnWindowFocus: false,
-  });
-
-  const events = (data?.recent ?? []).slice(0, 6);
-
+  const list = events.slice(0, 6);
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
@@ -578,7 +982,7 @@ function RecentActivity({
         <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
           <p className="text-sm text-white/50 font-mono">Couldn't load activity.</p>
         </div>
-      ) : events.length === 0 ? (
+      ) : list.length === 0 ? (
         <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
           <Activity className="size-6 text-white/30 mx-auto mb-2" />
           <p className="text-sm text-white/60">
@@ -601,7 +1005,7 @@ function RecentActivity({
         </div>
       ) : (
         <ul className="rounded-3xl border border-white/10 bg-white/[0.02] divide-y divide-white/5 overflow-hidden">
-          {events.map((e: PointEventDTO) => {
+          {list.map((e) => {
             const meta = KIND_META[e.kind] ?? {
               icon: Activity,
               label: e.kind,
