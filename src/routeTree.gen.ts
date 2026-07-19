@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VaultRouteImport } from './routes/vault'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PointsRouteImport } from './routes/points'
@@ -41,6 +42,11 @@ const VaultRoute = VaultRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShopRoute = ShopRouteImport.update({
+  id: '/shop',
+  path: '/shop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
+  '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/search': typeof SearchRoute
+  '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
+  '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
   '/checkout/return': typeof CheckoutReturnRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/points'
     | '/profile'
     | '/search'
+    | '/shop'
     | '/sitemap.xml'
     | '/vault'
     | '/checkout/return'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/play'
     | '/points'
     | '/search'
+    | '/shop'
     | '/sitemap.xml'
     | '/vault'
     | '/checkout/return'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/points'
     | '/profile'
     | '/search'
+    | '/shop'
     | '/sitemap.xml'
     | '/vault'
     | '/checkout/return'
@@ -317,6 +329,7 @@ export interface RootRouteChildren {
   PointsRoute: typeof PointsRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   SearchRoute: typeof SearchRoute
+  ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -340,6 +353,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shop': {
+      id: '/shop'
+      path: '/shop'
+      fullPath: '/shop'
+      preLoaderRoute: typeof ShopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -520,6 +540,7 @@ const rootRouteChildren: RootRouteChildren = {
   PointsRoute: PointsRoute,
   ProfileRoute: ProfileRouteWithChildren,
   SearchRoute: SearchRoute,
+  ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
