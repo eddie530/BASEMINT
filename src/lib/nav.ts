@@ -1,4 +1,4 @@
-import { Compass, Gamepad2, Home, Rocket, Sparkles, User, Wallet } from "lucide-react";
+import { Compass, Gamepad2, Home, Rocket, ShoppingBag, Sparkles, User, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -19,6 +19,7 @@ export const RESIDENT_NAV: NavItem[] = [
   { to: "/launch", label: "Launch", icon: Rocket, hint: "Create onchain" },
   { to: "/play", label: "Play", icon: Gamepad2, hint: "SpinBase" },
   { to: "/vault", label: "Vault", icon: Wallet, hint: "Assets & rewards" },
+  { to: "/shop", label: "Shop", icon: ShoppingBag, hint: "Resident Pro & more" },
   { to: "/ai", label: "AI", icon: Sparkles, hint: "Resident AI" },
   { to: "/profile", label: "Profile", icon: User, hint: "Resident ID" },
 ];
@@ -30,5 +31,6 @@ export const MOBILE_PRIMARY: NavItem[] = RESIDENT_NAV.filter((n) =>
 
 /** Items surfaced only in the mobile "More" sheet. */
 export const MOBILE_SECONDARY: NavItem[] = RESIDENT_NAV.filter((n) =>
-  ["/ai", "/profile"].includes(n.to),
+  ["/shop", "/ai", "/profile"].includes(n.to),
 );
+
