@@ -896,7 +896,11 @@ function ModuleCard({
     (disabled ? "opacity-70" : "hover:border-accent/40");
   if (disabled) return <div className={cls}>{inner}</div>;
   return (
-    <Link to={to} className={cls}>
+    <Link
+      to={to}
+      onClick={() => trackDashboard({ type: "module_card_selected", id: title })}
+      className={cls}
+    >
       {inner}
     </Link>
   );
