@@ -114,8 +114,17 @@ function HomePage() {
 
   // Last-action lives in localStorage; read after hydration to avoid mismatch.
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
   useEffect(() => {
     setLastAction(readLastAction());
+    try {
+      setOnboardingDismissed(
+        window.localStorage.getItem("rl_onboarding_dismissed") === "1",
+      );
+    } catch {
+      // ignore
+    }
+    trackDashboard({ type: "dashboard_viewed" });
   }, []);
 
   // Points summary — powers activity, streak, onboarding gate.
