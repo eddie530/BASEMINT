@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { writeLastAction } from "@/lib/last-action";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { getCoinDetail } from "@/lib/zora.functions";
 import { ArrowLeft } from "lucide-react";
@@ -56,6 +57,17 @@ function DetailPage() {
   const { data: item } = useSuspenseQuery(coinQO(id));
   useAccount();
   const [trade, setTrade] = useState<"buy" | "sell" | null>(null);
+  useEffect(() => {
+    if (item?.address) {
+      writeLastAction({
+        kind: "view_coin",
+        ref: item.address,
+        label: item.name,
+        sub: item.symbol ? `$${item.symbol}` : undefined,
+        href: `/coin/${item.address}`,
+      });
+    }
+  }, [item?.address, item?.name, item?.symbol]);
   if (!item) return null;
 
   const delta = item.marketCapDelta24h;

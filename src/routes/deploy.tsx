@@ -8,6 +8,7 @@ import { decodeEventLog, encodeFunctionData, parseEther, parseUnits } from "viem
 import { Loader2, ExternalLink, Rocket, Zap } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
+import { writeLastAction } from "@/lib/last-action";
 import { sendSponsoredOrFallback } from "@/lib/sponsored-tx";
 import { isGaslessEligible } from "@/lib/wagmi";
 import { getCreationConfig } from "@/lib/zora-create.functions";
@@ -488,6 +489,13 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         symbol: onchainSymbol as string | undefined,
         totalSupply: onchainSupply != null ? (onchainSupply as bigint).toString() : undefined,
       });
+      writeLastAction({
+        kind: "create_coin",
+        ref: tokenAddr,
+        label: (onchainName as string | undefined) ?? "New token",
+        sub: onchainSymbol ? `$${onchainSymbol as string}` : undefined,
+        href: `/coin/${tokenAddr}`,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Deploy failed";
       setErr(msg);
@@ -721,6 +729,13 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         name: onchainName as string | undefined,
         symbol: onchainSymbol as string | undefined,
         maxSupply: onchainMax != null ? (onchainMax as bigint).toString() : undefined,
+      });
+      writeLastAction({
+        kind: "create_nft",
+        ref: collectionAddr,
+        label: (onchainName as string | undefined) ?? "New collection",
+        sub: onchainSymbol ? (onchainSymbol as string) : undefined,
+        href: `/coin/${collectionAddr}`,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Deploy failed";
