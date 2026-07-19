@@ -79,7 +79,7 @@ function saveState(s: LocalState) {
 // ---------------- Page ----------------
 function PlayPage() {
   const { address, isConnected } = useAccount();
-  const connect = useConnectWallet();
+  const { connectWallet } = useConnectWallet();
   const qc = useQueryClient();
 
   const [state, setState] = useState<LocalState>(DEFAULT_STATE);
