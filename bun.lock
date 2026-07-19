@@ -48,6 +48,7 @@
         "@tanstack/zod-adapter": "^1.167.0",
         "@vercel/analytics": "^2.0.1",
         "@wagmi/core": "^2.22.1",
+        "@x402/evm": "2.19.0",
         "@zoralabs/coins-sdk": "^0.7.1",
         "@zoralabs/protocol-sdk": "^0.13.22",
         "buffer": "^6.0.3",
@@ -928,6 +929,10 @@
     "@walletconnect/window-getters": ["@walletconnect/window-getters@1.0.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@walletconnect/window-getters/-/window-getters-1.0.1.tgz", { "dependencies": { "tslib": "1.14.1" } }, "sha512-vHp+HqzGxORPAN8gY03qnbTMnhqIwjeRJNOMOAzePRg4xVEEE2WvYsI9G2NMjOknA8hnuYbU3/hwLcKbjhc8+Q=="],
 
     "@walletconnect/window-metadata": ["@walletconnect/window-metadata@1.0.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@walletconnect/window-metadata/-/window-metadata-1.0.1.tgz", { "dependencies": { "@walletconnect/window-getters": "^1.0.1", "tslib": "1.14.1" } }, "sha512-9koTqyGrM2cqFRW517BPY/iEtUDx2r1+Pwwu5m7sJ7ka79wi3EyqhqcICk/yDmv6jAS1rjKgTKXlEhanYjijcA=="],
+
+    "@x402/core": ["@x402/core@2.19.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@x402/core/-/core-2.19.0.tgz", { "dependencies": { "zod": "^3.24.2" } }, "sha512-IPQIHzIrwvbri1339QWHvwtiTTDbGsrF5Yff0LZfufmVXNdOSYbjY8oz6vZg7+4W13f7/k81NUMAFoDOU4gswQ=="],
+
+    "@x402/evm": ["@x402/evm@2.19.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@x402/evm/-/evm-2.19.0.tgz", { "dependencies": { "@x402/core": "~2.19.0", "viem": "^2.48.11", "zod": "^3.24.2" } }, "sha512-ycbYCjJmLC1I7tRQslAwB73FhJAVMPzsojYunWuR5hk+jKUwgC6djch1ZrKFC1f9lJi7IOiezZtRHj6TWyCCrg=="],
 
     "@zoralabs/coins-sdk": ["@zoralabs/coins-sdk@0.7.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@zoralabs/coins-sdk/-/coins-sdk-0.7.1.tgz", { "dependencies": { "@hey-api/client-fetch": "^0.8.3", "@zoralabs/protocol-deployments": "^0.7.6" }, "peerDependencies": { "abitype": "^1.0.8", "viem": "2.53.1" } }, "sha512-hkVsulBFh4yxFxq7jOGQKp5Y6TbZxHmcU4jYpW1S50HLhe0RbVicNFLCKBdRyh9ssX0TbGbHRbXf02CsCfezsQ=="],
 
