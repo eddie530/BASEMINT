@@ -1,140 +1,61 @@
-# Resident Labs — Integration Plan (Phase 0: audit only)
+# Home dashboard: personalization pass (Command 4)
 
-You asked for Command 1 only: inventory the project, do not touch code, and lay out a safe phased path to unify BaseMint + SpinBase under the Resident Labs umbrella with the nav: Home · Discover · Launch · Play · Vault · AI · Profile.
+Extend `/home` with real, honest personalization. Everything is gated on real state — no fake numbers, no fake alerts, no fake stats.
 
-## 1. What exists today (inventory)
+## Scope
 
-### Routes (`src/routes/`)
-- `__root.tsx` — SSR shell, SEO/OG/Farcaster/Base Builder meta, JSON-LD
-- `index.tsx` — Home feed (Curated Signal + Trending + Just Launched + search)
-- `search.tsx` — full search results (?q, ?type, ?page)
-- `coin.$id.tsx` — coin detail + Buy/Sell (Zora trade)
-- `create.tsx` — Zora coin + ERC-1155 NFT creation
-- `deploy.tsx` — Basemint Foundry factories (ERC20/ERC721) w/ wallet+approval gate
-- `arcade.tsx` — "Neon Arcade" hub (placeholder tiles)
-- `vault.tsx` — existing vault page
-- `dashboard.tsx` — creator analytics
-- `points.tsx`, `leaderboard.tsx` — points/quests
-- `profile.$address.tsx`, `settings.profile.tsx` — profile view + edit (contracts, CDP server wallet)
-- `api/public/track.ts` — analytics beacon
-- `sitemap[.]xml.ts`
+Add the following sections to `src/routes/home.tsx`, above the existing "Recent activity" area, and adapt the hero:
 
-### Shell components
-- `MiniAppShell` (max-w-[430px] mobile shell) → `AppHeader` + `BottomNav` (Feed/Points/Create/Vault)
-- `AnalyticsTracker`
+1. **Persistent primary action (in Hero)** — swap the hero's primary CTA based on state:
+   - No wallet → "Connect wallet"
+   - Wallet + no `point_events` → "Explore Base" (→ `/`)
+   - Wallet + has activity, no launches → "Continue exploring" (→ `/discover`)
+   - Wallet + at least one `create_coin` event → "Launch an asset" (→ `/launch`)
+   - `/play` is Coming Soon, so no "Spin now" branch yet.
 
-### Reusable feature components
-- `feed/CoinCard`, `feed/NFTCard`, `feed/SpinDiscover` (already spin-styled discovery)
-- `coin/MintDialog`, `coin/TradeDialog`
-- `create/DeployProgress`, `create/LaunchReceipt`
-- `profile/ProfileContractsPanel`
-- Full `ui/` shadcn set
+2. **Continue where you left off** — only renders when real local state exists. Track the last meaningful action in `localStorage` under `resident:last-action`:
+   - Last token viewed (written from `/coin/$id` route on mount)
+   - Last created token (written from `create.tsx` / `deploy.tsx` on success — cheap: existing success paths)
+   - We do NOT invent draft-launch / saved-asset / recent-spin until those systems exist.
+   Section is hidden entirely when `localStorage` has nothing.
 
-### Server / data libs
-- Zora: `zora.functions.ts` (trending/recent/detail), `zora-create.functions.ts`, `zora-trade.functions.ts`
-- Basemint contracts: `basemint-contracts.ts` (factory ABIs + addresses + Basescan)
-- Points ledger: `points.functions.ts` + Supabase `point_events` / `point_balances` / `quests` / `quest_progress` / `daily_checkins`
-- Profiles: `profiles.functions.ts`, `profile-contracts.functions.ts`
-- CDP server wallets: `cdp-wallets.functions.ts`
-- Analytics: `analytics.ts` + `page_events` + `referral_codes`/`referral_events`
-- Curated Signal: `curated.ts` (Resident Labs brand constants live here already)
+3. **Personalized onboarding checklist** — only for "new" users (wallet connected AND `getPointsSummary` returns zero events AND no `localStorage` last-action). Checklist items derived from real signals:
+   - Connect wallet — `isConnected`
+   - Link Farcaster — `inFarcaster` OR profile row has `farcaster` set (skip DB read for v1; use `inFarcaster` only, label "Open in Farcaster" otherwise)
+   - Explore a token — presence of last-viewed token in localStorage
+   - Launch your first asset — any `create_coin` point event
+   - Save an asset / Try SpinBase — marked "Coming soon" (disabled), matching honest scope
+   Hidden once user has any activity.
 
-### Wallet / identity stack
-- `wagmi.ts` — Base + Base Sepolia, connectors: Farcaster miniApp, injected, Coinbase Smart Wallet, CDP Embedded Wallet (email/Google/Apple)
-- `providers.tsx` — `WagmiProvider` + `CDPReactProvider` + lazy `<SignIn />` modal, calls `sdk.actions.ready()`
-- `use-connect-wallet.ts` — single hook already funnels all connectors
-- `sponsored-tx.ts` — paymaster/EIP-5792 gasless path
+4. **Universal search bar** — reuse existing `/search` route. Render an input at the top of `/home` that navigates to `/search?q=...` on submit. Placeholder: "Search tokens, addresses…". Small helper text: "Basenames & Farcaster profiles coming soon."
 
-### Database (Supabase)
-Tables: `profiles`, `profile_contracts`, `cdp_wallets`, `point_events`, `point_balances`, `quests`, `quest_progress`, `daily_checkins`, `page_events`, `referral_codes`, `referral_events`. RLS/GRANTs already hardened (service-role writes for sensitive tables; public read where safe).
+5. **Resident Labs Today** — compact daily strip. Only real data:
+   - Trending token: first item from `trendingQO` (already loaded)
+   - New launch: most recent item from `trendingQO` sorted by `createdAt` if available, else omit
+   - Current streak: from `getPointsSummary` (already fetched) if `data.streak > 0`, else omit
+   - Free spin / campaign / learning card: omitted (no backend). Section renders only if at least one tile has real data.
 
-### Env vars (client-visible `VITE_*`)
-- `VITE_BASE_RPC_URL`, `VITE_BASE_SEPOLIA_RPC_URL`
-- `VITE_CDP_PROJECT_ID`, `VITE_CDP_PAYMASTER_URL_BASE(_SEPOLIA)`
-- `VITE_TOKEN_FACTORY_BASE(_SEPOLIA)`, `VITE_NFT_FACTORY_BASE(_SEPOLIA)`
-- Server secrets: `ZORA_API_KEY`, `CDP_API_KEY_ID/SECRET`, `CDP_WALLET_SECRET`, `LOVABLE_API_KEY`, Supabase keys
+## Explicitly deferred (not built this pass)
 
-### Mini-app manifests
-- `public/.well-known/farcaster.json` (signed accountAssociation for basemint.dev, `baseBuilder.appId=bc_iv004g9z`)
-- `public/manifest.webmanifest`, apple-touch icons, favicon
+Called out in the request but skipped because they require infra we don't have:
 
-## 2. Mapping: current → Resident Labs nav
+- **Watchlist movement** — no watchlist table exists yet.
+- **Quests card** — `quests` table exists but is empty; would show "Coming soon" placeholder only, so skipped to avoid noise.
+- **Notifications center (bell icon)** — no notifications backend.
+- **Ecosystem stats row** — no aggregate data source.
 
-```text
-Resident Labs nav      Source in current app                          Status
-─────────────────────  ────────────────────────────────────────────  ──────────────────
-Home                   NEW dashboard (reuse index feed widgets)       BUILD (Cmd 3)
-Discover  (BaseMint)   routes/index.tsx + search.tsx + coin.$id.tsx  MIGRATE (Cmd 4)
-Launch    (BaseMint)   routes/create.tsx + routes/deploy.tsx          CONSOLIDATE (Cmd 5)
-Play      (SpinBase)   routes/arcade.tsx + feed/SpinDiscover          EVOLVE (Cmd 6)
-Vault     (Resident)   routes/vault.tsx + routes/dashboard.tsx        EXTEND (Cmd 7)
-AI        (Resident)   — none yet (LOVABLE_API_KEY present)           NEW (Cmd 8)
-Profile   (Resident)   routes/profile.$address + settings.profile +   UNIFY (Cmd 9)
-                       routes/points.tsx + leaderboard.tsx
-```
+I'll note these in a short comment at the bottom of `home.tsx` so the next pass has a clear TODO anchor. No new routes, no schema changes, no new server functions.
 
-## 3. Duplicates / conflicts to resolve (later, not now)
+## Files changed
 
-- **Two launch surfaces**: `/create` (Zora coin + 1155) and `/deploy` (Basemint factories). Keep both engines, unify under one `/launch` hub with cards → sub-flows. Do NOT collapse the underlying functions.
-- **Two "home-ish" pages**: `/` (feed) and `/dashboard` (creator analytics). New `/home` becomes the shell dashboard; `/` becomes `/discover`; `/dashboard` folds into Vault or Profile.
-- **Two profile-adjacent surfaces**: `/points` + `/leaderboard` overlap with Profile. Keep as sub-routes under Profile.
-- **Two shell chromes**: `MiniAppShell` (430px mobile) vs. desktop needs. Extend, don't replace — add a responsive layout wrapper that upgrades to sidebar ≥ md.
-- **Arcade vs. Play**: `/arcade` is a placeholder; becomes `/play` (SpinBase) with real spin mechanics from `SpinDiscover`.
-- **BottomNav** currently has 4 slots (Feed/Points/Create/Vault). Needs to become the mobile projection of the 7-item nav (5 visible + "More" sheet).
+- `src/routes/home.tsx` — new sections + smart hero CTA.
+- `src/lib/last-action.ts` (new) — tiny typed helper: `readLastAction()`, `writeLastAction({kind, ...})`, SSR-safe.
+- `src/routes/coin.$id.tsx` — call `writeLastAction({ kind: "view_coin", ... })` in a `useEffect`.
+- `src/routes/create.tsx` and `src/routes/deploy.tsx` — call `writeLastAction({ kind: "create_coin", ... })` on the existing success paths (single line each).
 
-## 4. Which project is the shell?
+## Technical notes
 
-**This BaseMint project is the shell.** Reasons: it already has the signed Farcaster manifest for `basemint.dev`, Base Builder ID, wagmi with 4 connectors, CDP embedded wallet, Supabase schema with points/profiles/analytics, Zora + Basemint contracts wired, and Resident Labs brand strings in `curated.ts`. SpinBase is not a separate repo in this sandbox — it will be built into `/play` reusing `SpinDiscover`.
-
-Rebrand is a shell + copy change; product engines (BaseMint, SpinBase) stay named inside their sections.
-
-## 5. Safe phased migration path
-
-**Phase A — Shell & nav (Cmd 2)**  Non-destructive.
-- Add `ResidentShell` responsive layout (desktop sidebar / mobile bottom-nav) that wraps existing `MiniAppShell` chrome.
-- Add new routes as thin redirects/wrappers: `/home`, `/discover`, `/launch`, `/play`, `/ai`, `/profile`.
-- Existing routes keep working: `/` still renders (either redirect to `/discover` or keep as legacy alias — decide in Cmd 2).
-- No DB changes. No provider changes.
-
-**Phase B — Home dashboard (Cmd 3)**  Additive.
-- Reuse `zora.functions.ts` queries, `CoinCard`, wallet hooks — zero new API endpoints.
-
-**Phase C — Discover (Cmd 4)**  Move, don't rewrite.
-- `/discover` becomes the current `/` feed body; `/` stays as an alias redirect to preserve inbound links & manifest `homeUrl`.
-- `/coin/$id` unchanged.
-
-**Phase D — Launch (Cmd 5)**  Hub page linking to existing `/create` + `/deploy`; both keep working standalone.
-
-**Phase E — Play / SpinBase (Cmd 6)**  Build on `/play` using `SpinDiscover` + local cooldown; no fake txs.
-
-**Phase F — Vault extend (Cmd 7)**  Add tabs to existing `/vault`; keep current data sources.
-
-**Phase G — AI (Cmd 8)**  New `/ai` using existing `LOVABLE_API_KEY` via a server function; label as AI, no auto-tx.
-
-**Phase H — Profile unify (Cmd 9)**  `/profile` = my-profile shortcut → `/profile/$address`; fold points/leaderboard as tabs.
-
-**Phase I — Provider consolidation (Cmd 10)**  Audit only; current stack is already single-provider — likely no code change beyond confirming.
-
-**Phase J — Points ledger review (Cmd 11)**  Existing schema already ledger-based (`point_events` → trigger → `point_balances`). Extend with `source_module` + unique `ref_key` if not present; migration proposed before applied.
-
-**Phase K — Activity feed (Cmd 12)**  Unified reader over `point_events` + `referral_events` + `page_events`; no new tables initially.
-
-**Phase L — Mobile / mini-app / flags / regression / branding / deploy checklist (Cmds 13-18)**  Sequential polish; each is a non-breaking pass.
-
-## 6. Non-negotiables to preserve across every phase
-
-- `public/.well-known/farcaster.json` signature + `basemint.dev` domain
-- `baseBuilder.appId = bc_iv004g9z`
-- Wagmi connectors and CDP provider wiring
-- Zora coin/trade/create server functions
-- Basemint Foundry factory ABIs + env addresses
-- Supabase schema, RLS policies, GRANTs (any changes go through `supabase--migration` with additive-only DDL)
-- SSR shell in `__root.tsx` (title, description, OG, JSON-LD)
-
-## 7. What I need from you before Command 2
-
-Confirm two things:
-1. **Legacy `/` behavior**: redirect `/` → `/home`, or keep `/` as the Discover feed and add `/home` alongside? (Manifest `homeUrl` currently points to `/`.)
-2. **Domain**: stay on `basemint.dev` for now (keeps Farcaster signature valid) and rebrand copy only, correct?
-
-Once you confirm, I'll execute Command 2.
+- All new UI stays inside `MiniAppShell` and uses existing tokens (`accent`, `primary`, glass panels). No new deps.
+- `localStorage` reads happen in `useEffect` + `useState` to avoid hydration mismatch.
+- Onboarding checklist checks derive purely from already-fetched `getPointsSummary` + `isConnected` + `inFarcaster` + last-action — no extra network calls.
+- Search input is a plain `<form>` with `navigate({ to: "/search", search: { q } })`.
