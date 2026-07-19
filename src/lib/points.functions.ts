@@ -9,7 +9,8 @@ export type PointKind =
   | "referral_signup"
   | "referral_mint"
   | "daily_checkin"
-  | "share_cast";
+  | "share_cast"
+  | "spin_win";
 
 export const POINT_RULES: Record<PointKind, number> = {
   create_coin: 100,
@@ -18,6 +19,7 @@ export const POINT_RULES: Record<PointKind, number> = {
   referral_mint: 50,
   daily_checkin: 10,
   share_cast: 15,
+  spin_win: 5,
 };
 
 // Maps a PointKind to the quest goal_kind it satisfies (1:1 for now).
