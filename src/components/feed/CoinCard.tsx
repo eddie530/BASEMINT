@@ -25,6 +25,27 @@ export function CoinCard({ coin }: { coin: CoinDTO }) {
   const up = (pct ?? 0) >= 0;
   const curated = isCurated(coin.address);
 
+  const [watched, setWatched] = useState(false);
+  useEffect(() => {
+    setWatched(isWatched(coin.chainId, coin.address));
+    return subscribeWatchlist(() =>
+      setWatched(isWatched(coin.chainId, coin.address)),
+    );
+  }, [coin.chainId, coin.address]);
+
+  const onToggleWatch = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = toggleWatchlist({
+      address: coin.address,
+      chainId: coin.chainId,
+      name: coin.name,
+      symbol: coin.symbol,
+      image: coin.image,
+    });
+    setWatched(next);
+  };
+
   return (
     <Link
       to="/coin/$id"
@@ -40,6 +61,19 @@ export function CoinCard({ coin }: { coin: CoinDTO }) {
           RL · Signal
         </span>
       )}
+      <button
+        type="button"
+        onClick={onToggleWatch}
+        aria-label={watched ? "Remove from watchlist" : "Add to watchlist"}
+        aria-pressed={watched}
+        className={`absolute top-3 right-3 size-8 rounded-full grid place-items-center border transition ${
+          watched
+            ? "bg-accent/15 border-accent/40 text-accent"
+            : "bg-white/5 border-white/10 text-white/50 hover:text-white/80"
+        }`}
+      >
+        <Star className="size-4" fill={watched ? "currentColor" : "none"} />
+      </button>
       <div className="flex gap-4">
         <div className="size-16 rounded-2xl overflow-hidden shrink-0 bg-white/5">
           <img
