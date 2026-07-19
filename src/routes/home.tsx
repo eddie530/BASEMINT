@@ -288,9 +288,9 @@ function HomePage() {
           <QuickAction
             to="/play"
             icon={Gamepad2}
-            title="Play SpinBase"
-            desc="Onchain games & campaigns."
-            status="soon"
+            title="Spin SpinBase"
+            desc="Spin the wheel, win Resident Points."
+            status="live"
           />
           <QuickAction
             to="/vault"
