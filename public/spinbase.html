@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpinBase 🎡 • Base Mini App</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e2937">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SpinBase">
+    <meta name="description" content="Spin. Earn. Boost. Repeat. — The ultimate Base spin-to-earn game">
+    <meta name="base:app_id" content="69ecb3eb8502c283edbf949e" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- ============================================ -->
+    <!-- Farcaster Frame + Open Graph (for Base + Warpcast) -->
+    <!-- Production URL -->
+    <!-- ============================================ -->
+    <!-- Farcaster Mini App embed (new spec) -->
+    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"https://spinbase.dev/og-image.png","button":{"title":"🎡 Spin Now","action":{"type":"launch_miniapp","name":"SpinBase","url":"https://spinbase.dev/spinbase.html","splashImageUrl":"https://spinbase.dev/icon-512.png","splashBackgroundColor":"#0b1220"}}}' />
+    <!-- Back-compat: fc:frame with launch_frame -->
+    <meta name="fc:frame" content='{"version":"1","imageUrl":"https://spinbase.dev/og-image.png","button":{"title":"🎡 Spin Now","action":{"type":"launch_frame","name":"SpinBase","url":"https://spinbase.dev/spinbase.html","splashImageUrl":"https://spinbase.dev/icon-512.png","splashBackgroundColor":"#0b1220"}}}' />
+
+    <meta property="og:title" content="SpinBase 🎡 — Spin. Earn. Boost. Repeat. on Base" />
+    <meta property="og:description" content="The ultimate spin-to-earn mini app on Base. Connect wallet, spin the wheel, win real SPIN tokens, and claim on-chain!" />
+    <meta property="og:image" content="https://spinbase.dev/og-image.png" />
+    <meta property="og:url" content="https://spinbase.dev/spinbase.html" />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SpinBase 🎡 on Base" />
+    <meta name="twitter:description" content="Spin. Earn. Boost. Repeat. — Real on-chain rewards on Base" />
+    <meta name="twitter:image" content="https://spinbase.vercel.app/og-image.png" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"
+        onerror="this.onerror=null;var s=document.createElement('script');s.src='https://unpkg.com/ethers@6.13.4/dist/ethers.umd.min.js';s.onerror=function(){var s2=document.createElement('script');s2.src='https://cdn.ethers.org/lib/ethers-6.13.4.umd.min.js';document.head.appendChild(s2);};document.head.appendChild(s);"></script>
+
+    <!-- Farcaster Mini App SDK: exposes window.farcaster (sdk), auto-detects context, and hides the splash -->
+    <script type="module">
+      // Call ready() as early as possible so the Farcaster splash dismisses even if init is slow.
+      let readyCalled = false;
+      const callReady = (sdk) => {
+        if (readyCalled || !sdk?.actions?.ready) return;
+        readyCalled = true;
+        try { sdk.actions.ready().catch(() => {}); } catch (_) {}
+      };
+      const sources = [
+        'https://esm.sh/@farcaster/miniapp-sdk@0.1.9',
+        'https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk@0.1.9/+esm',
+      ];
+      let sdk = null;
+      for (const url of sources) {
+        try {
+          const mod = await import(/* @vite-ignore */ url);
+          sdk = mod.sdk || mod.default;
+          if (sdk) break;
+        } catch (e) {
+          console.warn('[farcaster] load failed', url, e && e.message);
+        }
+      }
+      if (sdk) {
+        window.farcaster = sdk;
+        // Fire ready() immediately — the splash should hide as soon as the SDK loads.
+        callReady(sdk);
+        try {
+          const ctx = await sdk.context;
+          window.__isFarcaster = !!(ctx && ctx.client);
+          if (window.__isFarcaster) {
+            document.documentElement.classList.add('in-farcaster');
+            try {
+              const provider = await sdk.wallet.getEthereumProvider();
+              if (provider && !window.ethereum) window.ethereum = provider;
+            } catch (_) {}
+          }
+        } catch (_) {}
+        // Belt-and-suspenders: call again after load in case the first call raced init.
+        if (document.readyState === 'complete') setTimeout(() => callReady(sdk), 100);
+        else window.addEventListener('load', () => setTimeout(() => callReady(sdk), 100));
+      } else {
+        console.warn('[farcaster] SDK unavailable from all sources');
+      }
+    </script>
+
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        body { font-family: 'Inter', system_ui, sans-serif; }
+        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
+
+        .spin-wheel {
+            filter: drop-shadow(0 25px 50px rgb(59 130 246 / 0.35));
+            transition: filter 0.3s ease;
+        }
+        
+        .neon-blue { box-shadow: 0 0 20px rgb(59 130 246 / 0.6), 0 0 40px rgb(59 130 246 / 0.3); }
+        
+        .section-card {
+            background: linear-gradient(145deg, #1f2937, #111827);
+            border: 1px solid #374151;
+        }
+
+        .spin-button {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+            box-shadow: 0 10px 15px -3px rgb(59 130 246 / 0.4), 0 4px 6px -4px rgb(59 130 246 / 0.4);
+        }
+        
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgb(59 130 246 / 0.5), 0 8px 10px -6px rgb(59 130 246 / 0.5);
+        }
+
+        .wheel-container { position: relative; display: inline-block; }
+        
+        .wheel-pointer {
+            position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+            width: 26px; height: 26px; z-index: 30;
+            background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            filter: drop-shadow(0 0 8px rgb(59 130 246 / 0.9)) drop-shadow(0 2px 3px rgb(0 0 0 / 0.5));
+        }
+        .wheel-pointer::after { content: none; }
+        .spin-coin {
+            background: radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8 70%, #1e3a8a);
+            box-shadow: inset 0 -3px 8px rgb(0 0 0 / 0.35), inset 0 2px 4px rgb(255 255 255 / 0.35), 0 0 18px rgb(59 130 246 / 0.55);
+        }
+        .spin-coin span {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800; font-style: italic;
+            color: #fff; text-shadow: 0 2px 4px rgb(0 0 0 / 0.4);
+        }
+
+        .modal { animation: modalPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.75) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .toast { animation: toastSlide 0.4s ease forwards; }
+        
+        .segment-text { fill: white; font-weight: 800; font-size: 13.5px; text-anchor: middle; dominant-baseline: middle; }
+        
+        .crypto-glow { animation: cryptoPulse 2s ease-in-out infinite; }
+        
+        .prize-pop { animation: prizePop 0.6s ease forwards; }
+        
+        .daily-claim-btn {
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+            box-shadow: 0 0 15px rgb(74 222 128 / 0.4);
+        }
+        .shop-tab { background: #27272a; color: #a1a1aa; }
+        .shop-tab.active { background: linear-gradient(90deg, #a855f7, #7c3aed); color: white; box-shadow: 0 0 12px rgb(168 85 247 / 0.45); }
+        .shop-item { background: #18181b; border: 1px solid #3f3f46; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; align-items: center; text-align: center; transition: all .15s; }
+        .shop-item:hover { border-color: #a855f7; transform: translateY(-1px); }
+        .shop-item.owned { opacity: .55; }
+        .nav-tab.active { color: white; background: linear-gradient(180deg, rgba(59,130,246,0.25), rgba(168,85,247,0.2)); box-shadow: inset 0 0 0 1px rgba(99,102,241,0.4); }
+        .nav-tab:active { transform: scale(0.94); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-white">
+    <!-- Navbar -->
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-x-3">
+                <div onclick="launchConfetti(30)" class="w-11 h-11 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl cursor-pointer">
+                    <i class="fa-solid fa-dharmachakra text-white text-3xl"></i>
+                </div>
+                <div>
+                    <div class="font-display text-3xl font-black tracking-tighter">SpinBase</div>
+                    <div class="text-[9px] text-emerald-400 -mt-1 flex items-center gap-x-1">
+                        <i class="fa-solid fa-link text-[8px]"></i> 
+                        <span class="font-mono">BASE MAINNET</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-x-2">
+                <!-- Resident Arcade -->
+                <a href="https://base-arcade-quest.lovable.app" target="_blank" rel="noopener noreferrer"
+                   class="group flex items-center gap-x-1.5 px-3 py-1.5 rounded-2xl text-xs font-bold border border-pink-500/50 bg-gradient-to-r from-pink-600/80 via-purple-600/80 to-cyan-600/80 text-white shadow-[0_0_12px_rgba(236,72,153,0.45)] hover:shadow-[0_0_20px_rgba(236,72,153,0.65)] hover:scale-[1.03] active:scale-[0.98] transition-all">
+                    <i class="fa-solid fa-gamepad text-[11px] group-hover:animate-bounce"></i>
+                    <span>Arcade</span>
+                </a>
+
+                <!-- Wallet -->
+                <div onclick="connectWallet()" id="wallet-btn"
+                     class="flex items-center gap-x-2.5 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 transition-all px-3.5 py-1.5 rounded-3xl text-sm cursor-pointer border border-zinc-700">
+                    <div id="wallet-status" class="flex items-center gap-x-2">
+                        <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span id="wallet-address" class="font-mono text-xs text-zinc-400">Connect</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-md mx-auto px-4 pt-5 pb-28">
+        
+        <!-- Balance + Daily Claim -->
+        <div class="section-card rounded-3xl p-5 mb-5 border border-zinc-700">
+            <div class="flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <div class="text-zinc-400 text-[10px] tracking-[2px] font-medium">YOUR BALANCE</div>
+                    <div id="balance-display" class="font-display text-[46px] leading-none font-black tracking-[-2px] stat-value mt-1">12,450</div>
+                    <div class="flex items-center gap-x-1.5 text-xs text-zinc-400 mt-2">
+                        <span class="font-mono font-semibold text-emerald-400">SPIN</span>
+                        <span class="text-zinc-600">·</span>
+                        <i class="fa-solid fa-shield-halved text-blue-400 text-[10px]"></i>
+                        <span>Verified on Base</span>
+                    </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                    <div onclick="claimDailyBonus()" id="daily-claim-btn"
+                         class="daily-claim-btn cursor-pointer text-white text-xs font-bold px-4 py-2 rounded-2xl flex items-center gap-x-1.5 shadow-lg active:scale-[0.985]">
+                        <i class="fa-solid fa-gift"></i>
+                        <span id="daily-text">CLAIM 500 SPIN</span>
+                    </div>
+                    <div id="daily-countdown" class="text-[10px] text-emerald-400 mt-1.5 font-mono hidden"></div>
+                    <div onclick="showContractInfo()" class="mt-2 cursor-pointer inline-flex items-center gap-x-1 text-zinc-500 hover:text-blue-400 transition-colors">
+                        <i class="fa-solid fa-file-contract text-[9px]"></i>
+                        <span class="font-mono text-[9px]">0xSpin...f3a2</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Wheel -->
+        <div class="flex flex-col items-center mb-5">
+            <div class="wheel-container mb-4 relative">
+                <canvas id="wheel-canvas" width="360" height="360" 
+                        class="spin-wheel rounded-full cursor-pointer border-4 border-zinc-800"></canvas>
+                
+                <!-- Pointer -->
+                <div class="wheel-pointer"></div>
+                
+                <!-- Center Coin -->
+                <div class="spin-coin absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[86px] h-[86px] rounded-full flex items-center justify-center z-40 border-[3px] border-blue-300/70">
+                    <span class="text-[44px] leading-none">S</span>
+                </div>
+            </div>
+
+            <!-- Spin Button -->
+            <button onclick="spinWheel()" id="spin-button"
+                    class="spin-button w-full max-w-[300px] py-[17px] rounded-3xl text-white font-extrabold text-[21px] flex items-center justify-center gap-x-3 shadow-2xl disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.985]">
+                <i class="fa-solid fa-sync fa-spin-pulse" id="spin-icon"></i>
+                <span id="spin-text">SPIN NOW</span>
+            </button>
+
+            <div id="spin-hint" class="mt-2 text-center text-[11px] text-zinc-400">
+                <span id="spin-hint-text">1 free spin available</span>
+                <span id="spin-hint-countdown" class="font-mono text-blue-400 hidden"></span>
+            </div>
+
+            
+            <div class="mt-4 flex items-center justify-center gap-x-3 text-sm">
+                <div class="px-4 py-1.5 bg-zinc-900 border border-zinc-700 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-redo text-amber-400"></i>
+                    <span class="font-semibold">Spins: <span id="spins-left" class="font-mono font-black text-lg">1</span>/3</span>
+                </div>
+                
+                <div class="px-4 py-1.5 bg-zinc-900 border border-zinc-700 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-fire text-orange-400"></i>
+                    <span class="font-semibold">Streak: <span id="streak-count" class="font-mono font-black text-lg">4</span> 🔥</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+            <button onclick="shareWin()"
+                    class="flex flex-col items-center justify-center gap-y-1 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 py-3 rounded-2xl text-xs font-semibold transition-all">
+                <i class="fa-solid fa-share-alt text-blue-400 text-lg"></i>
+                <span>Share</span>
+            </button>
+
+            <button onclick="showShop()"
+                    class="flex flex-col items-center justify-center gap-y-1 bg-gradient-to-b from-purple-900/60 to-zinc-900 hover:from-purple-800/70 active:from-purple-800 border border-purple-600/50 py-3 rounded-2xl text-xs font-semibold transition-all relative">
+                <i class="fa-solid fa-bag-shopping text-purple-300 text-lg"></i>
+                <span>Shop</span>
+                <span class="absolute top-1 right-1 text-[8px] bg-amber-500 text-black font-black px-1.5 py-0.5 rounded-full">NEW</span>
+            </button>
+
+            <button onclick="showLeaderboard()"
+                    class="flex flex-col items-center justify-center gap-y-1 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700 border border-zinc-700 py-3 rounded-2xl text-xs font-semibold transition-all">
+                <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
+                <span>Leaderboard</span>
+            </button>
+        </div>
+
+        <!-- Tagline -->
+        <div class="text-center">
+            <div class="inline-flex items-center gap-x-2 text-xs bg-zinc-900 border border-zinc-800 px-4 py-1 rounded-3xl">
+                <span class="text-emerald-400">✦</span>
+                <span class="font-medium text-zinc-400">Spin. Earn. Boost. Repeat.</span>
+                <span class="text-emerald-400">✦</span>
+            </div>
+            <div class="text-[10px] text-zinc-600 mt-2">100% on-chain • Base Mainnet</div>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-sm w-full p-7 text-center">
+            <div id="win-icon" class="mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4"></div>
+            
+            <h3 id="win-title" class="font-display text-4xl font-black mb-1"></h3>
+            <div id="win-amount" class="font-display text-7xl font-black mb-1 tracking-[-3px]"></div>
+            <div class="text-zinc-400 mb-6">SPIN added to your wallet</div>
+            
+            <div class="space-y-3">
+                <button onclick="claimOnChain()" id="claim-onchain-btn"
+                        class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl font-bold flex items-center justify-center gap-x-2 text-sm active:scale-[0.985]">
+                    <i class="fa-solid fa-link"></i>
+                    <span>CLAIM ON BASE</span>
+                </button>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="shareOnX()"
+                            class="py-3 bg-black hover:bg-zinc-800 border border-zinc-700 rounded-2xl font-semibold text-sm flex items-center justify-center gap-x-2 active:scale-[0.985]">
+                        <i class="fa-brands fa-x-twitter"></i>
+                        <span>Share on X</span>
+                    </button>
+                    <button onclick="shareOnFarcaster()"
+                            class="py-3 bg-[#8a63d2] hover:bg-[#7a53c2] rounded-2xl font-semibold text-sm text-white flex items-center justify-center gap-x-2 active:scale-[0.985]">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <span>Cast to Farcaster</span>
+                    </button>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeWinModal()" class="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-semibold text-xs text-zinc-300">LATER</button>
+                    <button onclick="copyShareText()" class="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-2xl font-semibold text-xs text-zinc-300 flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-copy text-[11px]"></i>
+                        <span>COPY</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-sm w-full overflow-hidden">
+            <div class="p-5 border-b border-zinc-700 flex justify-between items-center">
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-trophy text-amber-400 text-2xl"></i>
+                    <div>
+                        <div class="font-bold text-xl">Global Leaderboard</div>
+                        <div class="text-xs text-zinc-500">This week on Base</div>
+                    </div>
+                </div>
+                <button onclick="closeLeaderboard()" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-2 max-h-[320px] overflow-auto" id="leaderboard-list"></div>
+            <div class="p-4 bg-zinc-950 text-center text-xs border-t border-zinc-800">
+                Your global rank: <span class="font-bold text-white">#87</span> • 124,450 SPIN
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-zinc-700 flex justify-between items-center">
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-bag-shopping text-purple-300 text-2xl"></i>
+                    <div>
+                        <h3 class="font-display text-xl font-black">SPIN Shop</h3>
+                        <div class="text-[10px] text-zinc-400">Spend SPIN, boost your game</div>
+                    </div>
+                </div>
+                <button onclick="closeShop()" class="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="px-5 py-3 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between">
+                <span class="text-[10px] tracking-[2px] text-zinc-500">YOUR BALANCE</span>
+                <span class="font-display font-black text-lg text-emerald-400">
+                    <span id="shop-balance">0</span> <span class="text-xs text-zinc-500 font-mono">SPIN</span>
+                </span>
+            </div>
+
+            <div class="flex gap-2 px-5 pt-4 pb-2 text-xs">
+                <button data-shop-tab="boosters" onclick="setShopTab('boosters')" class="shop-tab px-3 py-1.5 rounded-full font-semibold">Boosters</button>
+                <button data-shop-tab="skins" onclick="setShopTab('skins')" class="shop-tab px-3 py-1.5 rounded-full font-semibold">Skins</button>
+                <button data-shop-tab="badges" onclick="setShopTab('badges')" class="shop-tab px-3 py-1.5 rounded-full font-semibold">Badges</button>
+            </div>
+
+            <div id="shop-items" class="p-5 pt-3 overflow-y-auto grid grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+
+    <!-- Wallet Connect Modal -->
+    <div id="wallet-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[110] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-sm w-full overflow-hidden">
+            <div class="p-5 border-b border-zinc-700 flex justify-between items-center">
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-wallet text-cyan-400 text-2xl"></i>
+                    <div>
+                        <div class="font-bold text-xl">Connect Wallet</div>
+                        <div class="text-xs text-zinc-500">Choose how to connect on Base</div>
+                    </div>
+                </div>
+                <button onclick="closeModal('wallet-modal')" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-4 space-y-3">
+                <button id="wallet-opt-farcaster" onclick="walletChoose('farcaster')" class="hidden w-full flex items-center gap-3 bg-zinc-950 hover:bg-zinc-800 border border-purple-700/60 rounded-2xl p-3 text-left">
+                    <i class="fa-solid fa-podcast text-purple-400 text-xl w-6 text-center"></i>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold">Farcaster Wallet</div>
+                        <div class="text-[11px] text-zinc-500">Use your Farcaster-linked wallet</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-zinc-500"></i>
+                </button>
+                <button id="wallet-opt-injected" onclick="walletChoose('injected')" class="w-full flex items-center gap-3 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 rounded-2xl p-3 text-left">
+                    <i class="fa-solid fa-plug text-emerald-400 text-xl w-6 text-center"></i>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold">Browser Wallet</div>
+                        <div class="text-[11px] text-zinc-500" id="wallet-opt-injected-sub">MetaMask, Coinbase, Rabby…</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-zinc-500"></i>
+                </button>
+                <button onclick="walletChoose('coinbase')" class="w-full flex items-center gap-3 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 rounded-2xl p-3 text-left">
+                    <i class="fa-solid fa-mobile-screen text-blue-400 text-xl w-6 text-center"></i>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold">Open in Coinbase Wallet</div>
+                        <div class="text-[11px] text-zinc-500">Recommended on mobile</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-zinc-500"></i>
+                </button>
+                <button onclick="walletChoose('manual')" class="w-full flex items-center gap-3 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 rounded-2xl p-3 text-left">
+                    <i class="fa-solid fa-keyboard text-purple-400 text-xl w-6 text-center"></i>
+                    <div class="flex-1">
+                        <div class="text-sm font-semibold">Paste address</div>
+                        <div class="text-[11px] text-zinc-500">Track-only, no signing</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-zinc-500"></i>
+                </button>
+                <div id="wallet-manual-row" class="hidden pt-2">
+                    <input id="wallet-manual-input" type="text" placeholder="0x…" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-3 py-2.5 text-sm font-mono outline-none focus:border-cyan-500" />
+                    <button onclick="walletManualSubmit()" class="mt-2 w-full bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl py-2.5 font-bold text-sm">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Bottom Tab Nav -->
+    <nav id="bottom-nav" class="fixed bottom-0 inset-x-0 z-[90] border-t border-zinc-800 bg-zinc-950/95 backdrop-blur-xl">
+        <div class="max-w-md mx-auto grid grid-cols-7 px-1 py-1.5 text-[10px] font-semibold">
+            <button data-tab="home" onclick="navTab('home')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-house text-[15px]"></i><span>Home</span>
+            </button>
+            <button data-tab="spin" onclick="navTab('spin')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-dharmachakra text-[15px]"></i><span>Spin</span>
+            </button>
+            <button data-tab="wallet" onclick="navTab('wallet')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-wallet text-[15px]"></i><span>Wallet</span>
+            </button>
+            <button data-tab="rewards" onclick="navTab('rewards')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-gift text-[15px]"></i><span>Rewards</span>
+            </button>
+            <button data-tab="quests" onclick="navTab('quests')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-fire text-[15px]"></i><span>Quests</span>
+            </button>
+            <button data-tab="friends" onclick="navTab('friends')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-user-group text-[15px]"></i><span>Friends</span>
+            </button>
+            <button data-tab="profile" onclick="navTab('profile')" class="nav-tab flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-zinc-400">
+                <i class="fa-solid fa-user text-[15px]"></i><span>Profile</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Quests Modal -->
+    <div id="quests-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-sm w-full overflow-hidden">
+            <div class="p-5 border-b border-zinc-700 flex justify-between items-center">
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-fire text-orange-400 text-2xl"></i>
+                    <div>
+                        <div class="font-bold text-xl">Daily Quests</div>
+                        <div class="text-xs text-zinc-500">Complete for bonus SPIN</div>
+                    </div>
+                </div>
+                <button onclick="closeModal('quests-modal')" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-4 space-y-3">
+                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-3">
+                    <div><div class="text-sm font-semibold">Spin 3 times today</div><div class="text-[11px] text-zinc-500">+250 SPIN</div></div>
+                    <span class="text-[10px] font-mono text-amber-400">IN PROGRESS</span>
+                </div>
+                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-3">
+                    <div><div class="text-sm font-semibold">Claim daily bonus</div><div class="text-[11px] text-zinc-500">+100 SPIN</div></div>
+                    <span class="text-[10px] font-mono text-emerald-400">READY</span>
+                </div>
+                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-3">
+                    <div><div class="text-sm font-semibold">Share a win</div><div class="text-[11px] text-zinc-500">+150 SPIN</div></div>
+                    <span class="text-[10px] font-mono text-zinc-500">TODO</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Friends Modal -->
+    <div id="friends-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-sm w-full overflow-hidden">
+            <div class="p-5 border-b border-zinc-700 flex justify-between items-center">
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-user-group text-cyan-400 text-2xl"></i>
+                    <div>
+                        <div class="font-bold text-xl">Invite Friends</div>
+                        <div class="text-xs text-zinc-500">Earn 500 SPIN per referral</div>
+                    </div>
+                </div>
+                <button onclick="closeModal('friends-modal')" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-5 space-y-3">
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3 font-mono text-xs break-all" id="referral-link">https://spinbase.dev/?ref=you</div>
+                <button onclick="copyReferral()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-2xl font-bold text-sm">Copy Invite Link</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-4">
+        <div class="modal bg-zinc-900 border border-zinc-700 rounded-3xl max-w-sm w-full overflow-hidden">
+            <div class="p-5 border-b border-zinc-700 flex justify-between items-center">
+                <div class="flex items-center gap-x-3">
+                    <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <div class="font-bold text-lg" id="profile-wallet">Not connected</div>
+                        <div class="text-xs text-zinc-500">Player profile</div>
+                    </div>
+                </div>
+                <button onclick="closeModal('profile-modal')" class="text-2xl text-zinc-400 hover:text-white">×</button>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-3 text-center">
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3"><div class="text-[10px] text-zinc-500">BALANCE</div><div class="font-display text-xl font-black text-emerald-400" id="profile-balance">0</div></div>
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3"><div class="text-[10px] text-zinc-500">STREAK</div><div class="font-display text-xl font-black text-orange-400" id="profile-streak">0 🔥</div></div>
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3"><div class="text-[10px] text-zinc-500">TOTAL CLAIMED</div><div class="font-display text-xl font-black text-blue-400" id="profile-claimed">0</div></div>
+                <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-3"><div class="text-[10px] text-zinc-500">SPINS TODAY</div><div class="font-display text-xl font-black text-amber-400" id="profile-spins">0/3</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-container" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2"></div>
+
+    <script>
+        // ==================== TAILWIND + GAME STATE ====================
+        function initTailwind() {
+            // Already handled via CDN
+        }
+
+        const APP_URL = "https://spinbase.vercel.app";
+
+        let gameState = {
+            balance: 12450,
+            spinsLeft: 1,
+            streak: 4,
+            lastSpinDate: null,
+            lastClaimDate: null,
+            multiplier: 1,
+            walletConnected: false,
+            walletAddress: null
+        };
+
+        function loadGameState() {
+            const saved = localStorage.getItem('spinbase_v2');
+            if (saved) {
+                try {
+                    gameState = { ...gameState, ...JSON.parse(saved) };
+                } catch (error) {
+                    console.warn('Ignoring invalid saved game state', error);
+                    localStorage.removeItem('spinbase_v2');
+                }
+            }
+            
+            const today = new Date().toDateString();
+            
+            // Daily reset
+            if (gameState.lastSpinDate !== today) {
+                gameState.spinsLeft = 3;
+                gameState.streak = Math.min((gameState.streak || 4) + 1, 42);
+                gameState.lastSpinDate = today;
+            }
+            
+            // Check daily claim
+            updateDailyClaimUI();
+            
+            saveGameState();
+            updateUI();
+        }
+
+        function saveGameState() {
+            localStorage.setItem('spinbase_v2', JSON.stringify(gameState));
+        }
+
+        function updateUI() {
+            document.getElementById('balance-display').textContent = gameState.balance.toLocaleString();
+            document.getElementById('spins-left').textContent = gameState.spinsLeft;
+            document.getElementById('streak-count').textContent = gameState.streak;
+            updateWalletUI();
+            
+            const spinBtn = document.getElementById('spin-button');
+            const spinText = document.getElementById('spin-text');
+            const hintText = document.getElementById('spin-hint-text');
+            const hintCountdown = document.getElementById('spin-hint-countdown');
+
+            if (gameState.spinsLeft <= 0) {
+                spinBtn.disabled = true;
+                spinText.innerHTML = `NEXT SPIN IN <span id="spin-btn-countdown" class="font-mono text-xs">--:--:--</span>`;
+                hintText.classList.add('hidden');
+                hintCountdown.classList.remove('hidden');
+            } else {
+                spinBtn.disabled = false;
+                spinText.innerHTML = `SPIN NOW`;
+                hintText.classList.remove('hidden');
+                hintCountdown.classList.add('hidden');
+                hintText.textContent = gameState.spinsLeft === 1
+                    ? `1 free spin available today`
+                    : `${gameState.spinsLeft} free spins available today`;
+            }
+            updateSpinCountdown();
+        }
+
+        function updateSpinCountdown() {
+            const el = document.getElementById('spin-hint-countdown');
+            const btnEl = document.getElementById('spin-btn-countdown');
+            if (gameState.spinsLeft > 0) return;
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setHours(24, 0, 0, 0);
+            const ms = tomorrow - now;
+            const h = String(Math.floor(ms / 3600000)).padStart(2, '0');
+            const m = String(Math.floor((ms % 3600000) / 60000)).padStart(2, '0');
+            const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+            const str = `Next spin resets in ${h}:${m}:${s}`;
+            if (el) el.textContent = str;
+            if (btnEl) btnEl.textContent = `${h}:${m}:${s}`;
+        }
+        setInterval(updateSpinCountdown, 1000);
+
+
+        function updateWalletUI() {
+            const addrEl = document.getElementById('wallet-address');
+
+            if (gameState.walletConnected && gameState.walletAddress) {
+                addrEl.textContent = `${gameState.walletAddress.slice(0, 6)}...${gameState.walletAddress.slice(-4)}`;
+                addrEl.classList.add('text-emerald-400');
+                return;
+            }
+
+            addrEl.textContent = 'Connect';
+            addrEl.classList.remove('text-emerald-400');
+        }
+
+        function getAppUrl() {
+            if (APP_URL) {
+                return APP_URL;
+            }
+
+            return window.location.origin;
+        }
+
+        // ==================== WHEEL (10 SEGMENTS) ====================
+        const segments = [
+            { label: "50", value: 50, color: "#64748b" },
+            { label: "150", value: 150, color: "#3b82f6" },
+            { label: "2×", value: 0, color: "#a855f7", isMultiplier: true, mult: 2 },
+            { label: "400", value: 400, color: "#6366f1" },
+            { label: "750", value: 750, color: "#ec4899" },
+            { label: "1,500", value: 1500, color: "#f43f5e" },
+            { label: "3×", value: 0, color: "#eab308", isMultiplier: true, mult: 3 },
+            { label: "2,500", value: 2500, color: "#22c55e" },
+            { label: "10K", value: 10000, color: "#fbbf24", isJackpot: true },
+            { label: "MYSTERY", value: 800, color: "#06b6d4", isMystery: true }
+        ];
+
+        let wheelAngle = 0;
+        let isSpinning = false;
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheel-canvas');
+            const ctx = canvas.getContext('2d', { alpha: true });
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const r = 162;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const segAngle = (Math.PI * 2) / segments.length;
+            
+            segments.forEach((seg, i) => {
+                const start = i * segAngle + wheelAngle;
+                const end = start + segAngle;
+                
+                // Segment fill
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, start, end);
+                ctx.closePath();
+                ctx.fillStyle = seg.color;
+                ctx.fill();
+                
+                // Dark border
+                ctx.strokeStyle = '#18181b';
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                // Inner highlight
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r - 18, start, end);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.fill();
+                
+                // Text — radial, flipped on left half so it's always upright
+                ctx.save();
+                const mid = start + segAngle / 2;
+                const tx = cx + Math.cos(mid) * (r * 0.66);
+                const ty = cy + Math.sin(mid) * (r * 0.66);
+
+                ctx.translate(tx, ty);
+                let rot = mid;
+                const norm = ((rot % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                if (norm > Math.PI / 2 && norm < Math.PI * 1.5) {
+                    rot += Math.PI;
+                }
+                ctx.rotate(rot);
+
+                ctx.fillStyle = '#fff';
+                ctx.font = seg.isJackpot ? '800 16px "Space Grotesk", Inter' : '700 15px "Space Grotesk", Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                ctx.shadowBlur = 4;
+
+                let txt = seg.label;
+                if (seg.isJackpot) txt = '★ 10K';
+                if (seg.isMystery) txt = 'MYSTERY';
+
+                ctx.fillText(txt, 0, 0);
+                ctx.restore();
+            });
+            
+            // Center ring
+            ctx.beginPath();
+            ctx.arc(cx, cy, 42, 0, Math.PI * 2);
+            ctx.fillStyle = '#111827';
+            ctx.fill();
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 7;
+            ctx.stroke();
+        }
+
+        // ==================== SPIN LOGIC ====================
+        function spinWheel() {
+            if (isSpinning || gameState.spinsLeft <= 0) return;
+            
+            isSpinning = true;
+            const btn = document.getElementById('spin-button');
+            btn.disabled = true;
+            
+            playSpinSound();
+            
+            const randomSeg = Math.floor(Math.random() * segments.length);
+            const segAngle = (Math.PI * 2) / segments.length;
+            const target = (Math.PI * 2) - (randomSeg * segAngle + segAngle / 2);
+            
+            const spins = 6 + Math.random() * 4;
+            const totalRot = spins * Math.PI * 2 + target;
+            const start = wheelAngle;
+            const startTime = Date.now();
+            const dur = 4600;
+            
+            function animate() {
+                const prog = Math.min((Date.now() - startTime) / dur, 1);
+                const ease = 1 - Math.pow(1 - prog, 3.5);
+                
+                wheelAngle = start + totalRot * ease;
+                drawWheel();
+                
+                if (prog < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    finishSpin(randomSeg);
+                }
+            }
+            animate();
+        }
+
+        function finishSpin(index) {
+            const seg = segments[index];
+            let reward = seg.value;
+            let isJackpot = seg.isJackpot;
+            let isMult = seg.isMultiplier;
+            let isMyst = seg.isMystery;
+            
+            // Apply current multiplier
+            if (gameState.multiplier > 1) {
+                reward = Math.floor(reward * gameState.multiplier);
+                gameState.multiplier = 1; // reset
+            }
+            
+            if (isMyst) {
+                reward = Math.floor(Math.random() * 1800) + 300;
+            }
+            
+            if (isMult) {
+                gameState.multiplier = seg.mult;
+                reward = 0; // multiplier doesn't give immediate SPIN
+            }
+            
+            // Update state
+            gameState.balance += reward;
+            gameState.spinsLeft = Math.max(0, gameState.spinsLeft - 1);
+            gameState.lastSpinDate = new Date().toDateString();
+            
+            if (Math.random() > 0.55) gameState.streak = Math.min(gameState.streak + 1, 42);
+            
+            saveGameState();
+            updateUI();
+            
+            // Sound + modal
+            setTimeout(() => {
+                if (reward > 0) {
+                    playWinSound(isJackpot);
+                    showWinModal(reward, seg.label, isJackpot, isMyst);
+                    
+                    if (reward >= 2500 || isJackpot) {
+                        launchConfetti(isJackpot ? 220 : 140);
+                    }
+                } else if (isMult) {
+                    playWinSound(false);
+                    showToast(`🎉 ${seg.mult}× MULTIPLIER ACTIVATED!`, "success");
+                }
+                
+                isSpinning = false;
+                const btn = document.getElementById('spin-button');
+                if (gameState.spinsLeft > 0) btn.disabled = false;
+            }, 280);
+            
+            drawWheel();
+        }
+
+        // ==================== WIN MODAL + ON-CHAIN CLAIM ====================
+        let lastWinAmount = 0;
+
+        function showWinModal(amount, label, isJackpot, isMystery) {
+            lastWinAmount = amount;
+            
+            const modal = document.getElementById('win-modal');
+            const iconContainer = document.getElementById('win-icon');
+            const title = document.getElementById('win-title');
+            const amountEl = document.getElementById('win-amount');
+            const claimBtn = document.getElementById('claim-onchain-btn');
+            
+            iconContainer.innerHTML = '';
+            iconContainer.className = `mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4 ${isJackpot ? 'bg-gradient-to-br from-amber-400 to-yellow-500' : 'bg-gradient-to-br from-emerald-500 to-teal-500'}`;
+            
+            const icon = document.createElement('i');
+            icon.className = `fa-solid ${isJackpot ? 'fa-crown text-white text-5xl' : isMystery ? 'fa-question text-white text-5xl' : 'fa-trophy text-white text-5xl'}`;
+            iconContainer.appendChild(icon);
+            
+            title.textContent = isJackpot ? "JACKPOT!" : isMystery ? "MYSTERY WIN!" : "YOU WON!";
+            amountEl.innerHTML = `+${amount.toLocaleString()}`;
+            amountEl.className = `font-display text-7xl font-black mb-1 tracking-[-3px] ${isJackpot ? 'text-amber-400' : 'text-emerald-400'}`;
+            
+            claimBtn.style.display = gameState.walletConnected ? 'flex' : 'none';
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeWinModal() {
+            const modal = document.getElementById('win-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        async function claimOnChain() {
+            const modal = document.getElementById('win-modal');
+            const claimBtn = document.getElementById('claim-onchain-btn');
+            
+            if (!gameState.walletConnected) {
+                await connectWallet();
+            }
+            
+            claimBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> CLAIMING ON BASE...`;
+            claimBtn.disabled = true;
+            
+            // Simulate real on-chain transaction
+            await new Promise(r => setTimeout(r, 1450));
+            
+            const fakeTxHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+            const explorerUrl = `https://basescan.org/tx/${fakeTxHash}`;
+            
+            claimBtn.className = `w-full py-2 rounded-full font-semibold flex items-center justify-center gap-x-2 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30`;
+            claimBtn.innerHTML = `<i class="fa-solid fa-check-circle"></i><span>Claimed on Base</span>`;
+            
+            showToast("🎉 Reward minted on Base Mainnet!", "success");
+            
+            // Show transaction link
+            setTimeout(() => {
+                const txToast = document.createElement('div');
+                txToast.className = `toast flex items-center gap-x-3 px-5 py-3 bg-zinc-800 border border-zinc-700 rounded-2xl text-xs max-w-[300px] mx-auto cursor-pointer`;
+                txToast.innerHTML = `
+                    <div class="flex-1">
+                        <div class="font-mono text-[10px] text-emerald-400">TX: ${fakeTxHash.slice(0,10)}...</div>
+                        <div class="text-emerald-400">View on BaseScan →</div>
+                    </div>
+                `;
+                txToast.onclick = () => window.open(explorerUrl, '_blank');
+                document.getElementById('toast-container').appendChild(txToast);
+                
+                setTimeout(() => {
+                    txToast.style.transition = 'all .3s';
+                    txToast.style.opacity = '0';
+                    setTimeout(() => txToast.remove(), 300);
+                }, 4200);
+            }, 800);
+            
+            setTimeout(() => {
+                closeWinModal();
+                claimBtn.className = `w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl font-bold flex items-center justify-center gap-x-2 text-sm active:scale-[0.985]`;
+                claimBtn.innerHTML = `<i class="fa-solid fa-link"></i> <span>CLAIM ON BASE</span>`;
+                claimBtn.disabled = false;
+            }, 2200);
+        }
+
+        // ==================== DAILY CLAIM ====================
+        function updateDailyClaimUI() {
+            const btn = document.getElementById('daily-claim-btn');
+            const countdown = document.getElementById('daily-countdown');
+            const text = document.getElementById('daily-text');
+            
+            const now = new Date();
+            const lastClaim = gameState.lastClaimDate ? new Date(gameState.lastClaimDate) : null;
+            
+            if (!lastClaim || (now - lastClaim) > 24 * 60 * 60 * 1000) {
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+                text.textContent = 'CLAIM 500 SPIN';
+                countdown.classList.add('hidden');
+                btn.onclick = claimDailyBonus;
+            } else {
+                const nextClaim = new Date(lastClaim.getTime() + 24 * 60 * 60 * 1000);
+                const remaining = nextClaim - now;
+                
+                if (remaining > 0) {
+                    btn.style.opacity = '0.6';
+                    btn.style.pointerEvents = 'none';
+                    text.textContent = 'CLAIMED';
+                    
+                    const hours = Math.floor(remaining / (1000 * 60 * 60));
+                    const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    countdown.textContent = `${hours}h ${mins}m until next claim`;
+                    countdown.classList.remove('hidden');
+                }
+            }
+        }
+
+        function claimDailyBonus() {
+            const now = new Date();
+            gameState.balance += 500;
+            gameState.lastClaimDate = now.toISOString();
+            gameState.spinsLeft = Math.max(gameState.spinsLeft, 2);
+            
+            saveGameState();
+            updateUI();
+            updateDailyClaimUI();
+            
+            playWinSound(false);
+            launchConfetti(60);
+            
+            showToast("+500 SPIN daily bonus claimed! 🎁", "success");
+            
+            // Bonus spins message
+            setTimeout(() => {
+                showToast("🔥 Bonus spin added!", "success");
+            }, 1400);
+        }
+
+        // ==================== SOUNDS (Web Audio API) ====================
+        let audioCtx;
+        
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {}
+        }
+
+        function playSpinSound() {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+                
+                osc.type = 'sawtooth';
+                osc.frequency.value = 120;
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+                
+                gain.gain.value = 0.15;
+                
+                const noise = audioCtx.createBufferSource();
+                const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.8, audioCtx.sampleRate);
+                const data = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+                noise.buffer = noiseBuffer;
+                
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.value = 0.08;
+                
+                osc.connect(filter);
+                filter.connect(gain);
+                noise.connect(noiseGain);
+                noiseGain.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                noise.start();
+                
+                const startTime = audioCtx.currentTime;
+                gain.gain.linearRampToValueAtTime(0.001, startTime + 2.8);
+                
+                setTimeout(() => {
+                    osc.stop();
+                    noise.stop();
+                }, 2900);
+            } catch (e) {}
+        }
+
+        function playWinSound(isJackpot = false) {
+            if (!audioCtx) return;
+            try {
+                const notes = isJackpot ? [523, 659, 784, 1046, 1318] : [659, 784, 988];
+                
+                notes.forEach((freq, i) => {
+                    setTimeout(() => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        
+                        gain.gain.value = isJackpot ? 0.25 : 0.18;
+                        
+                        const filter = audioCtx.createBiquadFilter();
+                        filter.type = 'lowpass';
+                        filter.frequency.value = 2200;
+                        
+                        osc.connect(filter);
+                        filter.connect(gain);
+                        gain.connect(audioCtx.destination);
+                        
+                        osc.start();
+                        
+                        const t = audioCtx.currentTime;
+                        gain.gain.linearRampToValueAtTime(0.001, t + (isJackpot ? 1.4 : 0.7));
+                        
+                        setTimeout(() => osc.stop(), isJackpot ? 1500 : 800);
+                    }, i * (isJackpot ? 180 : 120));
+                });
+            } catch (e) {}
+        }
+
+        // ==================== WALLET (REAL BASE CONNECTION) ====================
+        async function connectWithAddress(address) {
+            const addrEl = document.getElementById('wallet-address');
+            gameState.walletConnected = true;
+            gameState.walletAddress = address;
+            saveGameState();
+            addrEl.textContent = address.slice(0, 6) + '...' + address.slice(-4);
+            addrEl.classList.add('text-emerald-400');
+            showToast("✅ Wallet connected!", "success");
+        }
+
+        async function connectInjected() {
+            if (!window.ethereum) {
+                showToast("No browser wallet found", "error");
+                return null;
+            }
+            try {
+                let address;
+                let chainIdHex;
+                if (typeof window.ethers !== 'undefined' && window.ethers.BrowserProvider) {
+                    const provider = new window.ethers.BrowserProvider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    const signer = await provider.getSigner();
+                    address = await signer.getAddress();
+                    chainIdHex = '0x' + (await provider.getNetwork()).chainId.toString(16);
+                } else {
+                    // Fallback: raw EIP-1193 requests (works without ethers loaded)
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    address = accounts && accounts[0];
+                    chainIdHex = await window.ethereum.request({ method: 'eth_chainId' });
+                }
+                if (!address) return null;
+                if (chainIdHex && chainIdHex.toLowerCase() !== '0x2105') {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x2105' }],
+                        });
+                    } catch (_) {
+                        showToast("⚠️ Please switch to Base Mainnet", "error");
+                    }
+                }
+                return address;
+            } catch (err) {
+                console.error(err);
+                showToast(err && err.message ? err.message.slice(0, 80) : "Connection rejected", "error");
+                return null;
+            }
+        }
+
+        async function connectFarcaster() {
+            const sdk = window.farcaster;
+            if (!sdk) { showToast("Farcaster SDK not available", "error"); return null; }
+            try {
+                const provider = await sdk.wallet.getEthereumProvider();
+                if (!provider) { showToast("No Farcaster wallet", "error"); return null; }
+                window.ethereum = provider;
+                const accounts = await provider.request({ method: 'eth_requestAccounts' });
+                const address = accounts && accounts[0];
+                if (!address) return null;
+                const chainIdHex = await provider.request({ method: 'eth_chainId' }).catch(() => null);
+                if (chainIdHex && chainIdHex.toLowerCase() !== '0x2105') {
+                    try { await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x2105' }] }); } catch (_) {}
+                }
+                return address;
+            } catch (err) {
+                showToast(err && err.message ? err.message.slice(0, 80) : "Farcaster connect rejected", "error");
+                return null;
+            }
+        }
+
+        window.walletChoose = async function (kind) {
+            if (kind === 'farcaster') {
+                const addr = await connectFarcaster();
+                if (addr) { closeModal('wallet-modal'); await connectWithAddress(addr); }
+                return;
+            }
+            if (kind === 'injected') {
+                const addr = await connectInjected();
+                if (addr) {
+                    closeModal('wallet-modal');
+                    await connectWithAddress(addr);
+                }
+                return;
+            }
+            if (kind === 'coinbase') {
+                // Deep link into Coinbase Wallet in-app browser
+                const target = location.href.replace(/^https?:\/\//, '');
+                const url = 'https://go.cb-w.com/dapp?cb_url=' + encodeURIComponent('https://' + target);
+                window.open(url, '_blank', 'noopener,noreferrer');
+                return;
+            }
+            if (kind === 'manual') {
+                const row = document.getElementById('wallet-manual-row');
+                row.classList.remove('hidden');
+                const input = document.getElementById('wallet-manual-input');
+                input.value = localStorage.getItem('spinbase_manual_wallet') || '';
+                setTimeout(() => input.focus(), 50);
+            }
+        };
+
+        window.walletManualSubmit = async function () {
+            const input = document.getElementById('wallet-manual-input');
+            const trimmed = (input.value || '').trim();
+            if (!/^0x[a-fA-F0-9]{40}$/.test(trimmed)) {
+                showToast("Invalid wallet address", "error");
+                return;
+            }
+            localStorage.setItem('spinbase_manual_wallet', trimmed);
+            closeModal('wallet-modal');
+            await connectWithAddress(trimmed);
+        };
+
+        async function connectWallet() {
+            // Inside Farcaster: one-tap via SDK provider
+            if (window.__isFarcaster && window.farcaster) {
+                const addr = await connectFarcaster();
+                if (addr) { await connectWithAddress(addr); return; }
+            }
+            // If injected wallet is present, try it directly first for one-tap UX.
+            if (window.ethereum) {
+                const addr = await connectInjected();
+                if (addr) {
+                    await connectWithAddress(addr);
+                    return;
+                }
+            }
+            // Otherwise (mobile browser, iframe, no wallet) show the picker modal.
+            const sub = document.getElementById('wallet-opt-injected-sub');
+            if (sub) sub.textContent = window.ethereum ? 'MetaMask, Coinbase, Rabby…' : 'Not detected in this browser';
+            const btn = document.getElementById('wallet-opt-injected');
+            if (btn) btn.disabled = !window.ethereum, btn.style.opacity = window.ethereum ? '1' : '0.5';
+            const fc = document.getElementById('wallet-opt-farcaster');
+            if (fc) fc.classList.toggle('hidden', !window.__isFarcaster);
+            openModal('wallet-modal');
+        }
+
+
+
+        function showContractInfo() {
+            const contractAddr = "0x4a3f9f7e3c8e4b1a9f2c5d8e7f6a3b2c1d0e9f8a";
+            showToast(`SPIN Token: ${contractAddr.slice(0,10)}... on Base`, "info");
+            
+            setTimeout(() => {
+                window.open(`https://basescan.org/token/${contractAddr}`, '_blank');
+            }, 800);
+        }
+
+        // ==================== CONFetti + TOAST + SHARE ====================
+        function launchConfetti(count = 120) {
+            const colors = ['#3b82f6', '#a855f7', '#fbbf24', '#22c55e', '#ec4899', '#06b6d4'];
+            
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const c = document.createElement('div');
+                    c.style.cssText = `position:fixed;left:${Math.random()*100}vw;top:-20px;width:9px;height:9px;border-radius:${Math.random()>0.5?'50%':'2px'};background:${colors[Math.floor(Math.random()*colors.length)]};z-index:99999;pointer-events:none;`;
+                    document.body.appendChild(c);
+                    
+                    const dur = 1800 + Math.random() * 2400;
+                    const rot = (Math.random() - 0.5) * 800;
+                    
+                    c.animate([
+                        { transform: `translateY(0) rotate(0deg)`, opacity: 0.9 },
+                        { transform: `translateY(${window.innerHeight + 120}px) rotate(${rot}deg)`, opacity: 0 }
+                    ], { duration: dur, easing: 'cubic-bezier(0.22,1,0.36,1)' }).onfinish = () => c.remove();
+                }, i * 0.7);
+            }
+        }
+
+        function showToast(msg, type = "success") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = type === "success" ? "bg-emerald-600" : type === "error" ? "bg-red-600" : "bg-zinc-800 border border-zinc-700";
+            
+            toast.className = `toast flex items-center gap-x-3 px-5 py-3.5 rounded-2xl shadow-xl text-sm max-w-[300px] mx-auto ${bg}`;
+            toast.innerHTML = `<div class="flex-1">${msg}</div>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'all 0.35s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(15px)';
+                setTimeout(() => toast.remove(), 350);
+            }, 2600);
+        }
+
+        function buildShareText() {
+            const amount = (lastWinAmount || 12450).toLocaleString();
+            return `I just won ${amount} $SPIN on SpinBase! 🎡\n\nSpin. Earn. Boost. Repeat. 💥`;
+        }
+
+        function shareOnX() {
+            const text = buildShareText();
+            const url = getAppUrl();
+            const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=SpinBase,Base`;
+            window.open(intent, "_blank", "noopener,noreferrer");
+            track("share", { channel: "x", amount: lastWinAmount });
+        }
+
+        function shareOnFarcaster() {
+            const text = `${buildShareText()}\n\n${getAppUrl()}`;
+            const intent = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(getAppUrl())}`;
+            window.open(intent, "_blank", "noopener,noreferrer");
+            track("share", { channel: "farcaster", amount: lastWinAmount });
+        }
+
+        function copyShareText() {
+            const text = `${buildShareText()}\n${getAppUrl()}`;
+            navigator.clipboard.writeText(text)
+                .then(() => showToast("✅ Copied! Paste anywhere.", "success"))
+                .catch(() => showToast("Win copied!", "success"));
+        }
+
+        // Back-compat with old callers
+        function shareWin() { copyShareText(); }
+        function shareWinFromModal() { closeWinModal(); copyShareText(); }
+
+
+        // ==================== LEADERBOARD ====================
+        function showLeaderboard() {
+            const modal = document.getElementById('leaderboard-modal');
+            const list = document.getElementById('leaderboard-list');
+            
+            const leaders = [
+                { r: 1, n: "0xBaseKing.eth", a: "2.84M", e: "👑" },
+                { r: 2, n: "spinlord.base", a: "1.91M", e: "🔥" },
+                { r: 3, n: "WheelGod69", a: "1.42M", e: "⚡" },
+                { r: 4, n: "0xLuckySpin", a: "987K", e: "🍀" },
+                { r: 5, n: "basebull.run", a: "821K", e: "🐂" }
+            ];
+            
+            list.innerHTML = leaders.map(l => `
+                <div class="flex items-center justify-between px-4 py-[13px] hover:bg-zinc-800/60 rounded-2xl mx-1 transition-colors">
+                    <div class="flex items-center gap-x-3.5">
+                        <div class="text-2xl w-8">${l.e}</div>
+                        <div>
+                            <div class="font-semibold">${l.n}</div>
+                            <div class="text-xs text-zinc-500">#${l.r} • Base Mainnet</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-mono font-bold text-emerald-400">${l.a}</div>
+                        <div class="text-[10px] text-zinc-500">SPIN</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLeaderboard() {
+            const m = document.getElementById('leaderboard-modal');
+            m.classList.remove('flex');
+            m.classList.add('hidden');
+        }
+
+        // ==================== PWA INSTALL ====================
+        let deferredPrompt;
+        
+        function setupPWA() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                
+                // Show install hint after 12 seconds
+                setTimeout(() => {
+                    if (!localStorage.getItem('pwa_installed')) {
+                        showToast("📱 Add SpinBase to your home screen!", "info");
+                    }
+                }, 12000);
+            });
+            
+            // Add install button functionality (can be triggered from console or future UI)
+            window.installSpinBase = async () => {
+                if (!deferredPrompt) {
+                    showToast("PWA install not available", "error");
+                    return;
+                }
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    localStorage.setItem('pwa_installed', 'true');
+                    showToast("🎉 SpinBase installed!", "success");
+                }
+                deferredPrompt = null;
+            };
+            
+            // Service Worker for offline
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }
+        }
+
+        // ==================== INIT ====================
+        function initApp() {
+            initTailwind();
+            initAudio();
+            loadGameState();
+            drawWheel();
+            setupPWA();
+            
+            // Make wheel clickable
+            const canvas = document.getElementById('wheel-canvas');
+            canvas.addEventListener('click', () => {
+                if (!isSpinning && gameState.spinsLeft > 0) spinWheel();
+            });
+            
+            // Keyboard
+            document.addEventListener('keydown', e => {
+                if ((e.key === ' ' || e.key === 'Enter') && !isSpinning) {
+                    e.preventDefault();
+                    if (gameState.spinsLeft > 0) spinWheel();
+                }
+                if (e.key.toLowerCase() === 'l') showLeaderboard();
+                if (e.key.toLowerCase() === 'c' && gameState.spinsLeft > 0) spinWheel();
+            });
+            
+            // Easter egg
+            document.querySelector('.fa-dharmachakra').addEventListener('click', () => {
+                launchConfetti(55);
+                if (gameState.spinsLeft < 3) {
+                    gameState.spinsLeft++;
+                    updateUI();
+                    showToast("🎁 Bonus spin granted!", "success");
+                }
+            });
+            
+            // Final touches
+            console.log('%c[SpinBase v2] All systems online • Base Mainnet ready', 'color:#64748b');
+            
+            // Auto-draw
+            setTimeout(() => drawWheel(), 100);
+            
+            // Welcome
+            if (!localStorage.getItem('spinbase_welcome_v2')) {
+                setTimeout(() => {
+                    // showToast("Welcome to SpinBase on Base! 🎡", "info");
+                    localStorage.setItem('spinbase_welcome_v2', 'true');
+                }, 1800);
+            }
+        }
+
+        window.onload = initApp;
+
+        // ==================== BOTTOM NAV ====================
+        window.closeModal = function (id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        };
+        window.openModal = function (id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden');
+        };
+        window.copyReferral = function () {
+            const el = document.getElementById('referral-link');
+            const text = el ? el.textContent : '';
+            navigator.clipboard?.writeText(text);
+            if (typeof showToast === 'function') showToast('Invite link copied!', 'success');
+        };
+        function setActiveTab(name) {
+            document.querySelectorAll('.nav-tab').forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === name);
+            });
+        }
+        window.navTab = function (name) {
+            setActiveTab(name);
+            try { window.telemetry && window.telemetry('nav_tab', { tab: name }); } catch (e) {}
+            if (name === 'home') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (name === 'spin') {
+                document.getElementById('wheel-canvas')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (name === 'wallet') {
+                if (typeof connectWallet === 'function') connectWallet();
+            } else if (name === 'rewards') {
+                if (typeof claimDailyBonus === 'function') claimDailyBonus();
+            } else if (name === 'quests') {
+                openModal('quests-modal');
+            } else if (name === 'friends') {
+                const link = `${location.origin}/?ref=${(window.gameState?.wallet || 'you').slice(0,10)}`;
+                const el = document.getElementById('referral-link');
+                if (el) el.textContent = link;
+                openModal('friends-modal');
+            } else if (name === 'profile') {
+                const gs = window.gameState || {};
+                document.getElementById('profile-wallet').textContent =
+                    gs.wallet ? `${gs.wallet.slice(0,6)}...${gs.wallet.slice(-4)}` : 'Not connected';
+                document.getElementById('profile-balance').textContent = (gs.balance ?? 0).toLocaleString();
+                document.getElementById('profile-streak').textContent = `${gs.streak ?? 0} 🔥`;
+                document.getElementById('profile-claimed').textContent = (gs.totalClaimed ?? 0).toLocaleString();
+                document.getElementById('profile-spins').textContent = `${(gs.spinsUsedToday ?? 0)}/${gs.maxSpinsPerDay ?? 3}`;
+                openModal('profile-modal');
+            }
+        };
+        setActiveTab('home');
+
+        
+        // Debug helpers
+        window.SpinBase = {
+            reset: () => { localStorage.clear(); location.reload(); },
+            addSpins: (n=3) => { gameState.spinsLeft += n; updateUI(); },
+            addBalance: (n=1000) => { gameState.balance += n; updateUI(); }
+        };
+
+        // ==================== SHOP ====================
+        const SHOP_ITEMS = [
+            // Boosters (consumable — apply immediately)
+            { id: "spin_1",       cat: "boosters", icon: "fa-plus",           color: "text-emerald-400", name: "+1 Spin",         desc: "Instantly add 1 spin", price: 500 },
+            { id: "spin_5",       cat: "boosters", icon: "fa-bolt",           color: "text-yellow-400",  name: "+5 Spins",        desc: "Refill for the day",   price: 2200 },
+            { id: "streak_shield",cat: "boosters", icon: "fa-shield-halved",  color: "text-blue-400",    name: "Streak Shield",   desc: "Skip a day, keep streak", price: 1500 },
+            { id: "lucky_charm",  cat: "boosters", icon: "fa-clover",         color: "text-green-400",   name: "Lucky Charm",     desc: "+15% odds next 3 spins", price: 3000 },
+            { id: "mega_boost",   cat: "boosters", icon: "fa-rocket",         color: "text-orange-400",  name: "Mega Boost",      desc: "Double next win",       price: 5000 },
+            { id: "jackpot_key",  cat: "boosters", icon: "fa-key",            color: "text-amber-300",   name: "Jackpot Key",     desc: "Unlock 1 jackpot slot", price: 9000 },
+            // Skins (one-time — cosmetic)
+            { id: "skin_neon",    cat: "skins", icon: "fa-fire",              color: "text-pink-400",    name: "Neon Wheel",      desc: "Glowing neon skin",     price: 4000, oneTime: true },
+            { id: "skin_gold",    cat: "skins", icon: "fa-crown",             color: "text-amber-300",   name: "Gold Wheel",      desc: "Luxury gold trim",      price: 8000, oneTime: true },
+            { id: "skin_galaxy",  cat: "skins", icon: "fa-meteor",            color: "text-indigo-300",  name: "Galaxy Wheel",    desc: "Cosmic stardust",       price: 12000, oneTime: true },
+            { id: "skin_base",    cat: "skins", icon: "fa-cube",              color: "text-blue-400",    name: "Base Blue Wheel", desc: "Official Base blue",    price: 6000, oneTime: true },
+            // Badges (one-time — profile flair)
+            { id: "badge_spinner",cat: "badges", icon: "fa-medal",            color: "text-zinc-300",    name: "Spinner Badge",   desc: "Rookie flair",          price: 1000, oneTime: true },
+            { id: "badge_whale",  cat: "badges", icon: "fa-whale",            color: "text-cyan-300",    name: "Whale Badge",     desc: "Big spender flair",     price: 15000, oneTime: true },
+            { id: "badge_og",     cat: "badges", icon: "fa-star",             color: "text-amber-400",   name: "OG Badge",        desc: "Founding player",       price: 20000, oneTime: true },
+        ];
+
+        let currentShopTab = "boosters";
+
+        function showShop() {
+            gameState.inventory = gameState.inventory || {};
+            document.getElementById('shop-balance').textContent = gameState.balance.toLocaleString();
+            setShopTab(currentShopTab);
+            document.getElementById('shop-modal').classList.remove('hidden');
+            if (typeof track === "function") track("shop_open");
+        }
+
+        function closeShop() {
+            document.getElementById('shop-modal').classList.add('hidden');
+        }
+
+        function setShopTab(tab) {
+            currentShopTab = tab;
+            document.querySelectorAll('[data-shop-tab]').forEach(el => {
+                el.classList.toggle('active', el.dataset.shopTab === tab);
+            });
+            renderShopItems();
+        }
+
+        function renderShopItems() {
+            const inv = gameState.inventory || {};
+            const bal = gameState.balance;
+            const wrap = document.getElementById('shop-items');
+            wrap.innerHTML = SHOP_ITEMS.filter(i => i.cat === currentShopTab).map(item => {
+                const owned = item.oneTime && inv[item.id];
+                const canBuy = !owned && bal >= item.price;
+                return `
+                    <div class="shop-item ${owned ? 'owned' : ''}">
+                        <i class="fa-solid ${item.icon} ${item.color} text-3xl mb-2"></i>
+                        <div class="font-bold text-sm">${item.name}</div>
+                        <div class="text-[10px] text-zinc-400 mt-0.5 mb-3 leading-tight">${item.desc}</div>
+                        ${owned ? `
+                            <button disabled class="w-full py-2 rounded-xl text-xs font-bold bg-zinc-800 text-zinc-500">
+                                <i class="fa-solid fa-check mr-1"></i>OWNED
+                            </button>
+                        ` : `
+                            <button onclick="buyShopItem('${item.id}')" ${canBuy ? '' : 'disabled'}
+                                    class="w-full py-2 rounded-xl text-xs font-bold ${canBuy ? 'bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:brightness-110' : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'}">
+                                ${item.price.toLocaleString()} <span class="text-[9px] opacity-80">SPIN</span>
+                            </button>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function buyShopItem(id) {
+            const item = SHOP_ITEMS.find(i => i.id === id);
+            if (!item) return;
+            gameState.inventory = gameState.inventory || {};
+            if (item.oneTime && gameState.inventory[id]) {
+                showToast("Already owned", "info"); return;
+            }
+            if (gameState.balance < item.price) {
+                showToast("Not enough SPIN 💸", "error"); return;
+            }
+            gameState.balance -= item.price;
+            gameState.inventory[id] = (gameState.inventory[id] || 0) + 1;
+            applyShopEffect(item);
+            saveGameState();
+            updateUI();
+            document.getElementById('shop-balance').textContent = gameState.balance.toLocaleString();
+            renderShopItems();
+            showToast(`✅ Purchased ${item.name}!`, "success");
+            if (typeof track === "function") track("shop_purchase", { item: id, price: item.price });
+        }
+
+        function applyShopEffect(item) {
+            if (item.id === "spin_1") gameState.spinsLeft += 1;
+            if (item.id === "spin_5") gameState.spinsLeft += 5;
+            // Other effects are consumed by the game loop when relevant.
+        }
+    </script>
+
+    <!-- ==================== SpinBase Cloud API integration ==================== -->
+    <script>
+    (function () {
+      const API = "/api/public/spinbase";
+      const TELEMETRY_API = "/api/public/spinbase-telemetry";
+      const w = () => gameState && gameState.walletAddress;
+
+      // ---------- Lightweight telemetry ----------
+      const _telemetryQueue = [];
+      let _telemetryTimer = null;
+      function track(event, extra) {
+        try {
+          const e = Object.assign(
+            { event: String(event).slice(0, 64), level: "info", wallet: w() || null },
+            extra || {}
+          );
+          _telemetryQueue.push(e);
+          if (_telemetryTimer) clearTimeout(_telemetryTimer);
+          _telemetryTimer = setTimeout(flushTelemetry, 800);
+          if (_telemetryQueue.length >= 10) flushTelemetry();
+        } catch (_) { /* never break UX for telemetry */ }
+      }
+      function flushTelemetry() {
+        if (_telemetryTimer) { clearTimeout(_telemetryTimer); _telemetryTimer = null; }
+        if (!_telemetryQueue.length) return;
+        const events = _telemetryQueue.splice(0, _telemetryQueue.length);
+        const payload = JSON.stringify({ events });
+        try {
+          if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: "application/json" });
+            if (navigator.sendBeacon(TELEMETRY_API, blob)) return;
+          }
+        } catch (_) {}
+        fetch(TELEMETRY_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+      window.addEventListener("pagehide", flushTelemetry);
+      window.addEventListener("beforeunload", flushTelemetry);
+      window.addEventListener("error", (ev) => track("js_error", {
+        level: "error",
+        message: String(ev.message || "").slice(0, 500),
+        meta: { source: ev.filename, line: ev.lineno, col: ev.colno },
+      }));
+      window.addEventListener("unhandledrejection", (ev) => {
+        const r = ev.reason;
+        track("promise_rejection", {
+          level: "error",
+          message: ((r && (r.message || String(r))) || "").slice(0, 500),
+        });
+      });
+      window.trackSpinBase = track;
+
+      async function api(path, opts) {
+        const started = performance.now();
+        const qs = (path || "").split("?")[1] || "";
+        const action = new URLSearchParams(qs).get("action") || "get";
+        let res;
+        try {
+          res = await fetch(API + path, opts);
+        } catch (netErr) {
+          track("api_error", {
+            level: "error",
+            action,
+            message: "network: " + ((netErr && netErr.message) || "fetch failed"),
+            meta: { duration_ms: Math.round(performance.now() - started) },
+          });
+          throw netErr;
+        }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          track("api_error", {
+            level: res.status >= 500 ? "error" : "warn",
+            action,
+            status_code: res.status,
+            message: (data && data.error) || ("HTTP " + res.status),
+            meta: { duration_ms: Math.round(performance.now() - started) },
+          });
+          throw new Error(data.error || ("HTTP " + res.status));
+        }
+        return data;
+      }
+
+      async function syncFromServer() {
+        if (!w()) return;
+        try {
+          const p = await api("?wallet=" + w());
+          applyPlayer(p);
+        } catch (e) { console.warn("[spinbase] sync failed", e); }
+      }
+
+      function applyPlayer(p) {
+        gameState.balance = p.balance;
+        gameState.spinsLeft = p.spinsLeft;
+        gameState.streak = p.streak;
+        gameState.pendingClaim = p.pendingClaim;
+        gameState.totalClaimed = p.totalClaimed;
+        if (!p.dailyBonusAvailable) {
+          gameState.lastClaimDate = new Date().toISOString();
+        }
+        saveGameState();
+        updateUI();
+        if (typeof updateDailyClaimUI === "function") updateDailyClaimUI();
+      }
+
+      // Patch connectWallet: after wallet connects, pull server state
+      const origConnect = window.connectWallet;
+      window.connectWallet = async function () {
+        const wasConnected = !!(gameState && gameState.walletConnected);
+        try {
+          await origConnect.apply(this, arguments);
+        } catch (e) {
+          track("wallet_connect_failed", { level: "warn", message: (e && e.message || "").slice(0, 300) });
+          throw e;
+        }
+        if (w() && !wasConnected) {
+          track("wallet_connected", { meta: {
+            hasInjected: typeof window.ethereum !== "undefined",
+          }});
+          showToast("Syncing account…", "info");
+          await syncFromServer();
+        }
+      };
+
+      // Patch finishSpin: after local award, tell server and apply authoritative state
+      const origFinish = window.finishSpin;
+      window.finishSpin = function (index) {
+        const before = gameState.balance;
+        const beforeMult = gameState.multiplier;
+        origFinish.call(this, index);
+        const gained = gameState.balance - before;
+        track("spin_completed", {
+          meta: { index, reward: gained, streak: gameState.streak, spinsLeft: gameState.spinsLeft },
+        });
+        if (w() && gained > 0) {
+          api("?action=spin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              wallet: w(),
+              reward: gained,
+              multiplier: 1,
+            }),
+          }).then(r => applyPlayer(r.player))
+            .catch(e => showToast("Sync error: " + e.message, "error"));
+        }
+        // avoid double-mult applied server-side
+        void beforeMult;
+      };
+
+      // Patch claimDailyBonus: reflect server bonus + streak
+      const origDaily = window.claimDailyBonus;
+      window.claimDailyBonus = function () {
+        track("daily_claim_attempt");
+        if (!w()) return origDaily.apply(this, arguments);
+        api("?action=daily", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ wallet: w() }),
+        }).then(r => {
+          applyPlayer(r.player);
+          if (typeof playWinSound === "function") playWinSound(false);
+          if (typeof launchConfetti === "function") launchConfetti(60);
+          showToast("+" + r.bonus + " SPIN daily bonus! Streak " + r.streak + "🔥", "success");
+          track("daily_claim_success", { meta: { bonus: r.bonus, streak: r.streak } });
+        }).catch(e => showToast(e.message, "error"));
+      };
+
+      // Patch claimOnChain: use real server tx + pending balance
+      const origClaim = window.claimOnChain;
+      window.claimOnChain = async function () {
+        const claimBtn = document.getElementById("claim-onchain-btn");
+        track("claim_attempt", { meta: { pending: gameState.pendingClaim } });
+        if (!gameState.walletConnected) {
+          await window.connectWallet();
+        }
+        if (!w()) return origClaim.apply(this, arguments);
+        claimBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> CLAIMING ON BASE...';
+        claimBtn.disabled = true;
+        try {
+          const r = await api("?action=claim", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ wallet: w() }),
+          });
+          applyPlayer(r.player);
+          claimBtn.className = "w-full py-2 rounded-full font-semibold flex items-center justify-center gap-x-2 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+          claimBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i><span>Claimed on Base</span>';
+          showToast("🎉 " + r.claimed.toLocaleString() + " SPIN claimed on Base!", "success");
+          track("claim_success", { meta: { amount: r.claimed, txHash: r.txHash } });
+          const t = document.createElement("div");
+          t.className = "toast flex items-center gap-x-3 px-5 py-3 bg-zinc-800 border border-zinc-700 rounded-2xl text-xs max-w-[300px] mx-auto cursor-pointer";
+          t.innerHTML = '<div class="flex-1"><div class="font-mono text-[10px] text-emerald-400">TX: ' +
+            r.txHash.slice(0,10) + '…</div><div class="text-emerald-400">View on BaseScan →</div></div>';
+          t.onclick = () => window.open(r.explorerUrl, "_blank");
+          document.getElementById("toast-container").appendChild(t);
+          setTimeout(() => { t.style.opacity="0"; t.style.transition="all .3s"; setTimeout(()=>t.remove(),300); }, 4200);
+        } catch (e) {
+          showToast(e.message, "error");
+        } finally {
+          setTimeout(() => {
+            if (typeof closeWinModal === "function") closeWinModal();
+            claimBtn.innerHTML = '<i class="fa-solid fa-link"></i> <span>CLAIM ON BASE</span>';
+            claimBtn.disabled = false;
+          }, 1800);
+        }
+      };
+
+      // If wallet was already remembered from a previous session, sync on load
+      window.addEventListener("load", () => {
+        track("page_view", { meta: { referrer: document.referrer || null } });
+        setTimeout(() => { if (w()) syncFromServer(); }, 400);
+      });
+
+      window.SpinBaseAPI = { sync: syncFromServer, call: api };
+    })();
+    </script>
+</body>
+</html>
+
