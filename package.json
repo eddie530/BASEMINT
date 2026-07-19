@@ -55,6 +55,7 @@
     "@tanstack/zod-adapter": "^1.167.0",
     "@vercel/analytics": "^2.0.1",
     "@wagmi/core": "^2.22.1",
+    "@x402/evm": "2.19.0",
     "@zoralabs/coins-sdk": "^0.7.1",
     "@zoralabs/protocol-sdk": "^0.13.22",
     "buffer": "^6.0.3",
