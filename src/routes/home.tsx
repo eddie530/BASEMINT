@@ -869,49 +869,6 @@ function QuickAction({
     </Link>
   );
 }
-  to,
-  icon: Icon,
-  title,
-  desc,
-  status,
-}: {
-  to: string;
-  icon: typeof Compass;
-  title: string;
-  desc: string;
-  status?: ModuleStatus;
-}) {
-  const isSoon = status === "soon";
-  const content = (
-    <>
-      <div className="flex items-center justify-between mb-3">
-        <div className="size-9 rounded-xl bg-accent/15 grid place-items-center text-accent">
-          <Icon className="size-4" strokeWidth={2.4} />
-        </div>
-        {status ? <StatusPill status={status} /> : null}
-      </div>
-      <p className="font-bold text-sm">{title}</p>
-      <p className="text-[11px] text-white/50 mt-0.5">{desc}</p>
-    </>
-  );
-  const cls =
-    "group rounded-2xl border border-white/10 bg-black/40 p-4 transition min-w-0 " +
-    (isSoon
-      ? "opacity-70 cursor-default"
-      : "hover:border-accent/40 active:border-accent/60");
-  if (isSoon) {
-    return (
-      <div className={cls} aria-disabled="true">
-        {content}
-      </div>
-    );
-  }
-  return (
-    <Link to={to} className={cls}>
-      {content}
-    </Link>
-  );
-}
 
 function ModuleCard({
   to,
