@@ -24,7 +24,12 @@ import {
   Flame,
   Circle,
   Check,
+  Bell,
+  Star,
+  Trophy,
+  X,
 } from "lucide-react";
+import { trackDashboard } from "@/lib/dashboard-analytics";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
 import { trendingQO } from "@/components/pages/DiscoverFeed";
