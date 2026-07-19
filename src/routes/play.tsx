@@ -148,7 +148,7 @@ function PlayPage() {
 
   async function handleClaim() {
     if (!address) {
-      connect();
+      connectWallet();
       return;
     }
     try {
