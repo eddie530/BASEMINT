@@ -41,6 +41,12 @@ import {
   type PointsSummary,
 } from "@/lib/points.functions";
 import { readLastAction, type LastAction } from "@/lib/last-action";
+import {
+  readWatchlist,
+  subscribeWatchlist,
+  type WatchlistItem,
+} from "@/lib/watchlist";
+import { getCoinDetail } from "@/lib/zora.functions";
 import type { CoinDTO } from "@/lib/zora.types";
 
 export const Route = createFileRoute("/home")({
@@ -1150,9 +1156,44 @@ function NotificationBell() {
 }
 
 // -----------------------------------------------------------------------------
-// Watchlist preview — no backend yet; invite users to save from Discover.
+// Watchlist preview — reads the local watchlist and resolves live coin data
+// from Zora so each row shows real 24h movement when available.
 // -----------------------------------------------------------------------------
 function WatchlistPreview() {
+  const [items, setItems] = useState<WatchlistItem[]>([]);
+  useEffect(() => {
+    setItems(readWatchlist());
+    return subscribeWatchlist(() => setItems(readWatchlist()));
+  }, []);
+
+  const preview = useMemo(() => items.slice(0, 4), [items]);
+  const fetchCoin = useServerFn(getCoinDetail);
+
+  const { data: coins, isLoading } = useQuery({
+    queryKey: [
+      "watchlist-coins",
+      preview.map((i) => `${i.chainId}:${i.address.toLowerCase()}`).join(","),
+    ],
+    queryFn: async () => {
+      const results = await Promise.all(
+        preview.map(async (i) => {
+          try {
+            const coin = await fetchCoin({
+              data: { address: i.address, chainId: i.chainId },
+            });
+            return { item: i, coin };
+          } catch {
+            return { item: i, coin: null as CoinDTO | null };
+          }
+        }),
+      );
+      return results;
+    },
+    enabled: preview.length > 0,
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+
   return (
     <section>
       <div className="flex items-end justify-between mb-3">
@@ -1160,25 +1201,114 @@ function WatchlistPreview() {
           <Star className="size-4 text-accent" />
           Watchlist
         </h2>
-        <StatusPill status="soon" />
+        {items.length > 0 ? (
+          <span className="text-[10px] font-mono uppercase tracking-widest text-white/50">
+            {items.length} saved
+          </span>
+        ) : null}
       </div>
-      <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
-        <Star className="size-6 text-white/30 mx-auto mb-2" />
-        <p className="text-sm text-white/70">
-          No saved assets yet.
-        </p>
-        <p className="text-[11px] text-white/45 font-mono mt-1">
-          Save tokens from Discover to track them here.
-        </p>
-        <Link
-          to="/"
-          onClick={() => trackDashboard({ type: "watchlist_cta_selected" })}
-          className="inline-flex mt-4 items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider"
-        >
-          Browse Discover <ArrowRight className="size-3" />
-        </Link>
-      </div>
+
+      {items.length === 0 ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
+          <Star className="size-6 text-white/30 mx-auto mb-2" />
+          <p className="text-sm text-white/70">No saved assets yet.</p>
+          <p className="text-[11px] text-white/45 font-mono mt-1">
+            Tap the star on any token in Discover to track it here.
+          </p>
+          <Link
+            to="/"
+            onClick={() => trackDashboard({ type: "watchlist_cta_selected" })}
+            className="inline-flex mt-4 items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider"
+          >
+            Browse Discover <ArrowRight className="size-3" />
+          </Link>
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.02] divide-y divide-white/5">
+          {(coins ?? preview.map((item) => ({ item, coin: null as CoinDTO | null }))).map(
+            ({ item, coin }) => (
+              <WatchlistRow
+                key={`${item.chainId}:${item.address.toLowerCase()}`}
+                item={item}
+                coin={coin}
+                loading={isLoading && !coin}
+              />
+            ),
+          )}
+          {items.length > preview.length ? (
+            <div className="p-3 text-center">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-white/50">
+                +{items.length - preview.length} more saved
+              </span>
+            </div>
+          ) : null}
+        </div>
+      )}
     </section>
+  );
+}
+
+function fmtPriceCompact(p?: number): string {
+  if (p == null || !Number.isFinite(p)) return "—";
+  if (p < 0.0001) return `$${p.toExponential(2)}`;
+  if (p < 1) return `$${p.toFixed(5)}`;
+  return `$${p.toLocaleString(undefined, { maximumFractionDigits: 4 })}`;
+}
+
+function WatchlistRow({
+  item,
+  coin,
+  loading,
+}: {
+  item: WatchlistItem;
+  coin: CoinDTO | null;
+  loading: boolean;
+}) {
+  const name = coin?.name ?? item.name ?? shortAddr(item.address);
+  const symbol = coin?.symbol ?? item.symbol;
+  const image = coin?.image ?? item.image;
+  const price = coin?.priceUsd;
+  const mc = coin?.marketCap;
+  const delta = coin?.marketCapDelta24h;
+  const pct =
+    mc && delta && mc - delta !== 0 ? (delta / Math.max(1, mc - delta)) * 100 : undefined;
+  const up = (pct ?? 0) >= 0;
+
+  return (
+    <Link
+      to="/coin/$id"
+      params={{ id: item.address }}
+      className="flex items-center gap-3 p-3 hover:bg-white/[0.03] transition"
+    >
+      <div className="size-10 rounded-xl overflow-hidden shrink-0 bg-white/5 grid place-items-center">
+        {image ? (
+          <img src={image} alt={name} className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <Star className="size-4 text-white/40" />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold truncate">{name}</p>
+        <p className="text-[10px] text-white/50 font-mono uppercase tracking-widest truncate">
+          {symbol ? `$${symbol}` : shortAddr(item.address)}
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="text-sm font-mono">{loading && !coin ? "…" : fmtPriceCompact(price)}</p>
+        {pct !== undefined ? (
+          <p
+            className={`text-[10px] font-mono font-bold ${up ? "text-accent" : "text-destructive"}`}
+          >
+            {up ? "+" : ""}
+            {pct.toFixed(1)}% 24h
+          </p>
+        ) : (
+          <p className="text-[10px] font-mono text-white/40">
+            {loading ? "loading" : "no data"}
+          </p>
+        )}
+      </div>
+    </Link>
   );
 }
 
