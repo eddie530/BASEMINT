@@ -968,7 +968,17 @@ function TrendingPreview() {
       ) : (
         <div className="space-y-4">
           {preview.map((coin) => (
-            <CoinCard key={coin.address} coin={coin} />
+            <div
+              key={coin.address}
+              onClickCapture={() =>
+                trackDashboard({
+                  type: "trending_asset_opened",
+                  symbol: coin.symbol,
+                })
+              }
+            >
+              <CoinCard coin={coin} />
+            </div>
           ))}
         </div>
       )}
