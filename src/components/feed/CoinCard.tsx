@@ -84,7 +84,7 @@ export function CoinCard({ coin }: { coin: CoinDTO }) {
           />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-2">
+          <div className="flex justify-between items-start gap-2 pr-12">
             <div className="min-w-0">
               <h3 className="font-bold text-base truncate">{coin.name}</h3>
               <p className="text-white/40 text-xs tracking-widest uppercase font-mono truncate">
