@@ -730,6 +730,13 @@ function NFTDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         symbol: onchainSymbol as string | undefined,
         maxSupply: onchainMax != null ? (onchainMax as bigint).toString() : undefined,
       });
+      writeLastAction({
+        kind: "create_nft",
+        ref: collectionAddr,
+        label: (onchainName as string | undefined) ?? "New collection",
+        sub: onchainSymbol ? (onchainSymbol as string) : undefined,
+        href: `/coin/${collectionAddr}`,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Deploy failed";
       setErr(msg);
