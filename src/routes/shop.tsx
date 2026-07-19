@@ -6,6 +6,7 @@ import { MiniAppShell } from "@/components/MiniAppShell";
 import { Button } from "@/components/ui/button";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
+import { TradeDialog } from "@/components/coin/TradeDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalSession } from "@/lib/payments.functions";
@@ -95,6 +96,9 @@ function ShopPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [activePriceId, setActivePriceId] = useState<string | null>(null);
+  const [tradeTarget, setTradeTarget] = useState<{ address: `0x${string}`; symbol: string } | null>(
+    null,
+  );
 
   const trending = useQuery({
     queryKey: ["shop", "trending", 6],
@@ -355,13 +359,27 @@ function ShopPage() {
                         )}
                       </div>
                     </div>
-                    <Link
-                      to="/coin/$id"
-                      params={{ id: coin.address }}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-xs font-semibold hover:opacity-90 shrink-0"
-                    >
-                      Buy <ArrowUpRight className="size-3" />
-                    </Link>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTradeTarget({
+                            address: coin.address as `0x${string}`,
+                            symbol: coin.symbol,
+                          })
+                        }
+                        className="inline-flex items-center gap-1 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-xs font-semibold hover:opacity-90"
+                      >
+                        Quick Buy <Zap className="size-3" />
+                      </button>
+                      <Link
+                        to="/coin/$id"
+                        params={{ id: coin.address }}
+                        className="inline-flex items-center justify-center gap-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary"
+                      >
+                        Details <ArrowUpRight className="size-3" />
+                      </Link>
+                    </div>
                   </div>
                 </li>
               );
@@ -377,6 +395,15 @@ function ShopPage() {
       <p className="text-[11px] text-muted-foreground text-center">
         Test mode — use Stripe test card 4242 4242 4242 4242, any future expiry, any CVC.
       </p>
+
+      {tradeTarget && (
+        <TradeDialog
+          side="buy"
+          coinAddress={tradeTarget.address}
+          coinSymbol={tradeTarget.symbol}
+          onClose={() => setTradeTarget(null)}
+        />
+      )}
     </MiniAppShell>
   );
 }
