@@ -2,18 +2,20 @@
 // Only used to power the "Continue where you left off" panel on /home.
 // Real data only — nothing is written unless a genuine event occurs.
 
-export type LastActionKind = "view_coin" | "create_coin" | "create_nft";
+export type LastActionKind = "view_coin" | "create_coin" | "create_nft" | "spin_win";
 
 export interface LastAction {
   kind: LastActionKind;
-  /** Contract address (coin/nft) or route id. */
-  ref: string;
-  /** Human label — coin name, token symbol, etc. */
+  /** Contract address (coin/nft), route id, or synthetic id for non-coin events. */
+  ref?: string;
+  /** Human label — coin name, token symbol, wheel segment, etc. */
   label?: string;
-  /** Optional secondary label (symbol, chain). */
+  /** Optional secondary label (symbol, chain, reward amount). */
   sub?: string;
   /** Where clicking the card should navigate. */
-  href: string;
+  href?: string;
+  /** For spin_win: SPIN reward amount. */
+  reward?: number;
   /** ISO timestamp. */
   at: string;
 }
