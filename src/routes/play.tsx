@@ -3,10 +3,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Flame, Coins, Zap, Info } from "lucide-react";
+import { Flame, Coins, Zap, Info, ShoppingBag, X, Check } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { SpinWheel } from "@/components/spin/SpinWheel";
 import { WinModal } from "@/components/spin/WinModal";
+import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
+import { supabase } from "@/integrations/supabase/client";
 import type { SpinResult } from "@/lib/spin/segments";
 import {
   claimDailyCheckin,
@@ -15,6 +17,7 @@ import {
 } from "@/lib/points.functions";
 import { useConnectWallet } from "@/lib/use-connect-wallet";
 import { writeLastAction } from "@/lib/last-action";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/play")({
   head: () => ({
@@ -32,8 +35,18 @@ export const Route = createFileRoute("/play")({
       },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    spins: typeof s.spins === "string" ? s.spins : undefined,
+    session_id: typeof s.session_id === "string" ? s.session_id : undefined,
+  }),
   component: PlayPage,
 });
+
+const SPIN_PACKS = [
+  { priceId: "spin_pack_50_once", spins: 50, price: "$8", label: "50 Spin Pack" },
+  { priceId: "spin_pack_200_once", spins: 200, price: "$25", label: "200 Spin Pack", best: true },
+];
+const CREDITED_KEY = "spinbase:credited-sessions";
 
 // ---------------- Local SPIN currency (in-game, localStorage) ----------------
 const LS_KEY = "spinbase:v2";
