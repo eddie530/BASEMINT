@@ -489,6 +489,13 @@ function TokenDeployForm({ chainId }: { chainId: 8453 | 84532 }) {
         symbol: onchainSymbol as string | undefined,
         totalSupply: onchainSupply != null ? (onchainSupply as bigint).toString() : undefined,
       });
+      writeLastAction({
+        kind: "create_coin",
+        ref: tokenAddr,
+        label: (onchainName as string | undefined) ?? "New token",
+        sub: onchainSymbol ? `$${onchainSymbol as string}` : undefined,
+        href: `/coin/${tokenAddr}`,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Deploy failed";
       setErr(msg);
