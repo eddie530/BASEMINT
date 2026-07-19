@@ -98,11 +98,43 @@ function PlayPage() {
   const [state, setState] = useState<LocalState>(DEFAULT_STATE);
   const [ready, setReady] = useState(false);
   const [result, setResult] = useState<SpinResult | null>(null);
+  const [buyOpen, setBuyOpen] = useState(false);
+  const [activePack, setActivePack] = useState<(typeof SPIN_PACKS)[number] | null>(null);
+  const [email, setEmail] = useState<string | undefined>(undefined);
+  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const search = Route.useSearch();
 
   useEffect(() => {
     setState(loadState());
     setReady(true);
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? undefined);
+      setUserId(data.user?.id ?? undefined);
+    });
   }, []);
+
+  // Credit spins after a successful Stripe return (?spins=50&session_id=...).
+  useEffect(() => {
+    if (!ready) return;
+    const spins = Number(search.spins);
+    const sid = search.session_id;
+    if (!spins || !sid || !Number.isFinite(spins) || spins <= 0) return;
+    try {
+      const raw = window.localStorage.getItem(CREDITED_KEY);
+      const seen: string[] = raw ? JSON.parse(raw) : [];
+      if (seen.includes(sid)) return;
+      setState((s) => ({ ...s, spinsLeft: s.spinsLeft + spins }));
+      window.localStorage.setItem(CREDITED_KEY, JSON.stringify([...seen, sid].slice(-50)));
+      toast.success(`+${spins} spins added`, { description: "Enjoy the wheel." });
+      // Clean the URL so a refresh doesn't try to re-credit.
+      const url = new URL(window.location.href);
+      url.searchParams.delete("spins");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", url.toString());
+    } catch {
+      /* noop */
+    }
+  }, [ready, search.spins, search.session_id]);
 
   useEffect(() => {
     if (ready) saveState(state);
