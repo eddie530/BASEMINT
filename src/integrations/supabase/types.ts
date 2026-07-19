@@ -336,6 +336,57 @@ export type Database = {
           },
         ]
       }
+      subscription_audit_log: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          environment: string
+          event_type: string
+          id: string
+          new_price_id: string | null
+          new_status: string | null
+          previous_price_id: string | null
+          previous_status: string | null
+          raw_event: Json | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string
+          user_id: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          environment: string
+          event_type: string
+          id?: string
+          new_price_id?: string | null
+          new_status?: string | null
+          previous_price_id?: string | null
+          previous_status?: string | null
+          raw_event?: Json | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id: string
+          user_id?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          environment?: string
+          event_type?: string
+          id?: string
+          new_price_id?: string | null
+          new_status?: string | null
+          previous_price_id?: string | null
+          previous_status?: string | null
+          raw_event?: Json | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean | null
