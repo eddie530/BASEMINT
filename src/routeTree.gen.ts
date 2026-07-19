@@ -29,7 +29,9 @@ import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as ProfileAddressRouteImport } from './routes/profile.$address'
 import { Route as CoinIdRouteImport } from './routes/coin.$id'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
@@ -131,11 +133,22 @@ const CoinIdRoute = CoinIdRouteImport.update({
   path: '/coin/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   id: '/api/public/track',
   path: '/api/public/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -154,11 +167,13 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
   '/profile/$address': typeof ProfileAddressRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/profile/': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -176,11 +191,13 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
   '/profile/$address': typeof ProfileAddressRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/profile': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -200,11 +217,13 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
   '/profile/$address': typeof ProfileAddressRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/profile/': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -225,11 +244,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/vault'
+    | '/checkout/return'
     | '/coin/$id'
     | '/profile/$address'
     | '/settings/profile'
     | '/profile/'
     | '/api/public/track'
+    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -247,11 +268,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/vault'
+    | '/checkout/return'
     | '/coin/$id'
     | '/profile/$address'
     | '/settings/profile'
     | '/profile'
     | '/api/public/track'
+    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -270,11 +293,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/sitemap.xml'
     | '/vault'
+    | '/checkout/return'
     | '/coin/$id'
     | '/profile/$address'
     | '/settings/profile'
     | '/profile/'
     | '/api/public/track'
+    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -294,9 +319,11 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   CoinIdRoute: typeof CoinIdRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -441,11 +468,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoinIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/track': {
       id: '/api/public/track'
       path: '/api/public/track'
       fullPath: '/api/public/track'
       preLoaderRoute: typeof ApiPublicTrackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -481,9 +522,11 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   CoinIdRoute: CoinIdRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
