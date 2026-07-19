@@ -24,7 +24,12 @@ import {
   Flame,
   Circle,
   Check,
+  Bell,
+  Star,
+  Trophy,
+  X,
 } from "lucide-react";
+import { trackDashboard } from "@/lib/dashboard-analytics";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { CoinCard } from "@/components/feed/CoinCard";
 import { trendingQO } from "@/components/pages/DiscoverFeed";
@@ -109,8 +114,17 @@ function HomePage() {
 
   // Last-action lives in localStorage; read after hydration to avoid mismatch.
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
   useEffect(() => {
     setLastAction(readLastAction());
+    try {
+      setOnboardingDismissed(
+        window.localStorage.getItem("rl_onboarding_dismissed") === "1",
+      );
+    } catch {
+      // ignore
+    }
+    trackDashboard({ type: "dashboard_viewed" });
   }, []);
 
   // Points summary — powers activity, streak, onboarding gate.
@@ -150,6 +164,7 @@ function HomePage() {
               Discover, create, play, and earn across the Base ecosystem.
             </p>
           </div>
+          <NotificationBell />
         </div>
 
         {/* Wallet chip row */}
@@ -217,18 +232,34 @@ function HomePage() {
       {/* Continue where you left off — only when real local state exists */}
       {lastAction ? <ContinueCard action={lastAction} /> : null}
 
-      {/* Personalized onboarding — only for genuinely new users */}
-      {isNewUser ? (
+      {/* Personalized onboarding — only for genuinely new users, dismissible */}
+      {isNewUser && !onboardingDismissed ? (
         <OnboardingChecklist
           isConnected={isConnected}
           inFarcaster={inFarcaster}
           hasViewedToken={Boolean(lastAction)}
           hasLaunched={hasLaunched}
+          onDismiss={() => {
+            try {
+              window.localStorage.setItem("rl_onboarding_dismissed", "1");
+            } catch {
+              // ignore
+            }
+            setOnboardingDismissed(true);
+            trackDashboard({ type: "onboarding_dismissed" });
+          }}
         />
       ) : null}
 
       {/* Resident Labs Today — compact daily strip; only renders if real */}
       <ResidentLabsToday summary={summary} />
+
+      {/* Watchlist preview — honest empty state until a real backend exists */}
+      <WatchlistPreview />
+
+      {/* Active quests — Coming Soon until secure event tracking is live */}
+      <ActiveQuests />
+
 
       {/* 3. Quick Actions */}
       <section>
@@ -415,6 +446,7 @@ function UniversalSearch() {
         e.preventDefault();
         const trimmed = q.trim();
         if (!trimmed) return;
+        trackDashboard({ type: "search_used", length: trimmed.length });
         void navigate({ to: "/search", search: { q: trimmed, type: "all", page: 1 } });
       }}
       className="relative"
@@ -581,11 +613,13 @@ function OnboardingChecklist({
   inFarcaster,
   hasViewedToken,
   hasLaunched,
+  onDismiss,
 }: {
   isConnected: boolean;
   inFarcaster: boolean;
   hasViewedToken: boolean;
   hasLaunched: boolean;
+  onDismiss: () => void;
 }) {
   const items: ChecklistItem[] = [
     { label: "Connect wallet", done: isConnected },
@@ -612,7 +646,17 @@ function OnboardingChecklist({
             {doneCount} of {items.length} complete
           </p>
         </div>
-        <span className="text-[11px] font-mono text-accent">{pct}%</span>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-mono text-accent">{pct}%</span>
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss onboarding"
+            className="size-6 grid place-items-center rounded-full border border-white/10 text-white/50 hover:text-white hover:border-white/30 transition"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
       </div>
       <div className="rounded-3xl border border-white/10 bg-white/[0.02] overflow-hidden">
         <div className="h-1 bg-white/5">
@@ -816,7 +860,11 @@ function QuickAction({
     );
   }
   return (
-    <Link to={to} className={cls}>
+    <Link
+      to={to}
+      onClick={() => trackDashboard({ type: "quick_action_selected", id: title })}
+      className={cls}
+    >
       {content}
     </Link>
   );
@@ -848,7 +896,11 @@ function ModuleCard({
     (disabled ? "opacity-70" : "hover:border-accent/40");
   if (disabled) return <div className={cls}>{inner}</div>;
   return (
-    <Link to={to} className={cls}>
+    <Link
+      to={to}
+      onClick={() => trackDashboard({ type: "module_card_selected", id: title })}
+      className={cls}
+    >
       {inner}
     </Link>
   );
@@ -916,7 +968,17 @@ function TrendingPreview() {
       ) : (
         <div className="space-y-4">
           {preview.map((coin) => (
-            <CoinCard key={coin.address} coin={coin} />
+            <div
+              key={coin.address}
+              onClickCapture={() =>
+                trackDashboard({
+                  type: "trending_asset_opened",
+                  symbol: coin.symbol,
+                })
+              }
+            >
+              <CoinCard coin={coin} />
+            </div>
           ))}
         </div>
       )}
@@ -1036,3 +1098,131 @@ function RecentActivity({
     </section>
   );
 }
+
+// -----------------------------------------------------------------------------
+// Notification bell — honest empty state until a real notifications backend.
+// -----------------------------------------------------------------------------
+function NotificationBell() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        aria-label="Notifications"
+        onClick={() => {
+          setOpen((v) => !v);
+          if (!open) trackDashboard({ type: "notifications_opened" });
+        }}
+        className="size-10 grid place-items-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 hover:text-white hover:border-white/30 transition"
+      >
+        <Bell className="size-4" />
+      </button>
+      {open ? (
+        <div
+          role="dialog"
+          aria-label="Notifications"
+          className="absolute right-0 mt-2 w-72 rounded-2xl border border-white/10 bg-black/90 backdrop-blur p-4 shadow-2xl z-30"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] uppercase tracking-widest text-white/50 font-mono">
+              Notifications
+            </p>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-white/50 hover:text-white"
+              aria-label="Close notifications"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+          <div className="py-6 text-center">
+            <Bell className="size-5 text-white/25 mx-auto mb-2" />
+            <p className="text-sm text-white/60">You're all caught up.</p>
+            <p className="text-[11px] text-white/40 font-mono mt-1">
+              Launch & trade alerts coming soon.
+            </p>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Watchlist preview — no backend yet; invite users to save from Discover.
+// -----------------------------------------------------------------------------
+function WatchlistPreview() {
+  return (
+    <section>
+      <div className="flex items-end justify-between mb-3">
+        <h2 className="font-display font-bold text-lg uppercase tracking-wider flex items-center gap-2">
+          <Star className="size-4 text-accent" />
+          Watchlist
+        </h2>
+        <StatusPill status="soon" />
+      </div>
+      <div className="rounded-3xl border border-white/10 bg-white/[0.02] p-6 text-center">
+        <Star className="size-6 text-white/30 mx-auto mb-2" />
+        <p className="text-sm text-white/70">
+          No saved assets yet.
+        </p>
+        <p className="text-[11px] text-white/45 font-mono mt-1">
+          Save tokens from Discover to track them here.
+        </p>
+        <Link
+          to="/"
+          onClick={() => trackDashboard({ type: "watchlist_cta_selected" })}
+          className="inline-flex mt-4 items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider"
+        >
+          Browse Discover <ArrowRight className="size-3" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// Active Quests — disabled until secure server-side event tracking exists.
+// -----------------------------------------------------------------------------
+function ActiveQuests() {
+  const quests = [
+    "Explore three tokens",
+    "Save your first asset",
+    "Complete your profile",
+    "Try SpinBase",
+    "Launch your first asset",
+  ];
+  return (
+    <section>
+      <div className="flex items-end justify-between mb-3">
+        <h2 className="font-display font-bold text-lg uppercase tracking-wider flex items-center gap-2">
+          <Trophy className="size-4 text-accent" />
+          Active quests
+        </h2>
+        <StatusPill status="soon" />
+      </div>
+      <div className="rounded-3xl border border-white/10 bg-white/[0.02] overflow-hidden opacity-80">
+        <ul className="divide-y divide-white/5">
+          {quests.map((q) => (
+            <li
+              key={q}
+              className="flex items-center gap-3 px-4 py-3"
+              aria-disabled="true"
+            >
+              <Circle className="size-4 text-white/20 shrink-0" />
+              <span className="text-sm text-white/60 flex-1 truncate">{q}</span>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-white/40">
+                Soon
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="text-[11px] text-white/40 font-mono mt-2 px-1">
+        Quests unlock once secure onchain event tracking is live.
+      </p>
+    </section>
+  );
+}
+
