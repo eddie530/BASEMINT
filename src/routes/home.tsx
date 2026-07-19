@@ -232,18 +232,34 @@ function HomePage() {
       {/* Continue where you left off — only when real local state exists */}
       {lastAction ? <ContinueCard action={lastAction} /> : null}
 
-      {/* Personalized onboarding — only for genuinely new users */}
-      {isNewUser ? (
+      {/* Personalized onboarding — only for genuinely new users, dismissible */}
+      {isNewUser && !onboardingDismissed ? (
         <OnboardingChecklist
           isConnected={isConnected}
           inFarcaster={inFarcaster}
           hasViewedToken={Boolean(lastAction)}
           hasLaunched={hasLaunched}
+          onDismiss={() => {
+            try {
+              window.localStorage.setItem("rl_onboarding_dismissed", "1");
+            } catch {
+              // ignore
+            }
+            setOnboardingDismissed(true);
+            trackDashboard({ type: "onboarding_dismissed" });
+          }}
         />
       ) : null}
 
       {/* Resident Labs Today — compact daily strip; only renders if real */}
       <ResidentLabsToday summary={summary} />
+
+      {/* Watchlist preview — honest empty state until a real backend exists */}
+      <WatchlistPreview />
+
+      {/* Active quests — Coming Soon until secure event tracking is live */}
+      <ActiveQuests />
+
 
       {/* 3. Quick Actions */}
       <section>
