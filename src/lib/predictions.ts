@@ -1,16 +1,21 @@
-// Local-first prediction market. No backend — positions live in localStorage.
-// Prices are simulated with a constant-product-style curve seeded per market.
+// Live prediction markets sourced from Polymarket's Gamma API (see
+// src/lib/predictions.functions.ts). Balances + positions stay local — this
+// is play-money against real market prices. Real on-chain trading opens on
+// Polymarket via the external link on each card.
 
 export type Outcome = "yes" | "no";
 
 export interface PredictionMarket {
   id: string;
+  slug?: string;
   question: string;
   category: "Crypto" | "Base" | "Culture" | "Sports";
   endsAt: string; // ISO
   volumeUsd: number;
   /** Probability YES resolves true, 0..1. Drives price. */
   yesProb: number;
+  image?: string;
+  source?: "polymarket" | "mock";
 }
 
 export interface Position {
@@ -24,56 +29,9 @@ const POS_KEY = "basemint:predictions:positions:v1";
 const BAL_KEY = "basemint:predictions:balance:v1";
 const START_BAL = 1000;
 
-export const MARKETS: PredictionMarket[] = [
-  {
-    id: "btc-200k-2026",
-    question: "Will BTC close above $200k in 2026?",
-    category: "Crypto",
-    endsAt: "2026-12-31T23:59:59Z",
-    volumeUsd: 482_130,
-    yesProb: 0.42,
-  },
-  {
-    id: "base-tvl-25b",
-    question: "Will Base TVL exceed $25B by Q4 2026?",
-    category: "Base",
-    endsAt: "2026-12-31T23:59:59Z",
-    volumeUsd: 128_400,
-    yesProb: 0.61,
-  },
-  {
-    id: "zora-1m-coins",
-    question: "Will Zora surpass 1M content coins on Base?",
-    category: "Base",
-    endsAt: "2026-09-30T23:59:59Z",
-    volumeUsd: 74_220,
-    yesProb: 0.73,
-  },
-  {
-    id: "farcaster-10m-users",
-    question: "Farcaster to hit 10M active users this year?",
-    category: "Culture",
-    endsAt: "2026-12-31T23:59:59Z",
-    volumeUsd: 251_900,
-    yesProb: 0.28,
-  },
-  {
-    id: "eth-8k-eoy",
-    question: "Will ETH close above $8k end of year?",
-    category: "Crypto",
-    endsAt: "2026-12-31T23:59:59Z",
-    volumeUsd: 612_050,
-    yesProb: 0.55,
-  },
-  {
-    id: "eu-champions",
-    question: "Will Real Madrid win the Champions League 2026?",
-    category: "Sports",
-    endsAt: "2026-05-30T23:59:59Z",
-    volumeUsd: 89_300,
-    yesProb: 0.34,
-  },
-];
+export function polymarketUrl(m: PredictionMarket): string {
+  return m.slug ? `https://polymarket.com/event/${m.slug}` : "https://polymarket.com";
+}
 
 export function priceFor(market: PredictionMarket, outcome: Outcome): number {
   const p = outcome === "yes" ? market.yesProb : 1 - market.yesProb;
