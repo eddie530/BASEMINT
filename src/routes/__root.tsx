@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "fc:miniapp",
         content: JSON.stringify({
           version: "1",
-          imageUrl: "https://basemint.dev/icon-512.png",
+          imageUrl: "https://basemint.dev/embed.png",
           button: {
             title: "Open Basemint",
             action: {
@@ -111,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "fc:frame",
         content: JSON.stringify({
           version: "1",
-          imageUrl: "https://basemint.dev/icon-512.png",
+          imageUrl: "https://basemint.dev/embed.png",
           button: {
             title: "Open Basemint",
             action: {
@@ -141,13 +141,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         property: "og:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp",
+        content: "https://basemint.dev/embed.png",
       },
       {
         name: "twitter:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp",
+        content: "https://basemint.dev/embed.png",
       },
     ],
     links: [
