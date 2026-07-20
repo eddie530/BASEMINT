@@ -15,11 +15,11 @@
     "description": "Create coins and NFTs on Base in seconds. Zora Coins under the hood.",
     "primaryCategory": "social",
     "tags": ["base", "zora", "mint", "coins", "nft"],
-    "heroImageUrl": "https://basemint.dev/icon-512.png",
+    "heroImageUrl": "https://basemint.dev/embed.png",
     "tagline": "Mint on Base",
     "ogTitle": "Basemint - Mint on Base",
     "ogDescription": "Create coins and NFTs on Base in seconds.",
-    "ogImageUrl": "https://basemint.dev/icon-512.png",
+    "ogImageUrl": "https://basemint.dev/embed.png",
     "buttonTitle": "Open Basemint"
   },
   "baseBuilder": {
