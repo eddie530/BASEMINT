@@ -9,7 +9,7 @@
     "name": "Basemint",
     "iconUrl": "https://basemint.dev/icon-512.png",
     "homeUrl": "https://basemint.dev/",
-    "splashImageUrl": "https://basemint.dev/icon-512.png",
+    "splashImageUrl": "https://basemint.dev/splash.png",
     "splashBackgroundColor": "#000000",
     "subtitle": "Mint on Base",
     "description": "Create coins and NFTs on Base in seconds. Zora Coins under the hood.",
