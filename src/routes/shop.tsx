@@ -52,6 +52,8 @@ type ShopProduct = {
   price: string;
   image: string;
   tag: string;
+  /** Return URL path (with `{CHECKOUT_SESSION_ID}` placeholder) so each product routes to its own fulfillment/confirmation. */
+  returnPath: string;
 };
 
 const PRODUCTS: ShopProduct[] = [
@@ -62,6 +64,7 @@ const PRODUCTS: ShopProduct[] = [
     price: "$8",
     image: spinPack50,
     tag: "SpinBase",
+    returnPath: "/play?spins=50&session_id={CHECKOUT_SESSION_ID}",
   },
   {
     priceId: "spin_pack_200_once",
@@ -70,6 +73,7 @@ const PRODUCTS: ShopProduct[] = [
     price: "$25",
     image: spinPack200,
     tag: "Best value",
+    returnPath: "/play?spins=200&session_id={CHECKOUT_SESSION_ID}",
   },
   {
     priceId: "launch_credit_once",
@@ -78,6 +82,7 @@ const PRODUCTS: ShopProduct[] = [
     price: "$15",
     image: launchCredit,
     tag: "BaseMint",
+    returnPath: "/checkout/return?kind=launch_credit&session_id={CHECKOUT_SESSION_ID}",
   },
   {
     priceId: "points_booster_7d_once",
@@ -86,6 +91,7 @@ const PRODUCTS: ShopProduct[] = [
     price: "$5",
     image: pointsBooster,
     tag: "Booster",
+    returnPath: "/checkout/return?kind=points_booster&session_id={CHECKOUT_SESSION_ID}",
   },
 ];
 
@@ -229,7 +235,7 @@ function ShopPage() {
               priceId="resident_pro_monthly"
               customerEmail={email}
               userId={userId}
-              returnUrl={`${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`}
+              returnUrl={`${window.location.origin}/checkout/return?kind=subscription&session_id={CHECKOUT_SESSION_ID}`}
             />
           </div>
         )}
@@ -292,16 +298,20 @@ function ShopPage() {
           ))}
         </div>
 
-        {activePriceId && (
-          <div className="rounded-2xl border border-border bg-background p-2">
-            <StripeEmbeddedCheckout
-              priceId={activePriceId}
-              customerEmail={email}
-              userId={userId}
-              returnUrl={`${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`}
-            />
-          </div>
-        )}
+        {activePriceId && (() => {
+          const product = PRODUCTS.find((p) => p.priceId === activePriceId);
+          if (!product) return null;
+          return (
+            <div className="rounded-2xl border border-border bg-background p-2">
+              <StripeEmbeddedCheckout
+                priceId={activePriceId}
+                customerEmail={email}
+                userId={userId}
+                returnUrl={`${window.location.origin}${product.returnPath}`}
+              />
+            </div>
+          );
+        })()}
       </section>
 
       {/* Trending Base tokens quick-buy */}
