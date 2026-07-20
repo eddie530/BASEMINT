@@ -1,5 +1,5 @@
 import { http, createConfig } from "wagmi";
-import { base, baseSepolia } from "wagmi/chains";
+import { base, baseSepolia, polygon } from "wagmi/chains";
 import { injected, coinbaseWallet } from "wagmi/connectors";
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 import { createCDPEmbeddedWalletConnector } from "@coinbase/cdp-wagmi";
