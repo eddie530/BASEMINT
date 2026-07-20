@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+
 import { MiniAppShell } from "@/components/MiniAppShell";
 import {
   loadBalance,
@@ -45,11 +46,13 @@ function PredictionsPage() {
     null,
   );
 
-  const { data: liveMarkets, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data: liveMarkets, isLoading, isError, refetch, isFetching, dataUpdatedAt } = useQuery({
     queryKey: ["predictions", "live"],
     queryFn: () => fetchLiveMarkets(),
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 10_000,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
   });
 
   const allMarkets = liveMarkets ?? [];
@@ -71,6 +74,34 @@ function PredictionsPage() {
     setBalance(loadBalance());
     setPositions(loadPositions());
   };
+
+  // Continuously sync local balance + positions (in case they change in
+  // another tab or via a background trade) and re-price against live odds.
+  useEffect(() => {
+    const id = window.setInterval(refresh, 5_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+        refetch();
+      }
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key.startsWith("basemint:predictions:")) refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [refetch]);
+
+  const lastUpdated = dataUpdatedAt
+    ? new Date(dataUpdatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+    : null;
+
 
   return (
     <MiniAppShell>
