@@ -126,6 +126,9 @@ function PredictionsPage() {
             Prices updated {lastUpdated} · auto-refresh 15s
           </p>
         )}
+      </header>
+
+
 
 
       {/* Balance / portfolio */}
