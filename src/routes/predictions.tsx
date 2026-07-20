@@ -14,6 +14,7 @@ import {
   type Position,
 } from "@/lib/predictions";
 import { fetchLiveMarkets } from "@/lib/predictions.functions";
+import { PolymarketOnramp } from "@/components/predictions/PolymarketOnramp";
 import { TrendingUp, Clock, Wallet, RotateCcw, X, ExternalLink, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/predictions")({
