@@ -14,6 +14,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -57,6 +58,11 @@ const SearchRoute = SearchRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PredictionsRoute = PredictionsRouteImport.update({
+  id: '/predictions',
+  path: '/predictions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PointsRoute = PointsRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/predictions': typeof PredictionsRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
+  '/predictions': typeof PredictionsRoute
   '/profile': typeof ProfileRouteWithChildren
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/play'
     | '/points'
+    | '/predictions'
     | '/profile'
     | '/search'
     | '/shop'
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/play'
     | '/points'
+    | '/predictions'
     | '/search'
     | '/shop'
     | '/sitemap.xml'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/play'
     | '/points'
+    | '/predictions'
     | '/profile'
     | '/search'
     | '/shop'
@@ -327,6 +339,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   PlayRoute: typeof PlayRoute
   PointsRoute: typeof PointsRoute
+  PredictionsRoute: typeof PredictionsRoute
   ProfileRoute: typeof ProfileRouteWithChildren
   SearchRoute: typeof SearchRoute
   ShopRoute: typeof ShopRoute
@@ -374,6 +387,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/predictions': {
+      id: '/predictions'
+      path: '/predictions'
+      fullPath: '/predictions'
+      preLoaderRoute: typeof PredictionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/points': {
@@ -538,6 +558,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   PlayRoute: PlayRoute,
   PointsRoute: PointsRoute,
+  PredictionsRoute: PredictionsRoute,
   ProfileRoute: ProfileRouteWithChildren,
   SearchRoute: SearchRoute,
   ShopRoute: ShopRoute,
@@ -552,13 +573,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
