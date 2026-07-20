@@ -15,7 +15,24 @@
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "splash_screens": [
+    {
+      "src": "/splash.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Basemint splash"
+    },
+    {
+      "src": "/apple-touch-startup.png",
+      "sizes": "1170x2532",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Basemint splash"
     }
   ]
 }
