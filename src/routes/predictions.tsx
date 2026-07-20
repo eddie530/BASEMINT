@@ -268,9 +268,20 @@ function MarketCard({
           onClick={() => onTrade("no")}
           className="rounded-xl border border-rose-500/30 bg-rose-500/10 py-3 text-rose-300 font-bold text-sm hover:bg-rose-500/20"
         >
-          No · ${noPrice.toFixed(2)}
+        No · ${noPrice.toFixed(2)}
         </button>
       </div>
+
+      {market.source === "polymarket" && (
+        <a
+          href={polymarketUrl(market)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest font-mono text-white/50 hover:text-white pt-1"
+        >
+          Trade for real on Polymarket <ExternalLink className="size-3" />
+        </a>
+      )}
     </div>
   );
 }
