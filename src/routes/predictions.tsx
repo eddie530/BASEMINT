@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import {
-  MARKETS,
   loadBalance,
   loadPositions,
+  polymarketUrl,
   priceFor,
   resetPredictions,
   trade,
@@ -12,7 +13,8 @@ import {
   type PredictionMarket,
   type Position,
 } from "@/lib/predictions";
-import { TrendingUp, Clock, Wallet, RotateCcw, X } from "lucide-react";
+import { fetchLiveMarkets } from "@/lib/predictions.functions";
+import { TrendingUp, Clock, Wallet, RotateCcw, X, ExternalLink, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/predictions")({
   head: () => ({
