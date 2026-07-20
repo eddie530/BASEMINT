@@ -111,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "fc:frame",
         content: JSON.stringify({
           version: "1",
-          imageUrl: "https://basemint.dev/icon-512.png",
+          imageUrl: "https://basemint.dev/embed.png",
           button: {
             title: "Open Basemint",
             action: {
