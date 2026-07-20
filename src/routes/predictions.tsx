@@ -121,7 +121,12 @@ function PredictionsPage() {
         <p className="text-sm text-white/60">
           Live odds from Polymarket. Practice with play money here, or trade for real on Polymarket.
         </p>
-      </header>
+        {lastUpdated && (
+          <p className="text-[10px] uppercase tracking-widest font-mono text-white/30">
+            Prices updated {lastUpdated} · auto-refresh 15s
+          </p>
+        )}
+
 
       {/* Balance / portfolio */}
       <div className="grid grid-cols-2 gap-2">
