@@ -14,6 +14,7 @@ import {
   type Position,
 } from "@/lib/predictions";
 import { fetchLiveMarkets } from "@/lib/predictions.functions";
+import { PolymarketOnramp } from "@/components/predictions/PolymarketOnramp";
 import { TrendingUp, Clock, Wallet, RotateCcw, X, ExternalLink, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/predictions")({
@@ -109,8 +110,12 @@ function PredictionsPage() {
         </div>
       </div>
 
+      {/* Real-trading onramp */}
+      <PolymarketOnramp />
+
       {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 no-scrollbar">
+
         {CATS.map((c) => (
           <button
             key={c}
