@@ -141,13 +141,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       {
         property: "og:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp",
+        content: "https://basemint.dev/embed.png",
       },
       {
         name: "twitter:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/mbmvykOLsLSIHva1xCckNTcuNG92/social-images/social-1782592734696-BF7A60B1-5072-4487-993D-BDFA456484F3.webp",
+        content: "https://basemint.dev/embed.png",
       },
     ],
     links: [
