@@ -74,12 +74,20 @@ function PredictionsPage() {
   return (
     <MiniAppShell>
       <header className="space-y-2">
-        <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
-          Prediction Markets
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+            Prediction Markets
+          </p>
+          <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-mono text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 rounded-full px-1.5 py-0.5">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
+          </span>
+          {isFetching && !isLoading && (
+            <Loader2 className="size-3 text-white/40 animate-spin" />
+          )}
+        </div>
         <h1 className="font-display font-bold text-3xl">Trade the future</h1>
         <p className="text-sm text-white/60">
-          Play-money markets. Buy YES or NO, sell any time before resolution.
+          Live odds from Polymarket. Practice with play money here, or trade for real on Polymarket.
         </p>
       </header>
 
@@ -120,6 +128,25 @@ function PredictionsPage() {
 
       {/* Markets */}
       <div className="space-y-3">
+        {isLoading && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col items-center gap-2 text-white/50">
+            <Loader2 className="size-5 animate-spin" />
+            <p className="text-xs font-mono uppercase tracking-widest">Loading live markets…</p>
+          </div>
+        )}
+        {isError && (
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200 text-sm">
+            Couldn't reach Polymarket.{" "}
+            <button onClick={() => refetch()} className="underline font-bold">
+              Retry
+            </button>
+          </div>
+        )}
+        {!isLoading && !isError && markets.length === 0 && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/60 text-sm text-center">
+            No open {cat === "All" ? "" : cat.toLowerCase()} markets right now.
+          </div>
+        )}
         {markets.map((m) => (
           <MarketCard
             key={m.id}
@@ -147,7 +174,7 @@ function PredictionsPage() {
             </button>
           </div>
           {positions.map((p) => {
-            const m = MARKETS.find((x) => x.id === p.marketId);
+            const m = allMarkets.find((x) => x.id === p.marketId);
             if (!m) return null;
             const price = priceFor(m, p.outcome);
             const pnl = (price - p.avgPrice) * p.shares;
