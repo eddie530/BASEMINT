@@ -110,8 +110,12 @@ function PredictionsPage() {
         </div>
       </div>
 
+      {/* Real-trading onramp */}
+      <PolymarketOnramp />
+
       {/* Category chips */}
       <div className="flex gap-2 overflow-x-auto -mx-4 px-4 no-scrollbar">
+
         {CATS.map((c) => (
           <button
             key={c}
