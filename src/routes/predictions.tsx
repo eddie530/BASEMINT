@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import {
-  MARKETS,
   loadBalance,
   loadPositions,
+  polymarketUrl,
   priceFor,
   resetPredictions,
   trade,
@@ -12,7 +13,8 @@ import {
   type PredictionMarket,
   type Position,
 } from "@/lib/predictions";
-import { TrendingUp, Clock, Wallet, RotateCcw, X } from "lucide-react";
+import { fetchLiveMarkets } from "@/lib/predictions.functions";
+import { TrendingUp, Clock, Wallet, RotateCcw, X, ExternalLink, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/predictions")({
   head: () => ({
@@ -42,18 +44,27 @@ function PredictionsPage() {
     null,
   );
 
+  const { data: liveMarkets, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["predictions", "live"],
+    queryFn: () => fetchLiveMarkets(),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  const allMarkets = liveMarkets ?? [];
+
   const markets = useMemo(
-    () => (cat === "All" ? MARKETS : MARKETS.filter((m) => m.category === cat)),
-    [cat],
+    () => (cat === "All" ? allMarkets : allMarkets.filter((m) => m.category === cat)),
+    [cat, allMarkets],
   );
 
   const portfolioValue = useMemo(() => {
     return positions.reduce((sum, p) => {
-      const m = MARKETS.find((x) => x.id === p.marketId);
+      const m = allMarkets.find((x) => x.id === p.marketId);
       if (!m) return sum;
       return sum + priceFor(m, p.outcome) * p.shares;
     }, 0);
-  }, [positions]);
+  }, [positions, allMarkets]);
 
   const refresh = () => {
     setBalance(loadBalance());
@@ -63,12 +74,20 @@ function PredictionsPage() {
   return (
     <MiniAppShell>
       <header className="space-y-2">
-        <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
-          Prediction Markets
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-[10px] uppercase tracking-widest text-white/40 font-mono">
+            Prediction Markets
+          </p>
+          <span className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-mono text-emerald-400 border border-emerald-500/30 bg-emerald-500/10 rounded-full px-1.5 py-0.5">
+            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
+          </span>
+          {isFetching && !isLoading && (
+            <Loader2 className="size-3 text-white/40 animate-spin" />
+          )}
+        </div>
         <h1 className="font-display font-bold text-3xl">Trade the future</h1>
         <p className="text-sm text-white/60">
-          Play-money markets. Buy YES or NO, sell any time before resolution.
+          Live odds from Polymarket. Practice with play money here, or trade for real on Polymarket.
         </p>
       </header>
 
@@ -109,6 +128,25 @@ function PredictionsPage() {
 
       {/* Markets */}
       <div className="space-y-3">
+        {isLoading && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 flex flex-col items-center gap-2 text-white/50">
+            <Loader2 className="size-5 animate-spin" />
+            <p className="text-xs font-mono uppercase tracking-widest">Loading live markets…</p>
+          </div>
+        )}
+        {isError && (
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200 text-sm">
+            Couldn't reach Polymarket.{" "}
+            <button onClick={() => refetch()} className="underline font-bold">
+              Retry
+            </button>
+          </div>
+        )}
+        {!isLoading && !isError && markets.length === 0 && (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/60 text-sm text-center">
+            No open {cat === "All" ? "" : cat.toLowerCase()} markets right now.
+          </div>
+        )}
         {markets.map((m) => (
           <MarketCard
             key={m.id}
@@ -136,7 +174,7 @@ function PredictionsPage() {
             </button>
           </div>
           {positions.map((p) => {
-            const m = MARKETS.find((x) => x.id === p.marketId);
+            const m = allMarkets.find((x) => x.id === p.marketId);
             if (!m) return null;
             const price = priceFor(m, p.outcome);
             const pnl = (price - p.avgPrice) * p.shares;
@@ -230,9 +268,20 @@ function MarketCard({
           onClick={() => onTrade("no")}
           className="rounded-xl border border-rose-500/30 bg-rose-500/10 py-3 text-rose-300 font-bold text-sm hover:bg-rose-500/20"
         >
-          No · ${noPrice.toFixed(2)}
+        No · ${noPrice.toFixed(2)}
         </button>
       </div>
+
+      {market.source === "polymarket" && (
+        <a
+          href={polymarketUrl(market)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest font-mono text-white/50 hover:text-white pt-1"
+        >
+          Trade for real on Polymarket <ExternalLink className="size-3" />
+        </a>
+      )}
     </div>
   );
 }
