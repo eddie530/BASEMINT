@@ -67,12 +67,15 @@ if (CDP_PROJECT_ID) {
   );
 }
 
+const POLYGON_RPC_URL = "https://polygon-rpc.com";
+
 export const wagmiConfig = createConfig({
-  chains: [base, baseSepolia],
+  chains: [base, baseSepolia, polygon],
   connectors,
   transports: {
     [base.id]: http(BASE_RPC_URL),
     [baseSepolia.id]: http(BASE_SEPOLIA_RPC_URL),
+    [polygon.id]: http(POLYGON_RPC_URL),
   },
   ssr: true,
 });
