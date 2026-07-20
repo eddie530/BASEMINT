@@ -44,18 +44,27 @@ function PredictionsPage() {
     null,
   );
 
+  const { data: liveMarkets, isLoading, isError, refetch, isFetching } = useQuery({
+    queryKey: ["predictions", "live"],
+    queryFn: () => fetchLiveMarkets(),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+
+  const allMarkets = liveMarkets ?? [];
+
   const markets = useMemo(
-    () => (cat === "All" ? MARKETS : MARKETS.filter((m) => m.category === cat)),
-    [cat],
+    () => (cat === "All" ? allMarkets : allMarkets.filter((m) => m.category === cat)),
+    [cat, allMarkets],
   );
 
   const portfolioValue = useMemo(() => {
     return positions.reduce((sum, p) => {
-      const m = MARKETS.find((x) => x.id === p.marketId);
+      const m = allMarkets.find((x) => x.id === p.marketId);
       if (!m) return sum;
       return sum + priceFor(m, p.outcome) * p.shares;
     }, 0);
-  }, [positions]);
+  }, [positions, allMarkets]);
 
   const refresh = () => {
     setBalance(loadBalance());
