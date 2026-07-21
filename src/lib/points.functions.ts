@@ -1,5 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { SEGMENTS, resolveSpin, type SpinResult } from "@/lib/spin/segments";
+
 
 const addrSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 
