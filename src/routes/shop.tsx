@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Crown, Loader2, Settings, Sparkles, Zap, X, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Bitcoin, Check, Crown, Loader2, Settings, Sparkles, Zap, X, ArrowUpRight, TrendingUp } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { Button } from "@/components/ui/button";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -10,6 +10,7 @@ import { TradeDialog } from "@/components/coin/TradeDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalSession } from "@/lib/payments.functions";
+import { createCommerceCharge } from "@/lib/commerce.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { getTrendingCoins } from "@/lib/zora.functions";
 import { toast } from "sonner";
