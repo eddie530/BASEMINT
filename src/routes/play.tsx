@@ -326,8 +326,6 @@ function PlayPage() {
           <div className="rounded-2xl border border-white/10 bg-background p-2">
             <StripeEmbeddedCheckout
               priceId={activePack.priceId}
-              customerEmail={email}
-              userId={userId}
               returnUrl={`${window.location.origin}/play?spins=${activePack.spins}&session_id={CHECKOUT_SESSION_ID}`}
             />
           </div>
