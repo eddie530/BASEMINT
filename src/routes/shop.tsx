@@ -329,11 +329,24 @@ function ShopPage() {
                       </>
                     ) : (
                       <>
-                        <Zap className="size-3" /> Buy
+                        <Zap className="size-3" /> Card
                       </>
                     )}
                   </Button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handlePayWithCrypto(product.priceId)}
+                  disabled={cryptoLoading === product.priceId}
+                  className="inline-flex items-center justify-center gap-1 rounded-full border border-border bg-background/60 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 disabled:opacity-50 transition-colors"
+                >
+                  {cryptoLoading === product.priceId ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <Bitcoin className="size-3" />
+                  )}
+                  Pay with crypto
+                </button>
               </div>
             </article>
           ))}
