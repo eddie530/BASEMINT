@@ -46,20 +46,22 @@ const PRODUCTS: Record<string, ProductDef> = {
 type Result = { hostedUrl: string; code: string; sessionId: string } | { error: string };
 
 export const createCommerceCharge = createServerFn({ method: 'POST' })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: {
     priceId: string;
-    userId: string;
     sessionId: string;
     origin: string;
   }) => {
     if (!PRODUCTS[data.priceId]) throw new Error('Unknown product');
-    if (!/^[a-zA-Z0-9-]+$/.test(data.userId)) throw new Error('Invalid userId');
     if (!/^[a-zA-Z0-9-]{8,64}$/.test(data.sessionId)) throw new Error('Invalid sessionId');
     if (!/^https?:\/\//.test(data.origin)) throw new Error('Invalid origin');
     return data;
   })
-  .handler(async ({ data }): Promise<Result> => {
+  .handler(async ({ data, context }): Promise<Result> => {
     try {
+      // Derive userId from authenticated session — never trust client input.
+      const userId = context.userId;
+
       const p = PRODUCTS[data.priceId];
       const sid = data.sessionId;
       const returnPath =
