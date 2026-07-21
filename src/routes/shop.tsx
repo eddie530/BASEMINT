@@ -104,6 +104,7 @@ function ShopPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [activePriceId, setActivePriceId] = useState<string | null>(null);
+  const [cryptoLoading, setCryptoLoading] = useState<string | null>(null);
   const [tradeTarget, setTradeTarget] = useState<{ address: `0x${string}`; symbol: string } | null>(
     null,
   );
