@@ -6,6 +6,7 @@ import { MiniAppShell } from "@/components/MiniAppShell";
 import { Button } from "@/components/ui/button";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
+import { UsdcPayButton } from "@/components/UsdcPayButton";
 import { TradeDialog } from "@/components/coin/TradeDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
