@@ -171,7 +171,8 @@ function ShopPage() {
       const result = await createCommerceCharge({
         data: {
           priceId,
-          userId,
+
+
           sessionId,
           origin: window.location.origin,
         },
