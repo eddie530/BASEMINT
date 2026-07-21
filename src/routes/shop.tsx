@@ -162,6 +162,29 @@ function ShopPage() {
     }
   };
 
+  const handlePayWithCrypto = async (priceId: string) => {
+    if (!requireAuth() || !userId) return;
+    try {
+      setCryptoLoading(priceId);
+      const sessionId = (crypto.randomUUID?.() ?? `sid-${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^a-zA-Z0-9-]/g, "");
+      const result = await createCommerceCharge({
+        data: {
+          priceId,
+          userId,
+          sessionId,
+          origin: window.location.origin,
+        },
+      });
+      if ("error" in result) throw new Error(result.error);
+      window.location.href = result.hostedUrl;
+    } catch (e) {
+      toast.error("Could not start crypto checkout", {
+        description: e instanceof Error ? e.message : "Try again in a moment.",
+      });
+      setCryptoLoading(null);
+    }
+  };
+
   const fmtPct = (v?: number) => {
     if (typeof v !== "number") return null;
     const sign = v >= 0 ? "+" : "";
