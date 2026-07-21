@@ -142,7 +142,7 @@ function PlayPage() {
   }, [state, ready]);
 
   const claimFn = useServerFn(claimDailyCheckin);
-  const recordFn = useServerFn(recordPointEvent);
+  const spinFn = useServerFn(spinAndAward);
 
   const pointsQ = useQuery({
     queryKey: ["points-summary", address],
@@ -156,6 +156,13 @@ function PlayPage() {
   const nextCheckinReward = pointsQ.data?.daily.next_reward ?? 10;
   const residentPoints = pointsQ.data?.balance ?? 0;
 
+  const resolveSpinServer = useCallback(async (): Promise<SpinResult> => {
+    if (!address) throw new Error("Connect a wallet to spin.");
+    return spinFn({
+      data: { address, pendingMultiplier: state.pendingMultiplier },
+    });
+  }, [address, spinFn, state.pendingMultiplier]);
+
   const handleResult = useCallback(
     async (r: SpinResult) => {
       setResult(r);
@@ -166,31 +173,14 @@ function PlayPage() {
         lastSpinAt: Date.now(),
       }));
 
-      // Award real Resident Points on any positive win (server-side, idempotent).
       if (r.reward > 0 && address) {
-        try {
-          await recordFn({
-            data: {
-              address,
-              kind: "spin_win",
-              ref_key: `spin:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-              metadata: {
-                segment: r.segment.label,
-                reward_spin: r.reward,
-                jackpot: r.isJackpot,
-                mystery: r.isMystery,
-              },
-            },
-          });
-          qc.invalidateQueries({ queryKey: ["points-summary", address] });
-        } catch {
-          // best-effort — the local SPIN win still counts.
-        }
+        qc.invalidateQueries({ queryKey: ["points-summary", address] });
         writeLastAction({ kind: "spin_win", reward: r.reward, label: r.segment.label });
       }
     },
-    [address, recordFn, qc],
+    [address, qc],
   );
+
 
   async function handleClaim() {
     if (!address) {
