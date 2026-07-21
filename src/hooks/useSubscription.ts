@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { getStripeEnvironment } from '@/lib/stripe';
 
 type SubscriptionRow = {
   id: string;
@@ -31,27 +30,21 @@ export function useSubscription() {
 
   useEffect(() => {
     let cancelled = false;
-    let env: 'sandbox' | 'live';
-    try {
-      env = getStripeEnvironment();
-    } catch {
-      setLoading(false);
-      return;
-    }
 
     async function load(uid: string) {
+      // Query across all environments (stripe sandbox/live + crypto) and pick
+      // the most recently updated active row.
       const { data } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', uid)
-        .eq('environment', env)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (!cancelled) {
-        setSubscription((data as SubscriptionRow | null) ?? null);
-        setLoading(false);
-      }
+        .order('current_period_end', { ascending: false, nullsFirst: false })
+        .limit(5);
+      if (cancelled) return;
+      const rows = ((data as SubscriptionRow[] | null) ?? []);
+      const active = rows.find(computeActive) ?? rows[0] ?? null;
+      setSubscription(active);
+      setLoading(false);
     }
 
     supabase.auth.getUser().then(({ data }) => {
@@ -79,12 +72,6 @@ export function useSubscription() {
 
   useEffect(() => {
     if (!userId) return;
-    let env: 'sandbox' | 'live';
-    try {
-      env = getStripeEnvironment();
-    } catch {
-      return;
-    }
     const channel = supabase
       .channel(`subscriptions:${userId}`)
       .on(
@@ -95,11 +82,11 @@ export function useSubscription() {
             .from('subscriptions')
             .select('*')
             .eq('user_id', userId)
-            .eq('environment', env)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          setSubscription((data as SubscriptionRow | null) ?? null);
+            .order('current_period_end', { ascending: false, nullsFirst: false })
+            .limit(5);
+          const rows = ((data as SubscriptionRow[] | null) ?? []);
+          const active = rows.find(computeActive) ?? rows[0] ?? null;
+          setSubscription(active);
         },
       )
       .subscribe();
@@ -111,7 +98,8 @@ export function useSubscription() {
   return {
     subscription,
     isActive: computeActive(subscription),
-    isPro: computeActive(subscription) && subscription?.price_id === 'resident_pro_monthly',
+    isPro:
+      computeActive(subscription) && subscription?.price_id === 'resident_pro_monthly',
     loading,
   };
 }

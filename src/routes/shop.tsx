@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Crown, Loader2, Settings, Sparkles, Zap, X, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Bitcoin, Check, Crown, Loader2, Settings, Sparkles, Zap, X, ArrowUpRight, TrendingUp } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { Button } from "@/components/ui/button";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -10,6 +10,7 @@ import { TradeDialog } from "@/components/coin/TradeDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalSession } from "@/lib/payments.functions";
+import { createCommerceCharge } from "@/lib/commerce.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { getTrendingCoins } from "@/lib/zora.functions";
 import { toast } from "sonner";
@@ -38,11 +39,12 @@ export const Route = createFileRoute("/shop")({
 });
 
 const PERKS = [
-  "Resident Pro badge on your profile",
-  "2× points across BaseMint and SpinBase",
-  "Boosted discovery for your launches",
-  "Extra daily quests and higher spin caps",
-  "Priority support from the Resident Labs team",
+  "Unlimited launches",
+  "Premium analytics",
+  "Early access to new drops",
+  "Verified creator badge",
+  "Higher referral rewards",
+  "Priority support",
 ];
 
 type ShopProduct = {
@@ -102,6 +104,7 @@ function ShopPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const [activePriceId, setActivePriceId] = useState<string | null>(null);
+  const [cryptoLoading, setCryptoLoading] = useState<string | null>(null);
   const [tradeTarget, setTradeTarget] = useState<{ address: `0x${string}`; symbol: string } | null>(
     null,
   );
@@ -159,6 +162,29 @@ function ShopPage() {
     }
   };
 
+  const handlePayWithCrypto = async (priceId: string) => {
+    if (!requireAuth() || !userId) return;
+    try {
+      setCryptoLoading(priceId);
+      const sessionId = (crypto.randomUUID?.() ?? `sid-${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^a-zA-Z0-9-]/g, "");
+      const result = await createCommerceCharge({
+        data: {
+          priceId,
+          userId,
+          sessionId,
+          origin: window.location.origin,
+        },
+      });
+      if ("error" in result) throw new Error(result.error);
+      window.location.href = result.hostedUrl;
+    } catch (e) {
+      toast.error("Could not start crypto checkout", {
+        description: e instanceof Error ? e.message : "Try again in a moment.",
+      });
+      setCryptoLoading(null);
+    }
+  };
+
   const fmtPct = (v?: number) => {
     if (typeof v !== "number") return null;
     const sign = v >= 0 ? "+" : "";
@@ -185,7 +211,7 @@ function ShopPage() {
             </span>
             <h1 className="mt-3 text-3xl font-black tracking-tight">Resident Pro</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              $9 / month · cancel anytime · test mode
+              $9.99 / month · cancel anytime
             </p>
           </div>
           {isPro && (
@@ -218,9 +244,24 @@ function ShopPage() {
               </Button>
             </>
           ) : (
-            <Button onClick={handleUpgrade} size="lg">
-              <Zap className="size-4" /> Upgrade to Pro
-            </Button>
+            <>
+              <Button onClick={handleUpgrade} size="lg">
+                <Zap className="size-4" /> Upgrade with card
+              </Button>
+              <Button
+                onClick={() => handlePayWithCrypto("resident_pro_monthly")}
+                size="lg"
+                variant="outline"
+                disabled={cryptoLoading === "resident_pro_monthly"}
+              >
+                {cryptoLoading === "resident_pro_monthly" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Bitcoin className="size-4" />
+                )}
+                Pay with crypto
+              </Button>
+            </>
           )}
           {subscription && !isPro && (
             <p className="text-xs text-muted-foreground w-full">
@@ -288,11 +329,24 @@ function ShopPage() {
                       </>
                     ) : (
                       <>
-                        <Zap className="size-3" /> Buy
+                        <Zap className="size-3" /> Card
                       </>
                     )}
                   </Button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => handlePayWithCrypto(product.priceId)}
+                  disabled={cryptoLoading === product.priceId}
+                  className="inline-flex items-center justify-center gap-1 rounded-full border border-border bg-background/60 px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground hover:text-primary hover:border-primary/40 disabled:opacity-50 transition-colors"
+                >
+                  {cryptoLoading === product.priceId ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <Bitcoin className="size-3" />
+                  )}
+                  Pay with crypto
+                </button>
               </div>
             </article>
           ))}
