@@ -244,9 +244,24 @@ function ShopPage() {
               </Button>
             </>
           ) : (
-            <Button onClick={handleUpgrade} size="lg">
-              <Zap className="size-4" /> Upgrade to Pro
-            </Button>
+            <>
+              <Button onClick={handleUpgrade} size="lg">
+                <Zap className="size-4" /> Upgrade with card
+              </Button>
+              <Button
+                onClick={() => handlePayWithCrypto("resident_pro_monthly")}
+                size="lg"
+                variant="outline"
+                disabled={cryptoLoading === "resident_pro_monthly"}
+              >
+                {cryptoLoading === "resident_pro_monthly" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Bitcoin className="size-4" />
+                )}
+                Pay with crypto
+              </Button>
+            </>
           )}
           {subscription && !isPro && (
             <p className="text-xs text-muted-foreground w-full">
