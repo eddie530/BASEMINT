@@ -260,7 +260,7 @@ function ShopPage() {
                 ) : (
                   <Bitcoin className="size-4" />
                 )}
-                Pay with crypto
+                Pay with Commerce
               </Button>
             </>
           )}
@@ -270,6 +270,23 @@ function ShopPage() {
             </p>
           )}
         </div>
+
+        {!isPro && !loading && (
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-mono uppercase tracking-widest text-primary">
+                  Native · Base
+                </p>
+                <p className="text-sm font-bold mt-1">Pay 10 USDC on Base → 30 days Pro</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  Direct on-chain payment · webhook verifies · Pro unlocks instantly
+                </p>
+              </div>
+            </div>
+            <UsdcPayButton />
+          </div>
+        )}
 
         {checkoutOpen && !isPro && (
           <div className="rounded-2xl border border-border bg-background p-2">
