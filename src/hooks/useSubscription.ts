@@ -95,11 +95,14 @@ export function useSubscription() {
     };
   }, [userId]);
 
+  const pricePro = subscription?.price_id;
+  const isProPrice =
+    pricePro === "resident_pro_monthly" || pricePro === "resident_pro_monthly_v2";
+
   return {
     subscription,
     isActive: computeActive(subscription),
-    isPro:
-      computeActive(subscription) && subscription?.price_id === 'resident_pro_monthly',
+    isPro: computeActive(subscription) && isProPrice,
     loading,
   };
 }
