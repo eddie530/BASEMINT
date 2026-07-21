@@ -262,20 +262,14 @@ function CoinForm() {
       try {
         const { track } = await import("@/lib/analytics");
         void track("mint", { wallet_address: address, coin_address: coinAddress });
-        if (coinAddress) {
-          const { recordPointEvent } = await import("@/lib/points.functions");
-          void recordPointEvent({
-            data: {
-              address,
-              kind: "create_coin",
-              ref_key: `create:${coinAddress.toLowerCase()}`,
-              metadata: { coin: coinAddress, name },
-            },
-          });
-        }
+        // Note: create_coin points are no longer awarded via a client call —
+        // that endpoint could be forged. Points for verified on-chain
+        // creations should be granted from a server-side path that reads the
+        // deployment receipt.
       } catch {
         // non-fatal
       }
+
       update("index", {
         status: "success",
         detail: coinAddress ? `Coin ${coinAddress.slice(0, 10)}…` : "Tracked",

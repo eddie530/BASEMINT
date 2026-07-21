@@ -1,5 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { SEGMENTS, resolveSpin, type SpinResult } from "@/lib/spin/segments";
+
 
 const addrSchema = z.string().regex(/^0x[a-fA-F0-9]{40}$/);
 
@@ -151,21 +154,20 @@ async function bumpQuestProgress(wallet: string, goalKind: string, by: number) {
   }
 }
 
-// Public award endpoint. Trusts caller-supplied wallet to match existing
-// app pattern (see profiles.functions.ts). Idempotent via ref_key.
+// Award endpoint. Requires an authenticated session. `spin_win` is NOT
+// accepted here — spin outcomes are resolved server-side via `spinAndAward`
+// so a client cannot forge wins. Other on-chain-worthy kinds (create_coin,
+// buy_coin, referral_*) are also blocked here; they must be granted from
+// server-side verified paths (webhooks, on-chain checks) in the future.
 export const recordPointEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         address: addrSchema,
-        kind: z.enum([
-          "create_coin",
-          "buy_coin",
-          "referral_signup",
-          "referral_mint",
-          "share_cast",
-          "spin_win",
-        ]),
+        // Only `share_cast` remains client-triggerable, dedup'd by ref_key
+        // (e.g. cast hash). All higher-value kinds moved to verified paths.
+        kind: z.enum(["share_cast"]),
         ref_key: z.string().min(1).max(120),
         metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
       })
@@ -182,6 +184,41 @@ export const recordPointEvent = createServerFn({ method: "POST" })
       metadata: data.metadata,
     });
   });
+
+// Server-authoritative spin: server picks the segment index and awards the
+// resulting points. Clients animate the wheel to the returned `index` but
+// cannot influence the outcome or fabricate wins.
+export const spinAndAward = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        address: addrSchema,
+        pendingMultiplier: z.number().int().min(1).max(3).optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data }): Promise<SpinResult> => {
+    const wallet = data.address.toLowerCase();
+    const idx = Math.floor(Math.random() * SEGMENTS.length);
+    const result = resolveSpin(idx, data.pendingMultiplier ?? 1);
+    if (result.reward > 0) {
+      await awardInternal({
+        wallet,
+        kind: "spin_win",
+        points: POINT_RULES.spin_win,
+        ref_key: `spin:${Date.now()}:${Math.random().toString(36).slice(2, 10)}`,
+        metadata: {
+          segment: result.segment.label,
+          reward_spin: result.reward,
+          jackpot: result.isJackpot,
+          mystery: result.isMystery,
+        },
+      });
+    }
+    return result;
+  });
+
 
 export const claimDailyCheckin = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ address: addrSchema }).parse(input))

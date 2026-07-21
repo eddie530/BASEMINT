@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { SEGMENTS, SEG_ANGLE, resolveSpin, type SpinResult } from "@/lib/spin/segments";
+import { SEGMENTS, SEG_ANGLE, type SpinResult } from "@/lib/spin/segments";
 
 const SIZE = 320;
 const CENTER = SIZE / 2;
@@ -22,39 +22,47 @@ function segmentPath(i: number): string {
 interface Props {
   disabled?: boolean;
   pendingMultiplier: number;
+  /** Server-authoritative resolver — returns the SpinResult to animate to. */
+  resolve: () => Promise<SpinResult>;
   onResult: (r: SpinResult) => void;
+  onError?: (e: unknown) => void;
 }
 
-export function SpinWheel({ disabled, pendingMultiplier, onResult }: Props) {
+export function SpinWheel({ disabled, pendingMultiplier, resolve, onResult, onError }: Props) {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const paths = useMemo(() => SEGMENTS.map((_, i) => segmentPath(i)), []);
 
-  function spin() {
+  async function spin() {
     if (spinning || disabled) return;
     setSpinning(true);
 
-    const winIdx = Math.floor(Math.random() * SEGMENTS.length);
-    // Land the *center* of segment winIdx under the top pointer.
+    let result: SpinResult;
+    try {
+      result = await resolve();
+    } catch (e) {
+      setSpinning(false);
+      onError?.(e);
+      return;
+    }
+
+    const winIdx = result.index;
     const centerAngle = winIdx * SEG_ANGLE + SEG_ANGLE / 2;
     const fullSpins = 6 + Math.floor(Math.random() * 4);
-    // Rotating the wheel counter-clockwise by centerAngle puts that
-    // segment's centre under the pointer at the top.
     const target = fullSpins * 360 + (360 - centerAngle);
-    // Keep absolute rotation growing so CSS transition always animates.
     const base = rotation - (rotation % 360);
     const final = base + target;
     setRotation(final);
 
-    // Fire result after the CSS transition duration.
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       setSpinning(false);
-      onResult(resolveSpin(winIdx, pendingMultiplier));
+      onResult(result);
     }, 4700);
   }
+
 
   return (
     <div className="relative mx-auto" style={{ width: SIZE, height: SIZE + 24 }}>

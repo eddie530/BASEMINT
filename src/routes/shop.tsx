@@ -171,7 +171,8 @@ function ShopPage() {
       const result = await createCommerceCharge({
         data: {
           priceId,
-          userId,
+
+
           sessionId,
           origin: window.location.origin,
         },
@@ -292,8 +293,6 @@ function ShopPage() {
           <div className="rounded-2xl border border-border bg-background p-2">
             <StripeEmbeddedCheckout
               priceId="resident_pro_monthly_v2"
-              customerEmail={email}
-              userId={userId}
               returnUrl={`${window.location.origin}/checkout/return?kind=subscription&session_id={CHECKOUT_SESSION_ID}`}
             />
           </div>
@@ -377,8 +376,6 @@ function ShopPage() {
             <div className="rounded-2xl border border-border bg-background p-2">
               <StripeEmbeddedCheckout
                 priceId={activePriceId}
-                customerEmail={email}
-                userId={userId}
                 returnUrl={`${window.location.origin}${product.returnPath}`}
               />
             </div>

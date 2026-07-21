@@ -13,8 +13,9 @@ import type { SpinResult } from "@/lib/spin/segments";
 import {
   claimDailyCheckin,
   getPointsSummary,
-  recordPointEvent,
+  spinAndAward,
 } from "@/lib/points.functions";
+
 import { useConnectWallet } from "@/lib/use-connect-wallet";
 import { writeLastAction } from "@/lib/last-action";
 import { toast } from "sonner";
@@ -141,7 +142,7 @@ function PlayPage() {
   }, [state, ready]);
 
   const claimFn = useServerFn(claimDailyCheckin);
-  const recordFn = useServerFn(recordPointEvent);
+  const spinFn = useServerFn(spinAndAward);
 
   const pointsQ = useQuery({
     queryKey: ["points-summary", address],
@@ -155,6 +156,13 @@ function PlayPage() {
   const nextCheckinReward = pointsQ.data?.daily.next_reward ?? 10;
   const residentPoints = pointsQ.data?.balance ?? 0;
 
+  const resolveSpinServer = useCallback(async (): Promise<SpinResult> => {
+    if (!address) throw new Error("Connect a wallet to spin.");
+    return spinFn({
+      data: { address, pendingMultiplier: state.pendingMultiplier },
+    });
+  }, [address, spinFn, state.pendingMultiplier]);
+
   const handleResult = useCallback(
     async (r: SpinResult) => {
       setResult(r);
@@ -165,31 +173,14 @@ function PlayPage() {
         lastSpinAt: Date.now(),
       }));
 
-      // Award real Resident Points on any positive win (server-side, idempotent).
       if (r.reward > 0 && address) {
-        try {
-          await recordFn({
-            data: {
-              address,
-              kind: "spin_win",
-              ref_key: `spin:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-              metadata: {
-                segment: r.segment.label,
-                reward_spin: r.reward,
-                jackpot: r.isJackpot,
-                mystery: r.isMystery,
-              },
-            },
-          });
-          qc.invalidateQueries({ queryKey: ["points-summary", address] });
-        } catch {
-          // best-effort — the local SPIN win still counts.
-        }
+        qc.invalidateQueries({ queryKey: ["points-summary", address] });
         writeLastAction({ kind: "spin_win", reward: r.reward, label: r.segment.label });
       }
     },
-    [address, recordFn, qc],
+    [address, qc],
   );
+
 
   async function handleClaim() {
     if (!address) {
@@ -244,10 +235,17 @@ function PlayPage() {
       {/* Wheel */}
       <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-fuchsia-500/10 via-black/40 to-amber-500/10 p-5">
         <SpinWheel
-          disabled={!canSpin}
+          disabled={!canSpin || !address}
           pendingMultiplier={state.pendingMultiplier}
+          resolve={resolveSpinServer}
           onResult={handleResult}
+          onError={(e) =>
+            toast.error("Spin failed", {
+              description: e instanceof Error ? e.message : "Try again in a moment.",
+            })
+          }
         />
+
         {!canSpin && (
           <p className="mt-4 text-center text-xs text-white/60">
             Out of spins. Claim your daily bonus or buy more below.
@@ -326,8 +324,6 @@ function PlayPage() {
           <div className="rounded-2xl border border-white/10 bg-background p-2">
             <StripeEmbeddedCheckout
               priceId={activePack.priceId}
-              customerEmail={email}
-              userId={userId}
               returnUrl={`${window.location.origin}/play?spins=${activePack.spins}&session_id={CHECKOUT_SESSION_ID}`}
             />
           </div>
