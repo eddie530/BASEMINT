@@ -39,11 +39,12 @@ export const Route = createFileRoute("/shop")({
 });
 
 const PERKS = [
-  "Resident Pro badge on your profile",
-  "2× points across BaseMint and SpinBase",
-  "Boosted discovery for your launches",
-  "Extra daily quests and higher spin caps",
-  "Priority support from the Resident Labs team",
+  "Unlimited launches",
+  "Premium analytics",
+  "Early access to new drops",
+  "Verified creator badge",
+  "Higher referral rewards",
+  "Priority support",
 ];
 
 type ShopProduct = {
