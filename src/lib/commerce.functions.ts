@@ -81,7 +81,7 @@ export const createCommerceCharge = createServerFn({ method: 'POST' })
         amount: p.amount,
         currency: 'USD',
         metadata: {
-          userId: data.userId,
+          userId,
           priceId: data.priceId,
           kind: p.kind,
           sessionId: sid,
