@@ -235,10 +235,17 @@ function PlayPage() {
       {/* Wheel */}
       <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-fuchsia-500/10 via-black/40 to-amber-500/10 p-5">
         <SpinWheel
-          disabled={!canSpin}
+          disabled={!canSpin || !address}
           pendingMultiplier={state.pendingMultiplier}
+          resolve={resolveSpinServer}
           onResult={handleResult}
+          onError={(e) =>
+            toast.error("Spin failed", {
+              description: e instanceof Error ? e.message : "Try again in a moment.",
+            })
+          }
         />
+
         {!canSpin && (
           <p className="mt-4 text-center text-xs text-white/60">
             Out of spins. Claim your daily bonus or buy more below.
