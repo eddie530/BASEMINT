@@ -13,8 +13,9 @@ import type { SpinResult } from "@/lib/spin/segments";
 import {
   claimDailyCheckin,
   getPointsSummary,
-  recordPointEvent,
+  spinAndAward,
 } from "@/lib/points.functions";
+
 import { useConnectWallet } from "@/lib/use-connect-wallet";
 import { writeLastAction } from "@/lib/last-action";
 import { toast } from "sonner";
