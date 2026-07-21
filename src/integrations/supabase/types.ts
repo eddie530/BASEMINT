@@ -435,6 +435,48 @@ export type Database = {
         }
         Relationships: []
       }
+      usdc_payments: {
+        Row: {
+          amount_usdc: number
+          block_number: number | null
+          chain_id: number
+          created_at: string
+          from_address: string
+          id: string
+          plan: string
+          to_address: string
+          tx_hash: string
+          user_id: string
+          verified_at: string
+        }
+        Insert: {
+          amount_usdc: number
+          block_number?: number | null
+          chain_id: number
+          created_at?: string
+          from_address: string
+          id?: string
+          plan: string
+          to_address: string
+          tx_hash: string
+          user_id: string
+          verified_at?: string
+        }
+        Update: {
+          amount_usdc?: number
+          block_number?: number | null
+          chain_id?: number
+          created_at?: string
+          from_address?: string
+          id?: string
+          plan?: string
+          to_address?: string
+          tx_hash?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
