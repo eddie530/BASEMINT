@@ -211,7 +211,7 @@ function ShopPage() {
             </span>
             <h1 className="mt-3 text-3xl font-black tracking-tight">Resident Pro</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              $9 / month · cancel anytime · test mode
+              $9.99 / month · cancel anytime
             </p>
           </div>
           {isPro && (
