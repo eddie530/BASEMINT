@@ -86,7 +86,10 @@ export const createCheckoutSession = createServerFn({ method: 'POST' })
         return_url: data.returnUrl,
         customer: customerId,
         ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
-        metadata: { userId },
+        // priceId is stored in metadata so the webhook can identify the SKU
+        // (launch_credit_once / points_booster_7d_once / …) without an extra
+        // stripe.checkout.sessions.retrieve({ expand: ['line_items'] }) call.
+        metadata: { userId, priceId: data.priceId },
         ...(isRecurring && { subscription_data: { metadata: { userId } } }),
       });
 
