@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalSession } from "@/lib/payments.functions";
 import { createCommerceCharge } from "@/lib/commerce.functions";
+import { getMyEntitlements } from "@/lib/entitlements.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { getTrendingCoins } from "@/lib/zora.functions";
 import { toast } from "sonner";
@@ -99,7 +100,7 @@ const PRODUCTS: ShopProduct[] = [
 ];
 
 function ShopPage() {
-  const { subscription, isPro, loading } = useSubscription();
+  const { subscription, environment: subEnvironment, isPro, loading } = useSubscription();
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -114,6 +115,20 @@ function ShopPage() {
     queryKey: ["shop", "trending", 6],
     queryFn: () => getTrendingCoins({ data: { count: 6 } }),
     staleTime: 60_000,
+  });
+
+  const trending = useQuery({
+    queryKey: ["shop", "trending", 6],
+    queryFn: () => getTrendingCoins({ data: { count: 6 } }),
+    staleTime: 60_000,
+  });
+
+  const entitlements = useQuery({
+    queryKey: ["shop", "entitlements", userId ?? "anon"],
+    queryFn: () => getMyEntitlements(),
+    enabled: !!userId,
+    staleTime: 15_000,
+    refetchInterval: 15_000,
   });
 
   useEffect(() => {
@@ -144,6 +159,16 @@ function ShopPage() {
   };
 
   const handleManage = async () => {
+    // Stripe Billing Portal only exists for Stripe-backed subscriptions.
+    // Crypto (Coinbase Commerce) and USDC-on-Base are one-time 30-day
+    // payments — there is no portal to open, so we render an inline details
+    // panel instead (see below in the Pro section).
+    if (subEnvironment !== "sandbox" && subEnvironment !== "live") {
+      toast.info("Crypto memberships don't need a portal", {
+        description: "See your renewal details below.",
+      });
+      return;
+    }
     try {
       setPortalLoading(true);
       const result = await createPortalSession({
