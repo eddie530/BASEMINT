@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createClient } from '@supabase/supabase-js';
 import { verifyCommerceSignature } from '@/lib/commerce.server';
+import { entitlementKindForPrice, grantEntitlement } from '@/lib/entitlements.server';
+
 
 let _supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {
@@ -65,9 +67,23 @@ async function handleConfirmedCharge(charge: any, rawEvent: any) {
       console.error('Failed to write commerce audit log:', err);
     }
   }
-  // One-time items (spins/launch credit/booster) are credited on the client
-  // via the redirect_url session_id (same pattern as Stripe flow).
-}
+
+  // One-time entitlement SKUs (launch credit, points booster) — persisted
+  // server-side and idempotent by charge code.
+  const kind = entitlementKindForPrice(priceId);
+  if (kind) {
+    try {
+      await grantEntitlement(getSupabase() as any, {
+        userId,
+        kind,
+        source: 'commerce',
+        sourceRef: charge.code,
+      });
+    } catch (err) {
+      console.error('Commerce entitlement grant failed:', err);
+    }
+  }
+  // Spin packs are still credited on the client via the redirect_url session_id.
 
 export const Route = createFileRoute('/api/public/commerce/webhook')({
   server: {

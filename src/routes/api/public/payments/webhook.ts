@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { createClient } from '@supabase/supabase-js';
 import { type StripeEnv, verifyWebhook } from '@/lib/stripe.server';
+import { entitlementKindForPrice, grantEntitlement } from '@/lib/entitlements.server';
 
 let _supabase: ReturnType<typeof createClient> | null = null;
 function getSupabase() {
@@ -168,9 +169,30 @@ async function handleSubscriptionDeleted(subscription: any, env: StripeEnv, rawE
   });
 }
 
+async function handleCheckoutSessionCompleted(session: any, _env: StripeEnv) {
+  // One-time SKUs (launch_credit_once, points_booster_7d_once) fulfil an
+  // entitlement here. Recurring subscription completions are handled by the
+  // customer.subscription.* events and skipped intentionally.
+  if (session?.mode !== 'payment') return;
+  const userId: string | undefined = session?.metadata?.userId;
+  const priceId: string | undefined = session?.metadata?.priceId;
+  if (!userId || !priceId) return;
+  const kind = entitlementKindForPrice(priceId);
+  if (!kind) return; // spin packs etc. fulfilled via other paths
+  await grantEntitlement(getSupabase() as any, {
+    userId,
+    kind,
+    source: 'stripe',
+    sourceRef: session.id,
+  });
+}
+
 async function handleWebhook(req: Request, env: StripeEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.type) {
+    case 'checkout.session.completed':
+      await handleCheckoutSessionCompleted(event.data.object, env);
+      break;
     case 'customer.subscription.created':
       await handleSubscriptionCreated(event.data.object, env, event);
       break;
