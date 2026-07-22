@@ -117,11 +117,6 @@ function ShopPage() {
     staleTime: 60_000,
   });
 
-  const trending = useQuery({
-    queryKey: ["shop", "trending", 6],
-    queryFn: () => getTrendingCoins({ data: { count: 6 } }),
-    staleTime: 60_000,
-  });
 
   const entitlements = useQuery({
     queryKey: ["shop", "entitlements", userId ?? "anon"],
