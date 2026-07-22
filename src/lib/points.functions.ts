@@ -195,7 +195,7 @@ export const recordPointEvent = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const wallet = data.address.toLowerCase();
     const points = POINT_RULES[data.kind];
     return awardInternal({
@@ -204,6 +204,7 @@ export const recordPointEvent = createServerFn({ method: "POST" })
       points,
       ref_key: data.ref_key,
       metadata: data.metadata,
+      userId: context.userId,
     });
   });
 
@@ -220,7 +221,7 @@ export const spinAndAward = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }): Promise<SpinResult> => {
+  .handler(async ({ data, context }): Promise<SpinResult> => {
     const wallet = data.address.toLowerCase();
     const idx = Math.floor(Math.random() * SEGMENTS.length);
     const result = resolveSpin(idx, data.pendingMultiplier ?? 1);
@@ -236,6 +237,7 @@ export const spinAndAward = createServerFn({ method: "POST" })
           jackpot: result.isJackpot,
           mystery: result.isMystery,
         },
+        userId: context.userId,
       });
     }
     return result;
