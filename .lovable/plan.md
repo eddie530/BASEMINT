@@ -1,61 +1,62 @@
-# Home dashboard: personalization pass (Command 4)
+## Goal
+Resolve two Project monitoring findings:
+1. **High** — Featured Launch ($15) and 2× Points Booster ($5) purchases take money but grant nothing; fulfillment is client-side localStorage that nothing reads.
+2. **Medium** — "Manage subscription" errors for Pro members who paid via Coinbase Commerce (`environment='crypto'`) or on-chain USDC (`environment='usdc'`) because `createPortalSession` only queries the Stripe env.
 
-Extend `/home` with real, honest personalization. Everything is gated on real state — no fake numbers, no fake alerts, no fake stats.
+## Finding 1 — Server-side entitlements for one-time SKUs
 
-## Scope
+### Schema (migration)
+New table `public.entitlements`:
+- `id uuid pk`, `user_id uuid not null`, `kind text not null` (`launch_credit` | `points_booster`)
+- `credits_remaining int` (for `launch_credit`, decrement on use)
+- `expires_at timestamptz` (for `points_booster`, absolute end time; renewals extend from `max(now, expires_at)`)
+- `source text` (`stripe` | `commerce`), `source_ref text` (session/charge id) `unique(source, source_ref)` for idempotent fulfillment
+- `created_at`, `updated_at`
+- RLS: `authenticated` can `SELECT` own rows. All writes via `service_role` (webhooks). Grants per project rules.
 
-Add the following sections to `src/routes/home.tsx`, above the existing "Recent activity" area, and adapt the hero:
+### Stripe fulfillment
+Add a Stripe webhook route `src/routes/api/public/payments/webhook.ts` handling (extend if it exists):
+- `checkout.session.completed` with `mode='payment'` and price `lookup_key` in `{launch_credit_once, points_booster_7d_once}`:
+  - Resolve `userId` from `session.metadata.userId` (already set by `createCheckoutSession`).
+  - Upsert into `entitlements` keyed on `(source='stripe', source_ref=session.id)`:
+    - `launch_credit`: increment `credits_remaining` by 1.
+    - `points_booster`: set `expires_at = greatest(now(), coalesce(expires_at, now())) + 7 days`.
+- Verify signature with `STRIPE_*_WEBHOOK_SECRET` (already in secrets).
 
-1. **Persistent primary action (in Hero)** — swap the hero's primary CTA based on state:
-   - No wallet → "Connect wallet"
-   - Wallet + no `point_events` → "Explore Base" (→ `/`)
-   - Wallet + has activity, no launches → "Continue exploring" (→ `/discover`)
-   - Wallet + at least one `create_coin` event → "Launch an asset" (→ `/launch`)
-   - `/play` is Coming Soon, so no "Spin now" branch yet.
+### Commerce fulfillment
+Update `src/routes/api/public/commerce/webhook.ts` on `charge:confirmed` for `launch_credit_once` / `points_booster_7d_once`:
+- Read `userId` + `priceId` from charge metadata (already stored by `createCommerceCharge`).
+- Same idempotent upsert keyed on `(source='commerce', source_ref=charge.id)`.
+- Remove the "credited on the client" comment.
 
-2. **Continue where you left off** — only renders when real local state exists. Track the last meaningful action in `localStorage` under `resident:last-action`:
-   - Last token viewed (written from `/coin/$id` route on mount)
-   - Last created token (written from `create.tsx` / `deploy.tsx` on success — cheap: existing success paths)
-   - We do NOT invent draft-launch / saved-asset / recent-spin until those systems exist.
-   Section is hidden entirely when `localStorage` has nothing.
+### Readers
+- `/launch` (`src/routes/launch.tsx`): before allowing a "Featured" launch, call a `useEntitlements` hook that reads `entitlements` for the current user; if `launch_credit.credits_remaining > 0`, offer a "Use featured credit" toggle; on submit call `consumeLaunchCredit` server fn (decrement with `credits_remaining = greatest(0, credits_remaining - 1)` guarded by `where user_id = auth.uid() and credits_remaining > 0`) and mark the created launch as featured (add `is_featured boolean` on the launches table if not already there, or annotate via metadata).
+- Points booster: in `src/lib/points.functions.ts` `awardInternal` (and `spinAndAward`), before insert, look up caller's active booster (`expires_at > now()`) and if present multiply `points` by 2. Persist the applied multiplier on the point_event `metadata.booster_applied=true`.
 
-3. **Personalized onboarding checklist** — only for "new" users (wallet connected AND `getPointsSummary` returns zero events AND no `localStorage` last-action). Checklist items derived from real signals:
-   - Connect wallet — `isConnected`
-   - Link Farcaster — `inFarcaster` OR profile row has `farcaster` set (skip DB read for v1; use `inFarcaster` only, label "Open in Farcaster" otherwise)
-   - Explore a token — presence of last-viewed token in localStorage
-   - Launch your first asset — any `create_coin` point event
-   - Save an asset / Try SpinBase — marked "Coming soon" (disabled), matching honest scope
-   Hidden once user has any activity.
+### Client cleanup
+- `src/routes/checkout.return.tsx`: remove the localStorage writes; keep the confirmation UI but message reads "Your credit/booster is being applied — it may take a few seconds." Invalidate the entitlements query so the UI refreshes.
+- Remove `LAUNCH_CREDITS_KEY` / `BOOSTER_KEY` constants.
 
-4. **Universal search bar** — reuse existing `/search` route. Render an input at the top of `/home` that navigates to `/search?q=...` on submit. Placeholder: "Search tokens, addresses…". Small helper text: "Basenames & Farcaster profiles coming soon."
+## Finding 2 — Manage Subscription for crypto/USDC
 
-5. **Resident Labs Today** — compact daily strip. Only real data:
-   - Trending token: first item from `trendingQO` (already loaded)
-   - New launch: most recent item from `trendingQO` sorted by `createdAt` if available, else omit
-   - Current streak: from `getPointsSummary` (already fetched) if `data.streak > 0`, else omit
-   - Free spin / campaign / learning card: omitted (no backend). Section renders only if at least one tile has real data.
+### Behavior
+In `src/routes/shop.tsx`, pick the "active" subscription row (highest priority: any active row across envs) and branch:
+- `environment === 'stripe'`: keep current `createPortalSession` flow (Stripe Billing Portal).
+- `environment === 'crypto'` or `'usdc'`: no portal exists. Render a "Membership details" panel inline:
+  - Show `current_period_end`, payment method label ("Coinbase Commerce" / "USDC on Base"), and a "Renew now" CTA that re-triggers the same purchase flow (Commerce charge or `UsdcPayButton`). Renewing extends `current_period_end` (already implemented in the USDC path; verify Commerce webhook does the same — extend, don't overwrite).
+  - Copy: "One-time payments don't auto-renew, so there's nothing to cancel. Access ends on {date} unless you renew."
 
-## Explicitly deferred (not built this pass)
+### Hook change
+`src/hooks/useSubscription.ts`: expose `environment` of the active row so the UI can branch. (Already selects `*`, just surface it.)
 
-Called out in the request but skipped because they require infra we don't have:
+### Guard
+`createPortalSession` stays scoped to Stripe (as-is). The UI never calls it for non-Stripe rows, so the error toast disappears by construction.
 
-- **Watchlist movement** — no watchlist table exists yet.
-- **Quests card** — `quests` table exists but is empty; would show "Coming soon" placeholder only, so skipped to avoid noise.
-- **Notifications center (bell icon)** — no notifications backend.
-- **Ecosystem stats row** — no aggregate data source.
+## Out of scope
+- No changes to pricing, product SKUs, or wallets.
+- No refactor of the existing USDC/Commerce subscription extension logic beyond confirming Commerce extends `current_period_end`.
 
-I'll note these in a short comment at the bottom of `home.tsx` so the next pass has a clear TODO anchor. No new routes, no schema changes, no new server functions.
-
-## Files changed
-
-- `src/routes/home.tsx` — new sections + smart hero CTA.
-- `src/lib/last-action.ts` (new) — tiny typed helper: `readLastAction()`, `writeLastAction({kind, ...})`, SSR-safe.
-- `src/routes/coin.$id.tsx` — call `writeLastAction({ kind: "view_coin", ... })` in a `useEffect`.
-- `src/routes/create.tsx` and `src/routes/deploy.tsx` — call `writeLastAction({ kind: "create_coin", ... })` on the existing success paths (single line each).
-
-## Technical notes
-
-- All new UI stays inside `MiniAppShell` and uses existing tokens (`accent`, `primary`, glass panels). No new deps.
-- `localStorage` reads happen in `useEffect` + `useState` to avoid hydration mismatch.
-- Onboarding checklist checks derive purely from already-fetched `getPointsSummary` + `isConnected` + `inFarcaster` + last-action — no extra network calls.
-- Search input is a plain `<form>` with `navigate({ to: "/search", search: { q } })`.
+## Verification
+- Simulate Stripe test-mode purchase of each SKU → row appears in `entitlements`, `/launch` shows credit available, points award doubles while booster active.
+- Simulate Commerce webhook with fixture payload → same result under `source='commerce'`.
+- Sign in as a crypto-Pro user → "Manage subscription" opens the details panel, not an error toast; sign in as Stripe-Pro user → portal opens as today.
