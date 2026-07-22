@@ -84,6 +84,9 @@ async function handleConfirmedCharge(charge: any, rawEvent: any) {
     }
   }
   // Spin packs are still credited on the client via the redirect_url session_id.
+}
+
+
 
 export const Route = createFileRoute('/api/public/commerce/webhook')({
   server: {
