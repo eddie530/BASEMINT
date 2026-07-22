@@ -235,7 +235,7 @@ function PlayPage() {
       {/* Wheel */}
       <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-fuchsia-500/10 via-black/40 to-amber-500/10 p-5">
         <SpinWheel
-          disabled={!canSpin || !address}
+          disabled={!canSpin || !address || !userId}
           pendingMultiplier={state.pendingMultiplier}
           resolve={resolveSpinServer}
           onResult={handleResult}
@@ -246,11 +246,27 @@ function PlayPage() {
           }
         />
 
-        {!canSpin && (
+        {!address ? (
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <p className="text-center text-xs text-white/70">
+              Connect a wallet to spin and earn Resident Points.
+            </p>
+            <button
+              onClick={() => connectWallet()}
+              className="rounded-full bg-white text-black px-5 py-2 text-[11px] font-bold uppercase tracking-widest"
+            >
+              Connect wallet
+            </button>
+          </div>
+        ) : !userId ? (
+          <p className="mt-4 text-center text-xs text-white/70">
+            Sign in to your Resident Labs account to spin.
+          </p>
+        ) : !canSpin ? (
           <p className="mt-4 text-center text-xs text-white/60">
             Out of spins. Claim your daily bonus or buy more below.
           </p>
-        )}
+        ) : null}
       </section>
 
       {/* Buy spins */}
