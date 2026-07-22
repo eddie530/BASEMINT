@@ -1,13 +1,8 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type Kind = 'subscription' | 'launch_credit' | 'points_booster';
-
-const CREDITED_KEY = 'resident:credited-sessions';
-const LAUNCH_CREDITS_KEY = 'resident:launch-credits';
-const BOOSTER_KEY = 'resident:points-booster-until';
 
 export const Route = createFileRoute('/checkout/return')({
   head: () => ({
@@ -30,45 +25,9 @@ export const Route = createFileRoute('/checkout/return')({
   component: CheckoutReturn,
 });
 
-function markCredited(sid: string): boolean {
-  try {
-    const raw = window.localStorage.getItem(CREDITED_KEY);
-    const seen: string[] = raw ? JSON.parse(raw) : [];
-    if (seen.includes(sid)) return false;
-    window.localStorage.setItem(CREDITED_KEY, JSON.stringify([...seen, sid].slice(-50)));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function CheckoutReturn() {
   const { session_id: sessionId, kind } = Route.useSearch();
-  const [applied, setApplied] = useState(false);
-
-  useEffect(() => {
-    if (!sessionId || !kind) return;
-    const isNew = markCredited(sessionId);
-    if (!isNew) {
-      setApplied(true);
-      return;
-    }
-    try {
-      if (kind === 'launch_credit') {
-        const raw = window.localStorage.getItem(LAUNCH_CREDITS_KEY);
-        const current = raw ? Number(raw) || 0 : 0;
-        window.localStorage.setItem(LAUNCH_CREDITS_KEY, String(current + 1));
-      } else if (kind === 'points_booster') {
-        const until = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        window.localStorage.setItem(BOOSTER_KEY, String(until));
-      }
-      setApplied(true);
-    } catch {
-      // ignore local storage failures — Stripe already recorded the charge.
-    }
-  }, [sessionId, kind]);
-
-  const content = getContent(kind, applied);
+  const content = getContent(kind);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6">
@@ -87,7 +46,7 @@ function CheckoutReturn() {
   );
 }
 
-function getContent(kind: Kind | undefined, applied: boolean): {
+function getContent(kind: Kind | undefined): {
   title: string;
   body: string;
   ctaLabel: string;
@@ -104,18 +63,14 @@ function getContent(kind: Kind | undefined, applied: boolean): {
     case 'launch_credit':
       return {
         title: 'Featured Launch credit added',
-        body: applied
-          ? 'A Featured Launch credit is on your account. Use it the next time you launch a token or NFT.'
-          : 'Payment recorded. Your Featured Launch credit will appear shortly.',
+        body: 'Your Featured Launch credit has been added to your account. It will apply the next time you launch a token or NFT.',
         ctaLabel: 'Launch now',
         ctaTo: '/launch',
       };
     case 'points_booster':
       return {
-        title: '2× Points booster active',
-        body: applied
-          ? 'Your 2× points booster is active for the next 7 days across BaseMint and SpinBase.'
-          : 'Payment recorded. Your booster will activate shortly.',
+        title: '2× Points booster activated',
+        body: 'Your 2× points booster is being applied to your account for the next 7 days across BaseMint and SpinBase.',
         ctaLabel: 'Go to Home',
         ctaTo: '/home',
       };
