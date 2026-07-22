@@ -59,6 +59,33 @@ export type Database = {
         }
         Relationships: []
       }
+      entitlement_grants: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          source: string
+          source_ref: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          source: string
+          source_ref: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          source?: string
+          source_ref?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       page_events: {
         Row: {
           created_at: string
@@ -477,11 +504,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_entitlements: {
+        Row: {
+          booster_expires_at: string | null
+          launch_credits: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booster_expires_at?: string | null
+          launch_credits?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booster_expires_at?: string | null
+          launch_credits?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      consume_launch_credit: { Args: { _user_id: string }; Returns: boolean }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
