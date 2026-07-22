@@ -86,19 +86,41 @@ async function awardInternal(args: {
   points: number;
   ref_key?: string | null;
   metadata?: Record<string, string | number | boolean | null>;
-}): Promise<{ awarded: boolean }> {
+  /** Authenticated user id — enables the 2× points booster lookup. */
+  userId?: string;
+}): Promise<{ awarded: boolean; points: number }> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  // 2× Points Booster: only applied when we know the authenticated user and
+  // they have an unexpired booster entitlement. Doubles the points recorded
+  // on this event; the trigger on point_events applies it to the balance.
+  let points = args.points;
+  const metadata = { ...(args.metadata ?? {}) };
+  if (args.userId && args.points > 0) {
+    const { data: ent } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("booster_expires_at")
+      .eq("user_id", args.userId)
+      .maybeSingle();
+    const exp = (ent as { booster_expires_at?: string | null } | null)?.booster_expires_at;
+    if (exp && new Date(exp).getTime() > Date.now()) {
+      points = args.points * 2;
+      metadata.booster_applied = true;
+      metadata.booster_multiplier = 2;
+    }
+  }
+
   const row = {
     wallet_address: args.wallet,
     kind: args.kind,
-    points: args.points,
+    points,
     ref_key: args.ref_key ?? null,
-    metadata: args.metadata ?? {},
+    metadata,
   };
   const { error } = await supabaseAdmin.from("point_events").insert(row);
   if (error) {
     // unique violation = already awarded (idempotent)
-    if (error.code === "23505") return { awarded: false };
+    if (error.code === "23505") return { awarded: false, points: 0 };
     throw new Error(error.message);
   }
   // Bump matching quest progress
@@ -106,7 +128,7 @@ async function awardInternal(args: {
   if (questKind) {
     await bumpQuestProgress(args.wallet, questKind, 1);
   }
-  return { awarded: true };
+  return { awarded: true, points };
 }
 
 async function bumpQuestProgress(wallet: string, goalKind: string, by: number) {
