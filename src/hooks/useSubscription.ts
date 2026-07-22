@@ -101,6 +101,7 @@ export function useSubscription() {
 
   return {
     subscription,
+    environment: subscription?.environment ?? null,
     isActive: computeActive(subscription),
     isPro: computeActive(subscription) && isProPrice,
     loading,

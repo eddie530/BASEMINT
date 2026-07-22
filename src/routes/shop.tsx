@@ -12,6 +12,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalSession } from "@/lib/payments.functions";
 import { createCommerceCharge } from "@/lib/commerce.functions";
+import { getMyEntitlements } from "@/lib/entitlements.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { getTrendingCoins } from "@/lib/zora.functions";
 import { toast } from "sonner";
@@ -99,7 +100,7 @@ const PRODUCTS: ShopProduct[] = [
 ];
 
 function ShopPage() {
-  const { subscription, isPro, loading } = useSubscription();
+  const { subscription, environment: subEnvironment, isPro, loading } = useSubscription();
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [userId, setUserId] = useState<string | undefined>(undefined);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -114,6 +115,15 @@ function ShopPage() {
     queryKey: ["shop", "trending", 6],
     queryFn: () => getTrendingCoins({ data: { count: 6 } }),
     staleTime: 60_000,
+  });
+
+
+  const entitlements = useQuery({
+    queryKey: ["shop", "entitlements", userId ?? "anon"],
+    queryFn: () => getMyEntitlements(),
+    enabled: !!userId,
+    staleTime: 15_000,
+    refetchInterval: 15_000,
   });
 
   useEffect(() => {
@@ -144,6 +154,16 @@ function ShopPage() {
   };
 
   const handleManage = async () => {
+    // Stripe Billing Portal only exists for Stripe-backed subscriptions.
+    // Crypto (Coinbase Commerce) and USDC-on-Base are one-time 30-day
+    // payments — there is no portal to open, so we render an inline details
+    // panel instead (see below in the Pro section).
+    if (subEnvironment !== "sandbox" && subEnvironment !== "live") {
+      toast.info("Crypto memberships don't need a portal", {
+        description: "See your renewal details below.",
+      });
+      return;
+    }
     try {
       setPortalLoading(true);
       const result = await createPortalSession({
@@ -240,10 +260,12 @@ function ShopPage() {
               <Button variant="secondary" disabled>
                 <Crown className="size-4" /> You're a Resident Pro
               </Button>
-              <Button variant="outline" onClick={handleManage} disabled={portalLoading}>
-                {portalLoading ? <Loader2 className="size-4 animate-spin" /> : <Settings className="size-4" />}
-                Manage subscription
-              </Button>
+              {(subEnvironment === "sandbox" || subEnvironment === "live") && (
+                <Button variant="outline" onClick={handleManage} disabled={portalLoading}>
+                  {portalLoading ? <Loader2 className="size-4 animate-spin" /> : <Settings className="size-4" />}
+                  Manage subscription
+                </Button>
+              )}
             </>
           ) : (
             <>
@@ -271,6 +293,72 @@ function ShopPage() {
             </p>
           )}
         </div>
+
+        {/* Membership details for crypto / USDC members — the Stripe Billing
+            Portal doesn't apply to one-time on-chain payments, so we show the
+            renewal date and a Renew now CTA inline instead. */}
+        {isPro && (subEnvironment === "crypto" || subEnvironment === "usdc") && (
+          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+            <div>
+              <p className="text-xs font-mono uppercase tracking-widest text-primary">
+                Membership · {subEnvironment === "usdc" ? "USDC on Base" : "Coinbase Commerce"}
+              </p>
+              <p className="text-sm font-bold mt-1">
+                {subscription?.current_period_end
+                  ? `Active until ${new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
+                  : "Active membership"}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                One-time payments don't auto-renew, so there's nothing to cancel.
+                Renew before expiry to extend by 30 days.
+              </p>
+            </div>
+            {subEnvironment === "usdc" ? (
+              <UsdcPayButton />
+            ) : (
+              <Button
+                onClick={() => handlePayWithCrypto("resident_pro_monthly")}
+                variant="outline"
+                disabled={cryptoLoading === "resident_pro_monthly"}
+              >
+                {cryptoLoading === "resident_pro_monthly" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Bitcoin className="size-4" />
+                )}
+                Renew via Commerce
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Entitlements the user has purchased (persisted server-side). */}
+        {entitlements.data && (entitlements.data.launch_credits > 0 || entitlements.data.booster_active) && (
+          <div className="rounded-2xl border border-border bg-background/50 p-4 space-y-1 text-sm">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Your perks
+            </p>
+            {entitlements.data.launch_credits > 0 && (
+              <p>
+                <span className="font-bold">{entitlements.data.launch_credits}</span>{" "}
+                Featured Launch credit{entitlements.data.launch_credits === 1 ? "" : "s"} available
+              </p>
+            )}
+            {entitlements.data.booster_active && entitlements.data.booster_expires_at && (
+              <p>
+                2× Points booster active until{" "}
+                <span className="font-bold">
+                  {new Date(entitlements.data.booster_expires_at).toLocaleString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </p>
+            )}
+          </div>
+        )}
 
         {!isPro && !loading && (
           <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
