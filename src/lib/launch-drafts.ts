@@ -19,7 +19,12 @@ export interface LaunchDraft {
   createdAt: string;
   /** Show this launch as the homepage hero. */
   featured?: boolean;
+  /** Deployed coin address — only set after a confirmed on-chain deploy. */
+  address?: string;
+  /** Deploy transaction hash on Base. */
+  txHash?: string;
 }
+
 
 function safeParse(raw: string | null): LaunchDraft[] {
   if (!raw) return [];
@@ -72,11 +77,12 @@ export function draftToLaunch(d: LaunchDraft): ResidentLaunch {
     launchDate: d.launchDate,
     collectors: 0,
     featured: d.featured,
-    status: "coming-soon",
+    address: d.address,
+    status: d.address ? "live" : "coming-soon",
     progress: {
       artwork: Boolean(d.image),
       metadata: Boolean(d.description),
-      mint: false,
+      mint: Boolean(d.address),
       farcaster: false,
       x: false,
       listed: true,
