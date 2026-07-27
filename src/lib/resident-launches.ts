@@ -109,3 +109,27 @@ export function formatLaunchDate(iso: string): string {
     day: "numeric",
   });
 }
+
+/**
+ * Resident Labs creator wallets. Any Zora creator coin deployed by these
+ * addresses is pulled into the Launch Hub automatically — no manual entry.
+ * Can also be supplied at runtime via the RESIDENT_CREATOR_ADDRESSES env var
+ * (comma-separated).
+ */
+export const RESIDENT_CREATOR_ADDRESSES: string[] = [];
+
+/** Slug used for an auto-discovered (non-configured) coin. */
+export function slugForCoin(address: string, symbol?: string): string {
+  const base = (symbol ?? "coin").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  return `${base || "coin"}-${address.slice(2, 8).toLowerCase()}`;
+}
+
+/** Which collection an auto-discovered coin lands in, by name/symbol hints. */
+export function inferCollection(name: string, symbol: string): LaunchCollection {
+  const hay = `${name} ${symbol}`.toLowerCase();
+  if (hay.includes("genesis")) return "Genesis";
+  if (hay.includes("signal") || hay.includes("sig")) return "Signals";
+  if (hay.includes("fragment") || hay.includes("frag")) return "Fragments";
+  if (hay.includes("core")) return "Core";
+  return "Experiments";
+}
