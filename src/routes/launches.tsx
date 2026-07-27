@@ -10,16 +10,19 @@ import { LaunchProgressPanel } from "@/components/launches/LaunchProgressPanel";
 import { ReleaseCountdown } from "@/components/launches/ReleaseCountdown";
 import { getRecentCoins } from "@/lib/zora.functions";
 import { RESIDENT_LABS } from "@/lib/curated";
-import {
-  LAUNCH_COLLECTIONS,
-  featuredLaunch,
-  sortedLaunches,
-} from "@/lib/resident-launches";
+import { LAUNCH_COLLECTIONS, type ResidentLaunch } from "@/lib/resident-launches";
+import { getResidentLaunches } from "@/lib/resident-launches.functions";
 
 const recentLaunchesQO = queryOptions({
   queryKey: ["zora", "recent", 12],
   queryFn: () => getRecentCoins({ data: { count: 12 } }),
   staleTime: 15_000,
+});
+
+const residentLaunchesQO = queryOptions({
+  queryKey: ["resident", "launches"],
+  queryFn: () => getResidentLaunches(),
+  staleTime: 60_000,
 });
 
 export const Route = createFileRoute("/launches")({
@@ -44,14 +47,18 @@ export const Route = createFileRoute("/launches")({
   }),
   loader: ({ context }) => {
     void context.queryClient.prefetchQuery(recentLaunchesQO);
+    return context.queryClient.ensureQueryData(residentLaunchesQO);
   },
   component: LaunchesPage,
 });
 
 function LaunchesPage() {
   const { data: liveCoins } = useSuspenseQuery(recentLaunchesQO);
-  const featured = featuredLaunch();
-  const launches = useMemo(() => sortedLaunches(), []);
+  const { data: launches } = useSuspenseQuery(residentLaunchesQO);
+  const featured = useMemo<ResidentLaunch | undefined>(
+    () => launches.find((l) => l.featured) ?? launches[0],
+    [launches],
+  );
 
   return (
     <MiniAppShell>
