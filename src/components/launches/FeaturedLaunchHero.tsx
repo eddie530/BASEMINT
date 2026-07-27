@@ -1,11 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, Users } from "lucide-react";
 import { ShareRow } from "./ShareRow";
-import { formatLaunchDate, launchUrl, type ResidentLaunch } from "@/lib/resident-launches";
+import {
+  collectionLabel,
+  formatLaunchDate,
+  launchStatus,
+  launchUrl,
+  type ResidentLaunch,
+} from "@/lib/resident-launches";
 
 /** Hero for the latest featured Resident Labs creator coin. */
 export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
   const url = launchUrl(launch);
+  const status = launchStatus(launch);
+  const onchainUrl = launch.address
+    ? `https://basescan.org/token/${launch.address}`
+    : launch.zoraUrl;
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-accent/30 bg-black">
@@ -21,7 +31,10 @@ export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
         <span className="absolute left-4 top-4 rounded-full bg-accent px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-accent-foreground">
-          Featured · {launch.collection}
+          Featured · {collectionLabel(launch.collection)}
+        </span>
+        <span className="absolute right-4 top-4 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-white/70 backdrop-blur">
+          {status === "live" ? "Live" : "Coming soon"}
         </span>
       </div>
 
@@ -59,28 +72,28 @@ export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
               params={{ id: launch.address }}
               className="block w-full rounded-2xl bg-accent py-4 text-center text-sm font-bold uppercase tracking-widest text-accent-foreground"
             >
-              Mint / Collect
+              Collect
             </Link>
           ) : (
             <span className="block w-full rounded-2xl border border-accent/30 bg-accent/10 py-4 text-center text-sm font-bold uppercase tracking-widest text-accent">
-              Mint opening soon
+              Collect · Coming soon
             </span>
           )}
 
-          {launch.zoraUrl && (
+          {onchainUrl && (
             <a
-              href={launch.zoraUrl}
+              href={onchainUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest hover:border-white/25"
             >
-              View on Zora <ExternalLink className="size-3.5" />
+              View onchain <ExternalLink className="size-3.5" />
             </a>
           )}
 
           <ShareRow
             url={url}
-            text={`${launch.name} ($${launch.ticker}) is live from Resident Labs on Base 🔵\n\n${launch.tags.map((t) => `#${t}`).join(" ")}`}
+            text={`${launch.name} ($${launch.ticker}) is live from ${collectionLabel(launch.collection)} on Base 🔵\n\n${launch.tags.map((t) => `#${t}`).join(" ")}`}
           />
         </div>
       </div>
