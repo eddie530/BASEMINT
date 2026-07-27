@@ -92,10 +92,13 @@ function FeedPage() {
 
       <ReleaseCountdown />
 
+      <EcosystemRail />
+
       <section className="launch-rise space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Collections</h2>
         <CollectionRail launches={launches} value={collection} onChange={setCollection} />
       </section>
+
 
       <section className="launch-rise space-y-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
