@@ -19,6 +19,14 @@ export const LAUNCH_COLLECTIONS = [
 
 export type LaunchCollection = (typeof LAUNCH_COLLECTIONS)[number];
 
+/** Public-facing collection name, e.g. "Resident Labs Signals". */
+export function collectionLabel(c: LaunchCollection | string): string {
+  return `Resident Labs ${c}`;
+}
+
+export type LaunchStatus = "coming-soon" | "live";
+
+
 export const LAUNCH_STEPS = [
   { key: "artwork", label: "Artwork complete" },
   { key: "metadata", label: "Metadata ready" },
