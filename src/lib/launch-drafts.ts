@@ -19,7 +19,12 @@ export interface LaunchDraft {
   createdAt: string;
   /** Show this launch as the homepage hero. */
   featured?: boolean;
+  /** Deployed coin address — only set after a confirmed on-chain deploy. */
+  address?: string;
+  /** Deploy transaction hash on Base. */
+  txHash?: string;
 }
+
 
 function safeParse(raw: string | null): LaunchDraft[] {
   if (!raw) return [];
