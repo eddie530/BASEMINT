@@ -18,6 +18,7 @@ import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as LaunchesRouteImport } from './routes/launches'
 import { Route as LaunchRouteImport } from './routes/launch'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as DiscoverRouteImport } from './routes/discover'
@@ -79,6 +80,11 @@ const PlayRoute = PlayRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LaunchesRoute = LaunchesRouteImport.update({
+  id: '/launches',
+  path: '/launches',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LaunchRoute = LaunchRouteImport.update({
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/discover': typeof DiscoverRoute
   '/home': typeof HomeRoute
   '/launch': typeof LaunchRoute
+  '/launches': typeof LaunchesRoute
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/discover': typeof DiscoverRoute
   '/home': typeof HomeRoute
   '/launch': typeof LaunchRoute
+  '/launches': typeof LaunchesRoute
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/discover': typeof DiscoverRoute
   '/home': typeof HomeRoute
   '/launch': typeof LaunchRoute
+  '/launches': typeof LaunchesRoute
   '/leaderboard': typeof LeaderboardRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
@@ -265,6 +274,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/home'
     | '/launch'
+    | '/launches'
     | '/leaderboard'
     | '/play'
     | '/points'
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/home'
     | '/launch'
+    | '/launches'
     | '/leaderboard'
     | '/play'
     | '/points'
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/discover'
     | '/home'
     | '/launch'
+    | '/launches'
     | '/leaderboard'
     | '/play'
     | '/points'
@@ -349,6 +361,7 @@ export interface RootRouteChildren {
   DiscoverRoute: typeof DiscoverRoute
   HomeRoute: typeof HomeRoute
   LaunchRoute: typeof LaunchRoute
+  LaunchesRoute: typeof LaunchesRoute
   LeaderboardRoute: typeof LeaderboardRoute
   PlayRoute: typeof PlayRoute
   PointsRoute: typeof PointsRoute
@@ -429,6 +442,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/launches': {
+      id: '/launches'
+      path: '/launches'
+      fullPath: '/launches'
+      preLoaderRoute: typeof LaunchesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/launch': {
@@ -576,6 +596,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiscoverRoute: DiscoverRoute,
   HomeRoute: HomeRoute,
   LaunchRoute: LaunchRoute,
+  LaunchesRoute: LaunchesRoute,
   LeaderboardRoute: LeaderboardRoute,
   PlayRoute: PlayRoute,
   PointsRoute: PointsRoute,
