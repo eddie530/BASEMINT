@@ -19,6 +19,9 @@ export const LAUNCH_COLLECTIONS = [
 
 export type LaunchCollection = (typeof LAUNCH_COLLECTIONS)[number];
 
+/** The collection currently shipping releases — highlighted across the hub. */
+export const ACTIVE_COLLECTION: LaunchCollection = "Signals";
+
 /** Public-facing collection name, e.g. "Resident Labs Signals". */
 export function collectionLabel(c: LaunchCollection | string): string {
   return `Resident Labs ${c}`;
