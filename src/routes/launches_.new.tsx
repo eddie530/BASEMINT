@@ -6,9 +6,10 @@ import { FeaturedLaunchHero } from "@/components/launches/FeaturedLaunchHero";
 import { ShareRow } from "@/components/launches/ShareRow";
 import {
   draftToLaunch,
+  farcasterPost,
   saveDraft,
   slugify,
-  socialPost,
+  xPost,
   type LaunchDraft,
 } from "@/lib/launch-drafts";
 import {
@@ -61,8 +62,9 @@ function LaunchWizard() {
   const [ticker, setTicker] = useState("");
   const [description, setDescription] = useState("");
   const [collection, setCollection] = useState<LaunchCollection>("Signals");
+  const [featured, setFeatured] = useState(true);
   const [published, setPublished] = useState<LaunchDraft | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"fc" | "x" | null>(null);
 
   const draft = useMemo<LaunchDraft>(
     () => ({
@@ -75,12 +77,15 @@ function LaunchWizard() {
       tags: ["residentlabs", "base", collection.toLowerCase()],
       launchDate: new Date().toISOString().slice(0, 10),
       createdAt: new Date().toISOString(),
+      featured,
     }),
-    [name, ticker, collection, description, image],
+    [name, ticker, collection, description, image, featured],
   );
 
   const preview = useMemo(() => draftToLaunch(draft), [draft]);
-  const post = socialPost(draft);
+  const url = launchUrl(preview);
+  const fcPost = farcasterPost(draft, url);
+  const twPost = xPost(draft, url);
 
   const canAdvance =
     (step === 0 && Boolean(image)) ||
@@ -104,11 +109,11 @@ function LaunchWizard() {
     setStep(6);
   }
 
-  async function copyPost() {
+  async function copyPost(kind: "fc" | "x") {
     try {
-      await navigator.clipboard.writeText(post);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      await navigator.clipboard.writeText(kind === "fc" ? fcPost : twPost);
+      setCopied(kind);
+      setTimeout(() => setCopied(null), 1800);
     } catch {
       /* noop */
     }
@@ -250,27 +255,53 @@ function LaunchWizard() {
             {published ? (
               <>
                 <p className="inline-flex items-center gap-2 text-sm text-accent">
-                  <Check className="size-4" /> {published.name} is listed in the Launch Hub.
+                  <Check className="size-4" /> {published.name} is listed in the Launch Hub
+                  {published.featured ? " and featured on the homepage." : "."}
                 </p>
+
                 <div className="space-y-2">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
-                    Social post
+                    Farcaster post
                   </p>
                   <pre className="whitespace-pre-wrap rounded-xl border border-white/10 bg-black/60 p-3 text-xs leading-relaxed text-white/70">
-                    {post}
+                    {fcPost}
                   </pre>
                   <button
-                    onClick={copyPost}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
+                    onClick={() => copyPost("fc")}
+                    className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
                   >
-                    {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-                    {copied ? "Copied" : "Copy post"}
+                    {copied === "fc" ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                    {copied === "fc" ? "Copied" : "Copy Farcaster post"}
                   </button>
-                  <ShareRow url={launchUrl(preview)} text={post} />
                 </div>
+
+                <div className="space-y-2">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                    X post
+                  </p>
+                  <pre className="whitespace-pre-wrap rounded-xl border border-white/10 bg-black/60 p-3 text-xs leading-relaxed text-white/70">
+                    {twPost}
+                  </pre>
+                  <button
+                    onClick={() => copyPost("x")}
+                    className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
+                  >
+                    {copied === "x" ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                    {copied === "x" ? "Copied" : "Copy X post"}
+                  </button>
+                </div>
+
+                <ShareRow url={url} text={fcPost} />
+
+                <button
+                  onClick={() => navigate({ to: "/" })}
+                  className="w-full rounded-2xl bg-accent py-3 text-sm font-bold uppercase tracking-widest text-accent-foreground"
+                >
+                  View on homepage
+                </button>
                 <button
                   onClick={() => navigate({ to: "/launches" })}
-                  className="w-full rounded-2xl bg-accent py-3 text-sm font-bold uppercase tracking-widest text-accent-foreground"
+                  className="launch-glow w-full rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
                 >
                   Open Launch Hub
                 </button>
@@ -281,6 +312,20 @@ function LaunchWizard() {
                   Publishing lists {draft.name} (${draft.ticker}) in{" "}
                   {collectionLabel(draft.collection)} as “Coming soon”.
                 </p>
+                <button
+                  onClick={() => setFeatured((f) => !f)}
+                  className={cn(
+                    "launch-glow flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left text-sm font-bold",
+                    featured
+                      ? "border-accent/50 bg-accent/10 text-accent"
+                      : "border-white/10 bg-white/[0.02] text-white/70",
+                  )}
+                >
+                  Feature on homepage
+                  <span className="font-mono text-[10px] uppercase tracking-widest">
+                    {featured ? "On" : "Off"}
+                  </span>
+                </button>
                 <button
                   onClick={publish}
                   className="w-full rounded-2xl bg-accent py-4 text-sm font-bold uppercase tracking-widest text-accent-foreground"

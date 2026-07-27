@@ -1,8 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ExternalLink, Rocket } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
+import {
+  FeaturedLaunchSkeleton,
+  LaunchGridSkeleton,
+} from "@/components/launches/LaunchSkeletons";
 import { LaunchTile } from "@/components/launches/LaunchTile";
 import { FeaturedLaunchHero } from "@/components/launches/FeaturedLaunchHero";
 import { ResidentLaunchCard } from "@/components/launches/ResidentLaunchCard";
@@ -10,7 +14,13 @@ import { LaunchProgressPanel } from "@/components/launches/LaunchProgressPanel";
 import { ReleaseCountdown } from "@/components/launches/ReleaseCountdown";
 import { getRecentCoins } from "@/lib/zora.functions";
 import { RESIDENT_LABS } from "@/lib/curated";
-import { LAUNCH_COLLECTIONS, collectionLabel, type ResidentLaunch } from "@/lib/resident-launches";
+import {
+  ACTIVE_COLLECTION,
+  type LaunchCollection,
+  type ResidentLaunch,
+} from "@/lib/resident-launches";
+import { CollectionRail } from "@/components/launches/CollectionRail";
+import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
 import { residentLaunchesQO } from "@/lib/launch-queries";
 import { useLaunchFeed } from "@/components/launches/useLaunchFeed";
 
@@ -44,8 +54,18 @@ export const Route = createFileRoute("/launches")({
     void context.queryClient.prefetchQuery(recentLaunchesQO);
     return context.queryClient.ensureQueryData(residentLaunchesQO);
   },
+  pendingComponent: LaunchHubPending,
   component: LaunchesPage,
 });
+
+function LaunchHubPending() {
+  return (
+    <MiniAppShell>
+      <FeaturedLaunchSkeleton />
+      <LaunchGridSkeleton />
+    </MiniAppShell>
+  );
+}
 
 function LaunchesPage() {
   const { data: liveCoins } = useSuspenseQuery(recentLaunchesQO);
@@ -54,6 +74,11 @@ function LaunchesPage() {
   const featured = useMemo<ResidentLaunch | undefined>(
     () => launches.find((l) => l.featured) ?? launches[0],
     [launches],
+  );
+  const [collection, setCollection] = useState<LaunchCollection | null>(ACTIVE_COLLECTION);
+  const visible = useMemo(
+    () => (collection ? launches.filter((l) => l.collection === collection) : launches),
+    [launches, collection],
   );
 
   return (
@@ -69,50 +94,48 @@ function LaunchesPage() {
       </header>
 
       {featured ? (
-        <FeaturedLaunchHero launch={featured} />
+        <div className="launch-rise">
+          <FeaturedLaunchHero launch={featured} />
+        </div>
       ) : (
         <p className="rounded-2xl border border-white/10 bg-black/40 p-6 text-center text-sm text-white/50">
           No featured launch yet.
         </p>
       )}
 
+      <LaunchMetrics launches={launches} className="launch-rise" />
+
       <ReleaseCountdown />
 
       <Link
         to="/launches/new"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 py-3 text-xs font-bold uppercase tracking-widest text-accent"
+        className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 py-3 text-xs font-bold uppercase tracking-widest text-accent"
       >
         <Rocket className="size-3.5" /> Start a new launch
       </Link>
 
       {featured && <LaunchProgressPanel progress={featured.progress} />}
 
-      <section className="space-y-3">
+      <section className="launch-rise space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Collections</h2>
-        <div className="flex flex-wrap gap-2">
-          {LAUNCH_COLLECTIONS.map((c) => {
-            const count = launches.filter((l) => l.collection === c).length;
-            return (
-              <span
-                key={c}
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-white/60"
-              >
-                {collectionLabel(c)} <span className="text-accent">{count}</span>
-              </span>
-            );
-          })}
-        </div>
+        <CollectionRail launches={launches} value={collection} onChange={setCollection} />
       </section>
 
       <section className="space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">
           Recent launches
         </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {launches.map((l) => (
-            <ResidentLaunchCard key={l.slug} launch={l} />
-          ))}
-        </div>
+        {visible.length ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {visible.map((l) => (
+              <ResidentLaunchCard key={l.slug} launch={l} />
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-white/10 bg-black/40 p-6 text-center text-sm text-white/50">
+            No releases in this collection yet.
+          </p>
+        )}
       </section>
 
       <section className="space-y-3">

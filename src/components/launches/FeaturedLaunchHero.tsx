@@ -19,7 +19,7 @@ export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-accent/30 bg-black">
-      <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-accent/20 [box-shadow:0_0_60px_-20px_hsl(var(--accent)/0.6)_inset]" />
+      <div className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-accent/20 [box-shadow:0_0_80px_-20px_color-mix(in_oklab,var(--primary)_70%,transparent)_inset]" />
 
       <div className="relative aspect-[4/3] sm:aspect-[16/9]">
         <img
@@ -70,7 +70,7 @@ export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
             <Link
               to="/coin/$id"
               params={{ id: launch.address }}
-              className="block w-full rounded-2xl bg-accent py-4 text-center text-sm font-bold uppercase tracking-widest text-accent-foreground"
+              className="launch-glow block w-full rounded-2xl bg-accent py-4 text-center text-sm font-bold uppercase tracking-widest text-accent-foreground"
             >
               Collect
             </Link>
@@ -85,7 +85,7 @@ export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
               href={onchainUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest hover:border-white/25"
+              className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
             >
               View onchain <ExternalLink className="size-3.5" />
             </a>

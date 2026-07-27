@@ -19,6 +19,9 @@ export const LAUNCH_COLLECTIONS = [
 
 export type LaunchCollection = (typeof LAUNCH_COLLECTIONS)[number];
 
+/** The collection currently shipping releases — highlighted across the hub. */
+export const ACTIVE_COLLECTION: LaunchCollection = "Signals";
+
 /** Public-facing collection name, e.g. "Resident Labs Signals". */
 export function collectionLabel(c: LaunchCollection | string): string {
   return `Resident Labs ${c}`;
@@ -74,7 +77,7 @@ export const RESIDENT_LAUNCHES: ResidentLaunch[] = [
     ticker: "SIG001",
     collection: "Signals",
     description:
-      "SIGNAL-001 is the first transmission from Resident Labs—a creator coin representing experimentation across Base, Zora, Farcaster, AI agents, and onchain apps. Every future Signal documents another step in building the Resident Labs ecosystem.",
+      "The first transmission from Resident Labs. A creator coin documenting the evolution of Base, Zora, Farcaster, AI agents, and onchain mini-apps.",
     tags: ["residentlabs", "base", "signal"],
     image: signal001,
     launchDate: "2026-07-24",

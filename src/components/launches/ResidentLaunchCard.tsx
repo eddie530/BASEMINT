@@ -16,7 +16,7 @@ export function ResidentLaunchCard({ launch }: { launch: ResidentLaunch }) {
   return (
     <article
       id={launch.slug}
-      className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/40 transition hover:border-accent/40"
+      className="launch-glow launch-rise flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-black/40"
     >
       <div className="relative aspect-square">
         <img
@@ -25,7 +25,7 @@ export function ResidentLaunchCard({ launch }: { launch: ResidentLaunch }) {
           loading="lazy"
           width={1024}
           height={1024}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
         />
         <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent backdrop-blur">
           {collectionLabel(launch.collection)}
