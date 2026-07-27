@@ -3,6 +3,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Rocket } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
+import {
+  FeaturedLaunchSkeleton,
+  LaunchGridSkeleton,
+} from "@/components/launches/LaunchSkeletons";
 import { DiscoverFeed, trendingQO, recentQO } from "@/components/pages/DiscoverFeed";
 import { FeaturedLaunchHero } from "@/components/launches/FeaturedLaunchHero";
 import { ReleaseCountdown } from "@/components/launches/ReleaseCountdown";
@@ -39,8 +43,18 @@ export const Route = createFileRoute("/")({
     void context.queryClient.prefetchQuery(recentQO);
     return context.queryClient.ensureQueryData(residentLaunchesQO);
   },
+  pendingComponent: LaunchHubPending,
   component: FeedPage,
 });
+
+function LaunchHubPending() {
+  return (
+    <MiniAppShell>
+      <FeaturedLaunchSkeleton />
+      <LaunchGridSkeleton />
+    </MiniAppShell>
+  );
+}
 
 function FeedPage() {
   const { data: serverLaunches } = useSuspenseQuery(residentLaunchesQO);

@@ -3,6 +3,10 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ExternalLink, Rocket } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
+import {
+  FeaturedLaunchSkeleton,
+  LaunchGridSkeleton,
+} from "@/components/launches/LaunchSkeletons";
 import { LaunchTile } from "@/components/launches/LaunchTile";
 import { FeaturedLaunchHero } from "@/components/launches/FeaturedLaunchHero";
 import { ResidentLaunchCard } from "@/components/launches/ResidentLaunchCard";
@@ -50,8 +54,18 @@ export const Route = createFileRoute("/launches")({
     void context.queryClient.prefetchQuery(recentLaunchesQO);
     return context.queryClient.ensureQueryData(residentLaunchesQO);
   },
+  pendingComponent: LaunchHubPending,
   component: LaunchesPage,
 });
+
+function LaunchHubPending() {
+  return (
+    <MiniAppShell>
+      <FeaturedLaunchSkeleton />
+      <LaunchGridSkeleton />
+    </MiniAppShell>
+  );
+}
 
 function LaunchesPage() {
   const { data: liveCoins } = useSuspenseQuery(recentLaunchesQO);
