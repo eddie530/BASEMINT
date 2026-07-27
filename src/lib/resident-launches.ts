@@ -57,7 +57,14 @@ export interface ResidentLaunch {
   zoraUrl?: string;
   collectors: number;
   featured?: boolean;
+  /** Release state shown on the hero/card badge. Defaults from `address`. */
+  status?: LaunchStatus;
   progress: LaunchProgress;
+}
+
+/** Effective status for a launch. */
+export function launchStatus(l: ResidentLaunch): LaunchStatus {
+  return l.status ?? (l.address ? "live" : "coming-soon");
 }
 
 export const RESIDENT_LAUNCHES: ResidentLaunch[] = [
@@ -73,6 +80,8 @@ export const RESIDENT_LAUNCHES: ResidentLaunch[] = [
     launchDate: "2026-07-24",
     collectors: 0,
     featured: true,
+    status: "coming-soon",
+
     progress: {
       artwork: true,
       metadata: true,
