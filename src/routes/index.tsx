@@ -13,6 +13,8 @@ import { ReleaseCountdown } from "@/components/launches/ReleaseCountdown";
 import { useLaunchFeed } from "@/components/launches/useLaunchFeed";
 import { CollectionRail } from "@/components/launches/CollectionRail";
 import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
+import { EcosystemRail } from "@/components/launches/EcosystemRail";
+
 import { ResidentLaunchCard } from "@/components/launches/ResidentLaunchCard";
 import { residentLaunchesQO } from "@/lib/launch-queries";
 import { ACTIVE_COLLECTION, type LaunchCollection } from "@/lib/resident-launches";
@@ -92,10 +94,13 @@ function FeedPage() {
 
       <ReleaseCountdown />
 
+      <EcosystemRail />
+
       <section className="launch-rise space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Collections</h2>
         <CollectionRail launches={launches} value={collection} onChange={setCollection} />
       </section>
+
 
       <section className="launch-rise space-y-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
