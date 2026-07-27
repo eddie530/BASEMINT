@@ -58,12 +58,28 @@ export function FeaturedLaunchHero({ launch }: { launch: ResidentLaunch }) {
           ))}
         </div>
 
+        <dl className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 font-mono text-[11px]">
+          {[
+            ["Collectors", launch.collectors.toLocaleString()],
+            ["Volume", "0 ETH"],
+            ["Network", "Base"],
+            ["Collection", collectionLabel(launch.collection)],
+            ["Status", status === "live" ? "Live" : "Coming Soon"],
+          ].map(([k, v]) => (
+            <div key={k} className="flex items-baseline justify-between gap-3 py-1">
+              <dt className="uppercase tracking-widest text-white/40">{k}</dt>
+              <dd className="truncate text-white/80">{v}</dd>
+            </div>
+          ))}
+        </dl>
+
         <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-white/40">
           <span className="inline-flex items-center gap-1">
             <Users className="size-3" /> {launch.collectors.toLocaleString()} collectors
           </span>
           <span>{formatLaunchDate(launch.launchDate)}</span>
         </div>
+
 
         <div className="space-y-2">
           {launch.address ? (
