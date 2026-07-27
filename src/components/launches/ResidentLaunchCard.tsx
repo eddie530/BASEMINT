@@ -2,7 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { Users } from "lucide-react";
 import { ShareRow } from "./ShareRow";
 import {
+  collectionLabel,
   formatLaunchDate,
+  launchStatus,
   launchUrl,
   type ResidentLaunch,
 } from "@/lib/resident-launches";
@@ -26,7 +28,7 @@ export function ResidentLaunchCard({ launch }: { launch: ResidentLaunch }) {
           className="h-full w-full object-cover"
         />
         <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent backdrop-blur">
-          {launch.collection}
+          {collectionLabel(launch.collection)}
         </span>
       </div>
 
@@ -44,7 +46,7 @@ export function ResidentLaunchCard({ launch }: { launch: ResidentLaunch }) {
             <Users className="size-3 shrink-0" />
             {launch.collectors.toLocaleString()}
           </span>
-          <span>{launch.address ? "Live" : "Preparing"}</span>
+          <span>{launchStatus(launch) === "live" ? "Live" : "Coming soon"}</span>
         </div>
 
         <div className="mt-auto space-y-2">

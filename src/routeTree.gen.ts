@@ -31,6 +31,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as ProfileAddressRouteImport } from './routes/profile.$address'
+import { Route as LaunchesNewRouteImport } from './routes/launches_.new'
 import { Route as CoinIdRouteImport } from './routes/coin.$id'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
@@ -147,6 +148,11 @@ const ProfileAddressRoute = ProfileAddressRouteImport.update({
   path: '/$address',
   getParentRoute: () => ProfileRoute,
 } as any)
+const LaunchesNewRoute = LaunchesNewRouteImport.update({
+  id: '/launches_/new',
+  path: '/launches/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoinIdRoute = CoinIdRouteImport.update({
   id: '/coin/$id',
   path: '/coin/$id',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/vault': typeof VaultRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
+  '/launches/new': typeof LaunchesNewRoute
   '/profile/$address': typeof ProfileAddressRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/profile/': typeof ProfileIndexRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/vault': typeof VaultRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
+  '/launches/new': typeof LaunchesNewRoute
   '/profile/$address': typeof ProfileAddressRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/profile': typeof ProfileIndexRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/vault': typeof VaultRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
+  '/launches_/new': typeof LaunchesNewRoute
   '/profile/$address': typeof ProfileAddressRoute
   '/settings/profile': typeof SettingsProfileRoute
   '/profile/': typeof ProfileIndexRoute
@@ -286,6 +295,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/checkout/return'
     | '/coin/$id'
+    | '/launches/new'
     | '/profile/$address'
     | '/settings/profile'
     | '/profile/'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/checkout/return'
     | '/coin/$id'
+    | '/launches/new'
     | '/profile/$address'
     | '/settings/profile'
     | '/profile'
@@ -343,6 +354,7 @@ export interface FileRouteTypes {
     | '/vault'
     | '/checkout/return'
     | '/coin/$id'
+    | '/launches_/new'
     | '/profile/$address'
     | '/settings/profile'
     | '/profile/'
@@ -373,6 +385,7 @@ export interface RootRouteChildren {
   VaultRoute: typeof VaultRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CoinIdRoute: typeof CoinIdRoute
+  LaunchesNewRoute: typeof LaunchesNewRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   ApiPublicCommerceWebhookRoute: typeof ApiPublicCommerceWebhookRoute
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileAddressRouteImport
       parentRoute: typeof ProfileRoute
     }
+    '/launches_/new': {
+      id: '/launches_/new'
+      path: '/launches/new'
+      fullPath: '/launches/new'
+      preLoaderRoute: typeof LaunchesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/coin/$id': {
       id: '/coin/$id'
       path: '/coin/$id'
@@ -608,6 +628,7 @@ const rootRouteChildren: RootRouteChildren = {
   VaultRoute: VaultRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   CoinIdRoute: CoinIdRoute,
+  LaunchesNewRoute: LaunchesNewRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   ApiPublicCommerceWebhookRoute: ApiPublicCommerceWebhookRoute,

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Rocket } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { LaunchTile } from "@/components/launches/LaunchTile";
 import { FeaturedLaunchHero } from "@/components/launches/FeaturedLaunchHero";
@@ -10,19 +10,14 @@ import { LaunchProgressPanel } from "@/components/launches/LaunchProgressPanel";
 import { ReleaseCountdown } from "@/components/launches/ReleaseCountdown";
 import { getRecentCoins } from "@/lib/zora.functions";
 import { RESIDENT_LABS } from "@/lib/curated";
-import { LAUNCH_COLLECTIONS, type ResidentLaunch } from "@/lib/resident-launches";
-import { getResidentLaunches } from "@/lib/resident-launches.functions";
+import { LAUNCH_COLLECTIONS, collectionLabel, type ResidentLaunch } from "@/lib/resident-launches";
+import { residentLaunchesQO } from "@/lib/launch-queries";
+import { useLaunchFeed } from "@/components/launches/useLaunchFeed";
 
 const recentLaunchesQO = queryOptions({
   queryKey: ["zora", "recent", 12],
   queryFn: () => getRecentCoins({ data: { count: 12 } }),
   staleTime: 15_000,
-});
-
-const residentLaunchesQO = queryOptions({
-  queryKey: ["resident", "launches"],
-  queryFn: () => getResidentLaunches(),
-  staleTime: 60_000,
 });
 
 export const Route = createFileRoute("/launches")({
@@ -54,7 +49,8 @@ export const Route = createFileRoute("/launches")({
 
 function LaunchesPage() {
   const { data: liveCoins } = useSuspenseQuery(recentLaunchesQO);
-  const { data: launches } = useSuspenseQuery(residentLaunchesQO);
+  const { data: serverLaunches } = useSuspenseQuery(residentLaunchesQO);
+  const launches = useLaunchFeed(serverLaunches);
   const featured = useMemo<ResidentLaunch | undefined>(
     () => launches.find((l) => l.featured) ?? launches[0],
     [launches],
@@ -82,6 +78,13 @@ function LaunchesPage() {
 
       <ReleaseCountdown />
 
+      <Link
+        to="/launches/new"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 py-3 text-xs font-bold uppercase tracking-widest text-accent"
+      >
+        <Rocket className="size-3.5" /> Start a new launch
+      </Link>
+
       {featured && <LaunchProgressPanel progress={featured.progress} />}
 
       <section className="space-y-3">
@@ -94,7 +97,7 @@ function LaunchesPage() {
                 key={c}
                 className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-white/60"
               >
-                {c} <span className="text-accent">{count}</span>
+                {collectionLabel(c)} <span className="text-accent">{count}</span>
               </span>
             );
           })}
