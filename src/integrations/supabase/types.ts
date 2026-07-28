@@ -363,6 +363,57 @@ export type Database = {
           },
         ]
       }
+      resident_launches: {
+        Row: {
+          address: string | null
+          chain_id: number
+          collection: string
+          created_at: string
+          creator_address: string | null
+          description: string
+          featured: boolean
+          image: string
+          launch_date: string
+          name: string
+          slug: string
+          tags: string[]
+          ticker: string
+          tx_hash: string | null
+        }
+        Insert: {
+          address?: string | null
+          chain_id?: number
+          collection: string
+          created_at?: string
+          creator_address?: string | null
+          description?: string
+          featured?: boolean
+          image?: string
+          launch_date?: string
+          name: string
+          slug: string
+          tags?: string[]
+          ticker: string
+          tx_hash?: string | null
+        }
+        Update: {
+          address?: string | null
+          chain_id?: number
+          collection?: string
+          created_at?: string
+          creator_address?: string | null
+          description?: string
+          featured?: boolean
+          image?: string
+          launch_date?: string
+          name?: string
+          slug?: string
+          tags?: string[]
+          ticker?: string
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
       subscription_audit_log: {
         Row: {
           cancel_at_period_end: boolean | null
