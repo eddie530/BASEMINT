@@ -14,6 +14,8 @@ import { useLaunchFeed } from "@/components/launches/useLaunchFeed";
 import { CollectionRail } from "@/components/launches/CollectionRail";
 import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
 import { EcosystemRail } from "@/components/launches/EcosystemRail";
+import { CommunityTokenCard } from "@/components/launches/CommunityTokenCard";
+
 
 import { ResidentLaunchCard } from "@/components/launches/ResidentLaunchCard";
 import { residentLaunchesQO } from "@/lib/launch-queries";
@@ -94,7 +96,10 @@ function FeedPage() {
 
       <ReleaseCountdown />
 
+      <CommunityTokenCard />
+
       <EcosystemRail />
+
 
       <section className="launch-rise space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Collections</h2>
