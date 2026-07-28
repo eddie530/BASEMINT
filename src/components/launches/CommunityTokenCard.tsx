@@ -56,9 +56,8 @@ export function CommunityTokenCard() {
             </h3>
             <p className="font-mono text-sm text-accent">$RSIG</p>
             <p className="text-sm leading-relaxed text-white/60">
-              Resident Signal ($RSIG) is the official community token of Resident Labs. It
-              unites builders, creators, collectors, AI experiments, Base applications, and
-              Solana into one growing ecosystem.
+              The official community token of Resident Labs. Built for builders, creators,
+              collectors, and everyone exploring AI, Base, Solana, and onchain innovation.
             </p>
           </div>
 
