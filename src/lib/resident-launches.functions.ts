@@ -50,10 +50,46 @@ export const publishLaunch = createServerFn({ method: "POST" })
     // Data URIs are huge; only keep small ones — the feed rehydrates artwork
     // from Zora once the coin is indexed.
     const image = data.image.length > 400_000 ? "" : data.image;
+    const addressLower = data.address.toLowerCase();
+
+    // Resolve a slug that can never clobber another creator's launch.
+    // 1) If this coin address is already published, keep its existing slug.
+    // 2) Otherwise, if the requested slug is taken by a different coin,
+    //    derive a unique variant instead of overwriting the earlier row.
+    let slug = data.slug;
+    const { data: byAddress } = await supabaseAdmin
+      .from("resident_launches")
+      .select("slug")
+      .ilike("address", addressLower)
+      .maybeSingle();
+
+    if (byAddress?.slug) {
+      slug = byAddress.slug;
+    } else {
+      const suffix = addressLower.slice(2, 8);
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const candidate =
+          attempt === 0
+            ? data.slug
+            : attempt === 1
+              ? `${data.slug}-${suffix}`
+              : `${data.slug}-${suffix}-${attempt}`;
+        const { data: existing } = await supabaseAdmin
+          .from("resident_launches")
+          .select("slug, address")
+          .eq("slug", candidate)
+          .maybeSingle();
+        if (!existing || (existing.address ?? "").toLowerCase() === addressLower) {
+          slug = candidate;
+          break;
+        }
+        slug = candidate; // fallback keeps last candidate if loop exhausts
+      }
+    }
 
     const { error } = await supabaseAdmin.from("resident_launches").upsert(
       {
-        slug: data.slug,
+        slug,
         name: data.name,
         ticker: data.ticker,
         collection: data.collection,
@@ -71,12 +107,14 @@ export const publishLaunch = createServerFn({ method: "POST" })
     );
     if (error) throw new Error(`Could not save launch: ${error.message}`);
 
+
     if (data.featured) {
       await supabaseAdmin
         .from("resident_launches")
         .update({ featured: false })
-        .neq("slug", data.slug);
+        .neq("slug", slug);
     }
 
-    return { ok: true, slug: data.slug };
+    return { ok: true, slug };
+
   });
