@@ -92,13 +92,19 @@ function FeedPage() {
         </p>
       )}
 
+      <CommunityTokenCard />
+
       <LaunchMetrics launches={launches} className="launch-rise" />
 
       <ReleaseCountdown />
 
-      <CommunityTokenCard />
-
       <EcosystemRail />
+
+      <EcosystemTimeline />
+
+      <AboutResidentLabs />
+
+
 
 
       <section className="launch-rise space-y-3">

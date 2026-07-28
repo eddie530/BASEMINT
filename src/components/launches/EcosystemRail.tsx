@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type EcoStatus = "live" | "soon" | "planned";
+type EcoStatus = "live" | "soon" | "active" | "planned";
 
 type EcoCard = {
   label: string;
@@ -25,6 +25,7 @@ type EcoCard = {
 const STATUS: Record<EcoStatus, { text: string; cls: string }> = {
   live: { text: "🟢 Live", cls: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300" },
   soon: { text: "🟡 Coming Soon", cls: "border-amber-400/30 bg-amber-400/10 text-amber-300" },
+  active: { text: "🔵 Active", cls: "border-primary/40 bg-primary/10 text-primary" },
   planned: { text: "🔒 Planned", cls: "border-white/10 bg-white/5 text-white/45" },
 };
 
@@ -39,9 +40,9 @@ const CARDS: EcoCard[] = [
     href: "https://pump.fun/coin/5cGDB5noeZvSKhGEvc7n5GHQUmiQUWMvFVjxn1P7pump",
   },
   { label: "SIGNAL-001", blurb: "Genesis release", icon: Sparkles, status: "soon", to: "/launches" },
-  { label: "Creator Coins", blurb: "Live on Base", icon: Coins, status: "planned", to: "/discover" },
-  { label: "Mini Apps", blurb: "Arcade & games", icon: Gamepad2, status: "planned", to: "/arcade" },
-  { label: "Vault", blurb: "Assets & rewards", icon: Wallet, status: "planned", to: "/vault" },
+  { label: "Creator Coins", blurb: "Live on Base", icon: Coins, status: "active", to: "/discover" },
+  { label: "Mini Apps", blurb: "Arcade & games", icon: Gamepad2, status: "active", to: "/arcade" },
+  { label: "Vault", blurb: "Assets & rewards", icon: Wallet, status: "active", to: "/vault" },
 ];
 
 export function EcosystemRail() {
