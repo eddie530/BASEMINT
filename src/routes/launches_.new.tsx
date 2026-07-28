@@ -254,9 +254,37 @@ function LaunchWizard() {
       const launched: LaunchDraft = { ...draft, address: coinAddress, txHash: lastHash };
       saveDraft(launched);
       setPublished(launched);
+      try {
+        const { publishLaunch } = await import("@/lib/resident-launches.functions");
+        await publishLaunch({
+          data: {
+            slug: launched.slug,
+            name: launched.name,
+            ticker: launched.ticker,
+            collection: launched.collection,
+            description: launched.description,
+            image: launched.image,
+            tags: launched.tags,
+            launchDate: launched.launchDate,
+            address: coinAddress,
+            txHash: lastHash as string,
+            creator: address,
+            featured: Boolean(launched.featured),
+            chainId: BASE_CHAIN_ID,
+          },
+        });
+      } catch (e) {
+        const { detail, hint } = explainError(e);
+        update("persist", {
+          status: "error",
+          detail: `Coin is live, but publishing to the Launch Hub failed: ${detail}`,
+          hint,
+        });
+        return;
+      }
       update("persist", {
         status: "success",
-        detail: `${coinAddress.slice(0, 10)}… · Live`,
+        detail: `${coinAddress.slice(0, 10)}… · Live for everyone`,
         link: { href: `/coin/${coinAddress}`, label: "View coin" },
       });
       try {

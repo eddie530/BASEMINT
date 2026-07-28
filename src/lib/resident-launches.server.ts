@@ -99,8 +99,10 @@ function fromCoin(coin: CoinDTO): ResidentLaunch {
 /** Merge the curated config with live Zora data for the Launch Hub. */
 export async function loadResidentLaunches(): Promise<ResidentLaunch[]> {
   const creators = creatorAddresses();
+  const { loadDbLaunches } = await import("./resident-launches.db.server");
 
-  const [discovered, hydrations] = await Promise.all([
+  const [dbLaunches, discovered, hydrations] = await Promise.all([
+    loadDbLaunches(),
     Promise.all(creators.map(coinsByCreator)).then((r) => r.flat()),
     Promise.all(
       RESIDENT_LAUNCHES.filter((l) => l.address).map(async (l) => ({
@@ -126,8 +128,12 @@ export async function loadResidentLaunches(): Promise<ResidentLaunch[]> {
     } satisfies ResidentLaunch;
   });
 
+  // Launches published through the wizard, deduped against curated config.
+  const configuredSlugs = new Set(configured.map((l) => l.slug));
+  const published = dbLaunches.filter((l) => !configuredSlugs.has(l.slug));
+
   const taken = new Set(
-    configured.map((l) => l.address?.toLowerCase()).filter(Boolean) as string[],
+    [...configured, ...published].map((l) => l.address?.toLowerCase()).filter(Boolean) as string[],
   );
 
   const auto = discovered
@@ -135,7 +141,7 @@ export async function loadResidentLaunches(): Promise<ResidentLaunch[]> {
     .filter((c, i, arr) => arr.findIndex((x) => x.address === c.address) === i)
     .map(fromCoin);
 
-  return [...configured, ...auto].sort(
+  return [...configured, ...published, ...auto].sort(
     (a, b) => new Date(b.launchDate).getTime() - new Date(a.launchDate).getTime(),
   );
 }
