@@ -96,7 +96,10 @@ function FeedPage() {
 
       <ReleaseCountdown />
 
+      <CommunityTokenCard />
+
       <EcosystemRail />
+
 
       <section className="launch-rise space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Collections</h2>
