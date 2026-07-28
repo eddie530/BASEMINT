@@ -57,7 +57,7 @@ export function CommunityTokenCard() {
             <p className="font-mono text-sm text-accent">$RSIG</p>
             <p className="text-sm leading-relaxed text-white/60">
               Resident Signal ($RSIG) is the official community token of Resident Labs. It
-              connects builders, creators, collectors, AI experiments, Base applications, and
+              unites builders, creators, collectors, AI experiments, Base applications, and
               Solana into one growing ecosystem.
             </p>
           </div>
@@ -91,7 +91,7 @@ export function CommunityTokenCard() {
               rel="noopener noreferrer"
               className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent py-4 text-sm font-bold uppercase tracking-widest text-accent-foreground"
             >
-              View on pump.fun <ExternalLink className="size-3.5" />
+              Trade on pump.fun <ExternalLink className="size-3.5" />
             </a>
 
             <button
@@ -102,15 +102,22 @@ export function CommunityTokenCard() {
               {copied ? "Copied" : "Copy mint address"}
             </button>
 
-            {DEXSCREENER_URL && (
+            {DEXSCREENER_URL ? (
               <a
                 href={DEXSCREENER_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
               >
-                View on DexScreener <ExternalLink className="size-3.5" />
+                View DexScreener <ExternalLink className="size-3.5" />
               </a>
+            ) : (
+              <button
+                disabled
+                className="inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.02] py-3 text-xs font-bold uppercase tracking-widest text-white/30"
+              >
+                Waiting for Indexing
+              </button>
             )}
           </div>
         </div>

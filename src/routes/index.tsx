@@ -15,6 +15,8 @@ import { CollectionRail } from "@/components/launches/CollectionRail";
 import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
 import { EcosystemRail } from "@/components/launches/EcosystemRail";
 import { CommunityTokenCard } from "@/components/launches/CommunityTokenCard";
+import { EcosystemTimeline } from "@/components/launches/EcosystemTimeline";
+import { AboutResidentLabs } from "@/components/launches/AboutResidentLabs";
 
 
 import { ResidentLaunchCard } from "@/components/launches/ResidentLaunchCard";
@@ -92,13 +94,19 @@ function FeedPage() {
         </p>
       )}
 
+      <CommunityTokenCard />
+
       <LaunchMetrics launches={launches} className="launch-rise" />
 
       <ReleaseCountdown />
 
-      <CommunityTokenCard />
-
       <EcosystemRail />
+
+      <EcosystemTimeline />
+
+      <AboutResidentLabs />
+
+
 
 
       <section className="launch-rise space-y-3">
