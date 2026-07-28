@@ -112,8 +112,9 @@ export const publishLaunch = createServerFn({ method: "POST" })
       await supabaseAdmin
         .from("resident_launches")
         .update({ featured: false })
-        .neq("slug", data.slug);
+        .neq("slug", slug);
     }
 
-    return { ok: true, slug: data.slug };
+    return { ok: true, slug };
+
   });
