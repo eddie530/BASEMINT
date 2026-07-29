@@ -8,9 +8,9 @@ export function CrossChainNote() {
         Cross-chain ecosystem
       </p>
       <p className="mt-2 text-sm leading-relaxed text-white/70">
-        Resident Labs is building across <span className="text-white">Base</span> and{" "}
-        <span className="text-white">Solana</span>. BaseMint powers creator launches on Base,
-        while Resident Signal is our live community token on Solana.
+        BaseMint powers creator launches on <span className="text-white">Base</span>. Resident
+        Signal is the Resident Labs community token on{" "}
+        <span className="text-white">Solana</span>.
       </p>
       <Link
         to="/community"

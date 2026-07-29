@@ -1,11 +1,7 @@
 import { useState } from "react";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import rsigArtwork from "@/assets/rsig-artwork.png";
-
-const MINT_ADDRESS = "5cGDB5noeZvSKhGEvc7n5GHQUmiQUWMvFVjxn1P7pump";
-const PUMP_FUN_URL = `https://pump.fun/coin/${MINT_ADDRESS}`;
-/** Set once a DexScreener pair exists — the button stays hidden until then. */
-const DEXSCREENER_URL: string | null = null;
+import { RSIG, RSIG_PUMP_URL, RSIG_SOLSCAN_URL } from "@/lib/rsig";
 
 /** Resident Signal ($RSIG) — the Resident Labs community token on Solana. */
 export function CommunityTokenCard() {
@@ -13,7 +9,7 @@ export function CommunityTokenCard() {
 
   async function copyMint() {
     try {
-      await navigator.clipboard.writeText(MINT_ADDRESS);
+      await navigator.clipboard.writeText(RSIG.mint);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -41,33 +37,30 @@ export function CommunityTokenCard() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
           <span className="absolute left-4 top-4 rounded-full bg-accent px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-accent-foreground">
-            Community Token
+            {RSIG.type}
           </span>
           <span className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/70 px-2.5 py-1 font-mono text-[9px] uppercase tracking-widest text-white/80 backdrop-blur">
             <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px] shadow-emerald-400/60" />
-            Live
+            {RSIG.status}
           </span>
         </div>
 
         <div className="relative -mt-12 space-y-4 p-4">
           <div className="min-w-0 space-y-1">
             <h3 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-              Resident Signal
+              {RSIG.name}
             </h3>
-            <p className="font-mono text-sm text-accent">$RSIG</p>
-            <p className="text-sm leading-relaxed text-white/60">
-              The official community token of Resident Labs. Built for builders, creators,
-              collectors, and everyone exploring AI, Base, Solana, and onchain innovation.
-            </p>
+            <p className="font-mono text-sm text-accent">${RSIG.ticker}</p>
+            <p className="text-sm leading-relaxed text-white/60">{RSIG.description}</p>
           </div>
 
           <dl className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 font-mono text-[11px]">
             {[
-              ["Token", "Resident Signal"],
-              ["Ticker", "RSIG"],
-              ["Network", "Solana"],
-              ["Status", "LIVE"],
-              ["Category", "Community Token"],
+              ["Token", RSIG.name],
+              ["Ticker", RSIG.ticker],
+              ["Network", RSIG.network],
+              ["Status", RSIG.status],
+              ["Category", RSIG.type],
             ].map(([k, v]) => (
               <div key={k} className="flex items-baseline justify-between gap-3 py-1">
                 <dt className="uppercase tracking-widest text-white/40">{k}</dt>
@@ -80,12 +73,12 @@ export function CommunityTokenCard() {
             <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
               Mint address
             </p>
-            <p className="mt-1 break-all font-mono text-[11px] text-white/70">{MINT_ADDRESS}</p>
+            <p className="mt-1 break-all font-mono text-[11px] text-white/70">{RSIG.mint}</p>
           </div>
 
           <div className="space-y-2">
             <a
-              href={PUMP_FUN_URL}
+              href={RSIG_PUMP_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent py-4 text-sm font-bold uppercase tracking-widest text-accent-foreground"
@@ -101,9 +94,18 @@ export function CommunityTokenCard() {
               {copied ? "Copied" : "Copy mint address"}
             </button>
 
-            {DEXSCREENER_URL ? (
+            <a
+              href={RSIG_SOLSCAN_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
+            >
+              View on Solscan <ExternalLink className="size-3.5" />
+            </a>
+
+            {RSIG.dexscreenerUrl ? (
               <a
-                href={DEXSCREENER_URL}
+                href={RSIG.dexscreenerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="launch-glow inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 py-3 text-xs font-bold uppercase tracking-widest"
