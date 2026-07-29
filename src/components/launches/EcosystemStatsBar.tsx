@@ -12,10 +12,10 @@ export function EcosystemStatsBar() {
       <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
         Resident Labs Ecosystem
       </p>
-      <ul className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+      <ul className="mt-3 space-y-1">
         {STATS.map((s) => (
-          <li key={s.label} className="flex items-baseline gap-1.5 font-mono text-xs text-white/70">
-            {s.value && <span className="text-accent">{s.value}</span>}
+          <li key={s.label} className="flex items-baseline gap-2 font-mono text-sm text-white/70">
+            <span className="w-3 shrink-0 text-accent">{s.value ?? ""}</span>
             <span className="truncate">{s.label}</span>
           </li>
         ))}
