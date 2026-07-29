@@ -13,7 +13,9 @@ import { ReleaseCountdown } from "@/components/launches/ReleaseCountdown";
 import { useLaunchFeed } from "@/components/launches/useLaunchFeed";
 import { CollectionRail } from "@/components/launches/CollectionRail";
 import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
-import { EcosystemRail } from "@/components/launches/EcosystemRail";
+import { EcosystemRoadmap } from "@/components/launches/EcosystemRoadmap";
+import { EcosystemStatsBar } from "@/components/launches/EcosystemStatsBar";
+import { CrossChainNote } from "@/components/launches/CrossChainNote";
 import { CommunityTokenCard } from "@/components/launches/CommunityTokenCard";
 import { EcosystemTimeline } from "@/components/launches/EcosystemTimeline";
 import { AboutResidentLabs } from "@/components/launches/AboutResidentLabs";
@@ -84,6 +86,8 @@ function FeedPage() {
         <h1 className="font-display text-3xl font-bold tracking-tight">Featured Launch</h1>
       </header>
 
+      <EcosystemStatsBar />
+
       {featured ? (
         <div className="launch-rise">
           <FeaturedLaunchHero launch={featured} />
@@ -100,7 +104,9 @@ function FeedPage() {
 
       <ReleaseCountdown />
 
-      <EcosystemRail />
+      <EcosystemRoadmap />
+
+      <CrossChainNote />
 
       <EcosystemTimeline />
 
