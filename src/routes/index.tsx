@@ -16,6 +16,7 @@ import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
 import { EcosystemRoadmap } from "@/components/launches/EcosystemRoadmap";
 import { EcosystemStatsBar } from "@/components/launches/EcosystemStatsBar";
 import { CrossChainNote } from "@/components/launches/CrossChainNote";
+import { CommunityTokenTeaser } from "@/components/launches/CommunityTokenTeaser";
 
 
 
@@ -96,6 +97,8 @@ function FeedPage() {
           No featured launch yet.
         </p>
       )}
+
+      <CommunityTokenTeaser />
 
       <LaunchMetrics launches={launches} className="launch-rise" />
 
