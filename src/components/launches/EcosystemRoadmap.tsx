@@ -5,7 +5,7 @@ type Status = "live" | "soon" | "planned" | "active";
 
 const STATUS: Record<Status, { dot: string; text: string; cls: string }> = {
   live: { dot: "bg-emerald-400", text: "Live", cls: "text-emerald-300" },
-  soon: { dot: "bg-amber-400", text: "Coming Soon", cls: "text-amber-300" },
+  soon: { dot: "bg-amber-400", text: "In Development", cls: "text-amber-300" },
   planned: { dot: "bg-sky-400", text: "Planned", cls: "text-sky-300" },
   active: { dot: "bg-sky-400", text: "Active", cls: "text-sky-300" },
 };
@@ -14,13 +14,9 @@ type Row = { label: string; status: Status; to?: string; href?: string };
 
 const ROWS: Row[] = [
   { label: "BaseMint", status: "live", to: "/launch" },
-  {
-    label: "Resident Signal (RSIG)",
-    status: "live",
-    href: "https://pump.fun/coin/5cGDB5noeZvSKhGEvc7n5GHQUmiQUWMvFVjxn1P7pump",
-  },
+  { label: "Resident Signal (RSIG)", status: "live", to: "/community" },
   { label: "SIGNAL-001", status: "soon", to: "/launches" },
-  { label: "Resident Genesis", status: "planned" },
+  { label: "Creator Coins", status: "active", to: "/discover" },
   { label: "Mini Apps", status: "active", to: "/arcade" },
   { label: "Vault", status: "active", to: "/vault" },
 ];

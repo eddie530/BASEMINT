@@ -16,9 +16,8 @@ import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
 import { EcosystemRoadmap } from "@/components/launches/EcosystemRoadmap";
 import { EcosystemStatsBar } from "@/components/launches/EcosystemStatsBar";
 import { CrossChainNote } from "@/components/launches/CrossChainNote";
-import { CommunityTokenCard } from "@/components/launches/CommunityTokenCard";
-import { EcosystemTimeline } from "@/components/launches/EcosystemTimeline";
-import { AboutResidentLabs } from "@/components/launches/AboutResidentLabs";
+
+
 
 
 import { ResidentLaunchCard } from "@/components/launches/ResidentLaunchCard";
@@ -98,8 +97,6 @@ function FeedPage() {
         </p>
       )}
 
-      <CommunityTokenCard />
-
       <LaunchMetrics launches={launches} className="launch-rise" />
 
       <ReleaseCountdown />
@@ -108,9 +105,6 @@ function FeedPage() {
 
       <CrossChainNote />
 
-      <EcosystemTimeline />
-
-      <AboutResidentLabs />
 
 
 
