@@ -5,7 +5,7 @@ type Status = "live" | "soon" | "planned" | "active";
 
 const STATUS: Record<Status, { dot: string; text: string; cls: string }> = {
   live: { dot: "bg-emerald-400", text: "Live", cls: "text-emerald-300" },
-  soon: { dot: "bg-amber-400", text: "Coming Soon", cls: "text-amber-300" },
+  soon: { dot: "bg-amber-400", text: "In Development", cls: "text-amber-300" },
   planned: { dot: "bg-sky-400", text: "Planned", cls: "text-sky-300" },
   active: { dot: "bg-sky-400", text: "Active", cls: "text-sky-300" },
 };

@@ -98,8 +98,6 @@ function FeedPage() {
         </p>
       )}
 
-      <CommunityTokenCard />
-
       <LaunchMetrics launches={launches} className="launch-rise" />
 
       <ReleaseCountdown />
@@ -108,9 +106,6 @@ function FeedPage() {
 
       <CrossChainNote />
 
-      <EcosystemTimeline />
-
-      <AboutResidentLabs />
 
 
 
