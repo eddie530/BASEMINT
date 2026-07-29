@@ -6,17 +6,14 @@ import { EcosystemRoadmap } from "@/components/launches/EcosystemRoadmap";
 import { EcosystemTimeline } from "@/components/launches/EcosystemTimeline";
 import { AboutResidentLabs } from "@/components/launches/AboutResidentLabs";
 
-const MINT_ADDRESS = "5cGDB5noeZvSKhGEvc7n5GHQUmiQUWMvFVjxn1P7pump";
+import { RSIG, RSIG_PUMP_URL, RSIG_SOLSCAN_URL } from "@/lib/rsig";
 
 const LINKS: { label: string; href: string; note: string }[] = [
-  {
-    label: "Trade on pump.fun",
-    href: `https://pump.fun/coin/${MINT_ADDRESS}`,
-    note: "Solana",
-  },
+  { label: "Trade on pump.fun", href: RSIG_PUMP_URL, note: "Solana" },
+  { label: "View on Solscan", href: RSIG_SOLSCAN_URL, note: "Explorer" },
   {
     label: "DexScreener",
-    href: `https://dexscreener.com/solana/${MINT_ADDRESS}`,
+    href: RSIG.dexscreenerUrl ?? `https://dexscreener.com/solana/${RSIG.mint}`,
     note: "Charts",
   },
   { label: "BaseMint", href: "https://basemint.dev", note: "Launch platform" },
