@@ -18,6 +18,7 @@ export const RESIDENT_NAV: NavItem[] = [
   { to: "/discover", label: "Discover", icon: Compass, hint: "BaseMint feed" },
   { to: "/launch", label: "Launch", icon: Rocket, hint: "Create onchain" },
   { to: "/launches", label: "Launches", icon: Flame, hint: "Launch Hub" },
+  { to: "/community", label: "Community", icon: Users, hint: "$RSIG & ecosystem" },
   { to: "/play", label: "Play", icon: Gamepad2, hint: "SpinBase" },
   { to: "/predictions", label: "Predict", icon: TrendingUp, hint: "Trade YES/NO" },
   { to: "/vault", label: "Vault", icon: Wallet, hint: "Assets & rewards" },
@@ -28,11 +29,11 @@ export const RESIDENT_NAV: NavItem[] = [
 
 /** Items shown directly on the mobile bottom bar (5 slots). */
 export const MOBILE_PRIMARY: NavItem[] = RESIDENT_NAV.filter((n) =>
-  ["/home", "/discover", "/launch", "/play", "/vault"].includes(n.to),
+  ["/home", "/discover", "/launch", "/community", "/vault"].includes(n.to),
 );
 
 /** Items surfaced only in the mobile "More" sheet. */
 export const MOBILE_SECONDARY: NavItem[] = RESIDENT_NAV.filter((n) =>
-  ["/launches", "/predictions", "/shop", "/ai", "/profile"].includes(n.to),
+  ["/launches", "/play", "/predictions", "/shop", "/ai", "/profile"].includes(n.to),
 );
 

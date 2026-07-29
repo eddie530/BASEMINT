@@ -25,6 +25,7 @@ import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as DeployRouteImport } from './routes/deploy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreateRouteImport } from './routes/create'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ArcadeRouteImport } from './routes/arcade'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
@@ -118,6 +119,11 @@ const CreateRoute = CreateRouteImport.update({
   path: '/create',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArcadeRoute = ArcadeRouteImport.update({
   id: '/arcade',
   path: '/arcade',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/arcade': typeof ArcadeRoute
+  '/community': typeof CommunityRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/arcade': typeof ArcadeRoute
+  '/community': typeof CommunityRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/arcade': typeof ArcadeRoute
+  '/community': typeof CommunityRoute
   '/create': typeof CreateRoute
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/arcade'
+    | '/community'
     | '/create'
     | '/dashboard'
     | '/deploy'
@@ -307,6 +317,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/arcade'
+    | '/community'
     | '/create'
     | '/dashboard'
     | '/deploy'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/arcade'
+    | '/community'
     | '/create'
     | '/dashboard'
     | '/deploy'
@@ -367,6 +379,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   ArcadeRoute: typeof ArcadeRoute
+  CommunityRoute: typeof CommunityRoute
   CreateRoute: typeof CreateRoute
   DashboardRoute: typeof DashboardRoute
   DeployRoute: typeof DeployRoute
@@ -506,6 +519,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/arcade': {
       id: '/arcade'
       path: '/arcade'
@@ -610,6 +630,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   ArcadeRoute: ArcadeRoute,
+  CommunityRoute: CommunityRoute,
   CreateRoute: CreateRoute,
   DashboardRoute: DashboardRoute,
   DeployRoute: DeployRoute,
