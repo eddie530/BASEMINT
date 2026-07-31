@@ -123,10 +123,12 @@ export function progressPercent(p: LaunchProgress): number {
 }
 
 export function formatLaunchDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, {
+  // Fixed UTC timezone + locale so SSR and client render identical text.
+  return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: "UTC",
   });
 }
 
