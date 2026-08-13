@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { genesisPhase } from "@/lib/genesis";
 
 type Status = "live" | "soon" | "planned" | "active";
 
@@ -12,9 +13,16 @@ const STATUS: Record<Status, { dot: string; text: string; cls: string }> = {
 
 type Row = { label: string; status: Status; to?: string; href?: string };
 
+const phase = genesisPhase();
+
 const ROWS: Row[] = [
   { label: "BaseMint", status: "live", to: "/launch" },
   { label: "Resident Signal", status: "live", to: "/community" },
+  {
+    label: "GENESIS PASS",
+    status: phase === "live" ? "live" : phase === "ended" ? "active" : "soon",
+    to: "/genesis",
+  },
   { label: "SIGNAL-001", status: "soon", to: "/launches" },
   { label: "Creator Coins", status: "active", to: "/discover" },
   { label: "Mini Apps", status: "active", to: "/arcade" },
