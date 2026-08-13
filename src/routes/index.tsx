@@ -101,6 +101,8 @@ function FeedPage() {
 
       <CommunityTokenTeaser />
 
+      <GenesisPassCard />
+
       <LaunchMetrics launches={launches} className="launch-rise" />
 
       <ReleaseCountdown />
