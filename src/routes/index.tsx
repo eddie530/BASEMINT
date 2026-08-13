@@ -17,6 +17,7 @@ import { EcosystemRoadmap } from "@/components/launches/EcosystemRoadmap";
 import { EcosystemStatsBar } from "@/components/launches/EcosystemStatsBar";
 import { CrossChainNote } from "@/components/launches/CrossChainNote";
 import { CommunityTokenTeaser } from "@/components/launches/CommunityTokenTeaser";
+import { GenesisPassCard } from "@/components/launches/GenesisPassCard";
 
 
 
