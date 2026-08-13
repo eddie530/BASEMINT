@@ -35,6 +35,6 @@ export const MOBILE_PRIMARY: NavItem[] = RESIDENT_NAV.filter((n) =>
 
 /** Items surfaced only in the mobile "More" sheet. */
 export const MOBILE_SECONDARY: NavItem[] = RESIDENT_NAV.filter((n) =>
-  ["/launches", "/play", "/predictions", "/shop", "/ai", "/profile"].includes(n.to),
+  ["/launches", "/genesis", "/play", "/predictions", "/shop", "/ai", "/profile"].includes(n.to),
 );
 
