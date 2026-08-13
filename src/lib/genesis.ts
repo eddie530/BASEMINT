@@ -32,7 +32,12 @@ export const GENESIS = {
   priceWei: parseEther("0.0005"),
   perWallet: 1,
   windowDays: 7,
-  artwork: genesisArtwork,
+  /** Creator royalty target, applied at deploy time when the contract supports it. */
+  royaltyBps: 500,
+  royaltyLabel: "5%",
+  artwork: genesisPassArtwork,
+  description:
+    "The first access artifact from Resident Labs. GENESIS PASS recognizes the earliest builders, collectors, and supporters helping shape BaseMint, creator coins, onchain mini-apps, AI experiments, and the wider Resident Labs ecosystem. One pass. One origin. The signal begins here.",
   /** Deployed ERC-721 contract on Base, or null while Coming Soon. */
   address: (ENV_CONTRACT && /^0x[a-fA-F0-9]{40}$/.test(ENV_CONTRACT)
     ? (ENV_CONTRACT as `0x${string}`)
