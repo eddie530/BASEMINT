@@ -549,6 +549,7 @@ function SmartHero({
         </Link>
         <Link
           to="/play"
+          search={{ spins: undefined, session_id: undefined }}
           className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/85 hover:bg-white/[0.06] transition"
         >
           Play SpinBase
