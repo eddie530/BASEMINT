@@ -1,5 +1,12 @@
 import { parseEther } from "viem";
-import genesisArtwork from "@/assets/genesis-pass.jpg";
+import genesisArtworkAsset from "@/assets/genesis-pass.jpg";
+
+/**
+ * Placeholder artwork slot for the GENESIS PASS.
+ * Swap the imported file above (or reassign this export) to drop in the final
+ * generated image — no component edits required.
+ */
+export const genesisPassArtwork: string = genesisArtworkAsset;
 
 /**
  * Resident Labs // GENESIS PASS — locked mint configuration.
