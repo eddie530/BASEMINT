@@ -18,6 +18,7 @@ export const RESIDENT_NAV: NavItem[] = [
   { to: "/discover", label: "Discover", icon: Compass, hint: "BaseMint feed" },
   { to: "/launch", label: "Launch", icon: Rocket, hint: "Create onchain" },
   { to: "/launches", label: "Launches", icon: Flame, hint: "Launch Hub" },
+  { to: "/genesis", label: "Genesis", icon: BadgeCheck, hint: "GENESIS PASS mint" },
   { to: "/community", label: "Community", icon: Users, hint: "$RSIG & ecosystem" },
   { to: "/play", label: "Play", icon: Gamepad2, hint: "SpinBase" },
   { to: "/predictions", label: "Predict", icon: TrendingUp, hint: "Trade YES/NO" },
