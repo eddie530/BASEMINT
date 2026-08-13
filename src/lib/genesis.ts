@@ -1,5 +1,12 @@
 import { parseEther } from "viem";
-import genesisArtwork from "@/assets/genesis-pass.jpg";
+import genesisArtworkAsset from "@/assets/genesis-pass.jpg";
+
+/**
+ * Placeholder artwork slot for the GENESIS PASS.
+ * Swap the imported file above (or reassign this export) to drop in the final
+ * generated image — no component edits required.
+ */
+export const genesisPassArtwork: string = genesisArtworkAsset;
 
 /**
  * Resident Labs // GENESIS PASS — locked mint configuration.
@@ -25,7 +32,12 @@ export const GENESIS = {
   priceWei: parseEther("0.0005"),
   perWallet: 1,
   windowDays: 7,
-  artwork: genesisArtwork,
+  /** Creator royalty target, applied at deploy time when the contract supports it. */
+  royaltyBps: 500,
+  royaltyLabel: "5%",
+  artwork: genesisPassArtwork,
+  description:
+    "The first access artifact from Resident Labs. GENESIS PASS recognizes the earliest builders, collectors, and supporters helping shape BaseMint, creator coins, onchain mini-apps, AI experiments, and the wider Resident Labs ecosystem. One pass. One origin. The signal begins here.",
   /** Deployed ERC-721 contract on Base, or null while Coming Soon. */
   address: (ENV_CONTRACT && /^0x[a-fA-F0-9]{40}$/.test(ENV_CONTRACT)
     ? (ENV_CONTRACT as `0x${string}`)
@@ -35,10 +47,9 @@ export const GENESIS = {
   tagline: "The first collectible from Resident Labs.",
   /** Deliberately non-promissory: recognition now, features only "possible". */
   benefits: [
-    "Early-supporter recognition on your Resident ID",
-    "Genesis Holder badge across BaseMint",
-    "Permanent onchain record of the first Resident Labs collectible",
-    "Possible future holder features — nothing guaranteed",
+    "Early-supporter provenance — a permanent onchain record of being here first",
+    "Genesis Holder badge across BaseMint, shown only after onchain ownership is verified",
+    "Possible future holder features — nothing promised or guaranteed",
   ],
 } as const;
 

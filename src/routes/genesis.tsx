@@ -2,7 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { encodeFunctionData, formatEther } from "viem";
-import { BadgeCheck, ExternalLink, Loader2, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  BadgeCheck,
+  ExternalLink,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { ShareRow } from "@/components/launches/ShareRow";
@@ -214,6 +222,7 @@ function GenesisPage() {
           <p className="text-sm text-white/70">
             {GENESIS.tagline} Minting on Base through BaseMint.
           </p>
+          <p className="text-sm leading-relaxed text-white/60">{GENESIS.description}</p>
           <span
             className={
               "inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-widest " +
@@ -252,8 +261,31 @@ function GenesisPage() {
           <Stat label="Supply" value={GENESIS.supply} />
           <Stat label="Per wallet" value={`${GENESIS.perWallet}`} />
           <Stat label="Mint window" value={`${GENESIS.windowDays} days`} />
+          <Stat label="Royalty target" value={GENESIS.royaltyLabel} />
           <Stat label="Minted" value={minted === null ? "—" : String(minted)} />
+          <Stat label="Contract" value={GENESIS.address ? "Deployed" : "Pending"} />
         </div>
+
+        {isConnected && chainId !== GENESIS.chainId && (
+          <div className="flex items-start gap-2 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-3 text-xs text-amber-200">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <span>
+              Wrong network — your wallet is on chain {chainId ?? "unknown"}. Switch to{" "}
+              {GENESIS.chainLabel} (8453)
+              {walletClient && (
+                <>
+                  {" · "}
+                  <button
+                    onClick={() => void walletClient.switchChain({ id: GENESIS.chainId })}
+                    className="underline underline-offset-2"
+                  >
+                    Switch now
+                  </button>
+                </>
+              )}
+            </span>
+          </div>
+        )}
 
         {ends && (
           <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
