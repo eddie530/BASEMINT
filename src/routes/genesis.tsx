@@ -214,6 +214,7 @@ function GenesisPage() {
           <p className="text-sm text-white/70">
             {GENESIS.tagline} Minting on Base through BaseMint.
           </p>
+          <p className="text-sm leading-relaxed text-white/60">{GENESIS.description}</p>
           <span
             className={
               "inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-widest " +
