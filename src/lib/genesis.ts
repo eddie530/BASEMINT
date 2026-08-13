@@ -47,10 +47,9 @@ export const GENESIS = {
   tagline: "The first collectible from Resident Labs.",
   /** Deliberately non-promissory: recognition now, features only "possible". */
   benefits: [
-    "Early-supporter recognition on your Resident ID",
-    "Genesis Holder badge across BaseMint",
-    "Permanent onchain record of the first Resident Labs collectible",
-    "Possible future holder features — nothing guaranteed",
+    "Early-supporter provenance — a permanent onchain record of being here first",
+    "Genesis Holder badge across BaseMint, shown only after onchain ownership is verified",
+    "Possible future holder features — nothing promised or guaranteed",
   ],
 } as const;
 
