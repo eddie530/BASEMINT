@@ -2,7 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { encodeFunctionData, formatEther } from "viem";
-import { BadgeCheck, ExternalLink, Loader2, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  AlertTriangle,
+  BadgeCheck,
+  ExternalLink,
+  Loader2,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { DeployProgress, explainError, type DeployStep } from "@/components/create/DeployProgress";
 import { ShareRow } from "@/components/launches/ShareRow";
