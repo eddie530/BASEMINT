@@ -17,6 +17,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DeployRouteImport } from './routes/deploy'
 import { Route as DiscoverRouteImport } from './routes/discover'
+import { Route as GenesisRouteImport } from './routes/genesis'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as LaunchRouteImport } from './routes/launch'
 import { Route as LaunchesRouteImport } from './routes/launches'
@@ -77,6 +78,11 @@ const DeployRoute = DeployRouteImport.update({
 const DiscoverRoute = DiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GenesisRoute = GenesisRouteImport.update({
+  id: '/genesis',
+  path: '/genesis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
   '/discover': typeof DiscoverRoute
+  '/genesis': typeof GenesisRoute
   '/home': typeof HomeRoute
   '/launch': typeof LaunchRoute
   '/launches': typeof LaunchesRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
   '/discover': typeof DiscoverRoute
+  '/genesis': typeof GenesisRoute
   '/home': typeof HomeRoute
   '/launch': typeof LaunchRoute
   '/launches': typeof LaunchesRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/deploy': typeof DeployRoute
   '/discover': typeof DiscoverRoute
+  '/genesis': typeof GenesisRoute
   '/home': typeof HomeRoute
   '/launch': typeof LaunchRoute
   '/launches': typeof LaunchesRoute
@@ -291,6 +300,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/deploy'
     | '/discover'
+    | '/genesis'
     | '/home'
     | '/launch'
     | '/launches'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/deploy'
     | '/discover'
+    | '/genesis'
     | '/home'
     | '/launch'
     | '/launches'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/deploy'
     | '/discover'
+    | '/genesis'
     | '/home'
     | '/launch'
     | '/launches'
@@ -384,6 +396,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   DeployRoute: typeof DeployRoute
   DiscoverRoute: typeof DiscoverRoute
+  GenesisRoute: typeof GenesisRoute
   HomeRoute: typeof HomeRoute
   LaunchRoute: typeof LaunchRoute
   LaunchesRoute: typeof LaunchesRoute
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/discover'
       fullPath: '/discover'
       preLoaderRoute: typeof DiscoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/genesis': {
+      id: '/genesis'
+      path: '/genesis'
+      fullPath: '/genesis'
+      preLoaderRoute: typeof GenesisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -635,6 +655,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   DeployRoute: DeployRoute,
   DiscoverRoute: DiscoverRoute,
+  GenesisRoute: GenesisRoute,
   HomeRoute: HomeRoute,
   LaunchRoute: LaunchRoute,
   LaunchesRoute: LaunchesRoute,

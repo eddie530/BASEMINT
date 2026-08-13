@@ -1,4 +1,4 @@
-import { Compass, Flame, Gamepad2, Home, Rocket, ShoppingBag, Sparkles, TrendingUp, User, Users, Wallet } from "lucide-react";
+import { BadgeCheck, Compass, Flame, Gamepad2, Home, Rocket, ShoppingBag, Sparkles, TrendingUp, User, Users, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
