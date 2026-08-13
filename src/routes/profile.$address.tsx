@@ -48,10 +48,8 @@ export const Route = createFileRoute("/profile/$address")({
       links: [{ rel: "canonical", href: url }],
     };
   },
-  beforeLoad: ({ params }) => {
-    if (!addrRegex.test(params.address)) throw notFound();
-  },
   loader: ({ params, context }) => {
+    if (!addrRegex.test(params.address)) throw notFound();
     void context.queryClient.prefetchQuery(profileQO(params.address));
     void context.queryClient.prefetchQuery(creatorCoinsQO(params.address));
   },
