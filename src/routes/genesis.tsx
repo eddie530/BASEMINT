@@ -253,8 +253,31 @@ function GenesisPage() {
           <Stat label="Supply" value={GENESIS.supply} />
           <Stat label="Per wallet" value={`${GENESIS.perWallet}`} />
           <Stat label="Mint window" value={`${GENESIS.windowDays} days`} />
+          <Stat label="Royalty target" value={GENESIS.royaltyLabel} />
           <Stat label="Minted" value={minted === null ? "—" : String(minted)} />
+          <Stat label="Contract" value={GENESIS.address ? "Deployed" : "Pending"} />
         </div>
+
+        {isConnected && chainId !== GENESIS.chainId && (
+          <div className="flex items-start gap-2 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-3 text-xs text-amber-200">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+            <span>
+              Wrong network — your wallet is on chain {chainId ?? "unknown"}. Switch to{" "}
+              {GENESIS.chainLabel} (8453)
+              {walletClient && (
+                <>
+                  {" · "}
+                  <button
+                    onClick={() => void walletClient.switchChain({ id: GENESIS.chainId })}
+                    className="underline underline-offset-2"
+                  >
+                    Switch now
+                  </button>
+                </>
+              )}
+            </span>
+          </div>
+        )}
 
         {ends && (
           <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
