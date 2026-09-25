@@ -94,7 +94,7 @@ function GameLink({
   );
   const cls = `flex items-center justify-between rounded-2xl border ${ring} bg-black/40 px-4 py-4 transition`;
   return to ? (
-    <Link to={to} className={`${cls} hover:bg-white/5`}>{inner}</Link>
+    <Link to={to} search={{ spins: undefined, session_id: undefined }} className={`${cls} hover:bg-white/5`}>{inner}</Link>
   ) : (
     <div className={`${cls} opacity-70`} aria-disabled="true">{inner}</div>
   );
