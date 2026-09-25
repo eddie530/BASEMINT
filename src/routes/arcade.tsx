@@ -49,7 +49,21 @@ function ArcadePage() {
       <section className="space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Games</h2>
         <GameLink to="/play" icon={<Sparkles className="size-5" />} label="SpinBase" hint="Spin to win · Live" tone="cyan" live />
-        <GameLink icon={<Gamepad2 className="size-5" />} label="Base Arcade" hint="Coming soon" tone="fuchsia" />
+        <a
+          href="https://base-arcade-quest.lovable.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between rounded-2xl border border-fuchsia-500/30 bg-black/40 px-4 py-4 transition hover:bg-white/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-xl bg-white/5 text-fuchsia-300"><Gamepad2 className="size-5" /></div>
+            <div className="leading-tight">
+              <p className="font-display text-sm font-black uppercase tracking-wider">Base Arcade</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Quests · Live</p>
+            </div>
+          </div>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-fuchsia-300">Play →</span>
+        </a>
         <GameLink icon={<Trophy className="size-5" />} label="Resident Slots" hint="Coming soon" tone="cyan" />
       </section>
 
