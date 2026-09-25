@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { Gamepad2, Zap, Trophy, Sparkles } from "lucide-react";
 
@@ -46,13 +46,57 @@ function ArcadePage() {
         </div>
       </section>
 
+      <section className="space-y-3">
+        <h2 className="font-display text-lg font-bold uppercase tracking-widest">Games</h2>
+        <GameLink to="/play" icon={<Sparkles className="size-5" />} label="SpinBase" hint="Spin to win · Live" tone="cyan" live />
+        <GameLink icon={<Gamepad2 className="size-5" />} label="Base Arcade" hint="Coming soon" tone="fuchsia" />
+        <GameLink icon={<Trophy className="size-5" />} label="Resident Slots" hint="Coming soon" tone="cyan" />
+      </section>
+
       <section className="grid grid-cols-2 gap-3">
-        <ArcadeTile icon={<Gamepad2 className="size-5" />} label="Games" hint="Coming soon" tone="fuchsia" />
         <ArcadeTile icon={<Trophy className="size-5" />} label="Tournaments" hint="Coming soon" tone="cyan" />
-        <ArcadeTile icon={<Sparkles className="size-5" />} label="Daily Runs" hint="Coming soon" tone="cyan" />
         <ArcadeTile icon={<Zap className="size-5" />} label="Rewards" hint="Coming soon" tone="fuchsia" />
       </section>
     </MiniAppShell>
+  );
+}
+
+function GameLink({
+  to,
+  icon,
+  label,
+  hint,
+  tone,
+  live,
+}: {
+  to?: "/play";
+  icon: React.ReactNode;
+  label: string;
+  hint: string;
+  tone: "fuchsia" | "cyan";
+  live?: boolean;
+}) {
+  const ring = tone === "fuchsia" ? "border-fuchsia-500/30" : "border-cyan-400/30";
+  const glow = tone === "fuchsia" ? "text-fuchsia-300" : "text-cyan-300";
+  const inner = (
+    <>
+      <div className="flex items-center gap-3">
+        <div className={`grid size-10 place-items-center rounded-xl bg-white/5 ${glow}`}>{icon}</div>
+        <div className="leading-tight">
+          <p className="font-display text-sm font-black uppercase tracking-wider">{label}</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">{hint}</p>
+        </div>
+      </div>
+      <span className={`font-mono text-[11px] uppercase tracking-widest ${live ? glow : "text-white/30"}`}>
+        {live ? "Play →" : "Soon"}
+      </span>
+    </>
+  );
+  const cls = `flex items-center justify-between rounded-2xl border ${ring} bg-black/40 px-4 py-4 transition`;
+  return to ? (
+    <Link to={to} search={{ spins: undefined, session_id: undefined }} className={`${cls} hover:bg-white/5`}>{inner}</Link>
+  ) : (
+    <div className={`${cls} opacity-70`} aria-disabled="true">{inner}</div>
   );
 }
 
