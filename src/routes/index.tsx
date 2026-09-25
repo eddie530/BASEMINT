@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Rocket } from "lucide-react";
+import { Gamepad2, Rocket } from "lucide-react";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import {
   FeaturedLaunchSkeleton,
@@ -102,6 +102,22 @@ function FeedPage() {
       <CommunityTokenTeaser />
 
       <GenesisPassCard />
+
+      <Link
+        to="/arcade"
+        className="launch-rise relative flex items-center justify-between overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-fuchsia-500/10 via-black to-cyan-400/10 px-4 py-4 transition hover:border-fuchsia-400/60"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid size-10 place-items-center rounded-xl bg-fuchsia-500/20 text-fuchsia-300">
+            <Gamepad2 className="size-5" aria-hidden="true" />
+          </div>
+          <div className="leading-tight">
+            <p className="font-display text-sm font-black uppercase tracking-wider">Neon Arcade Hub</p>
+            <p className="text-[11px] text-white/50">Games, tournaments & daily challenges</p>
+          </div>
+        </div>
+        <span className="font-mono text-[11px] uppercase tracking-widest text-fuchsia-300">Play →</span>
+      </Link>
 
       <LaunchMetrics launches={launches} className="launch-rise" />
 
