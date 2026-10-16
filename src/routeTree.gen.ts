@@ -22,6 +22,7 @@ import { Route as HomeRouteImport } from './routes/home'
 import { Route as LaunchRouteImport } from './routes/launch'
 import { Route as LaunchesRouteImport } from './routes/launches'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as MoonshotRouteImport } from './routes/moonshot'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as PredictionsRouteImport } from './routes/predictions'
@@ -37,6 +38,7 @@ import { Route as ProfileIndexRouteImport } from './routes/profile.index'
 import { Route as ProfileAddressRouteImport } from './routes/profile.$address'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
+import { Route as MoonshotCIdRouteImport } from './routes/moonshot_.c.$id'
 import { Route as ApiPublicCommerceWebhookRouteImport } from './routes/api/public/commerce/webhook'
 import { Route as ApiPublicMoonshotActionRouteImport } from './routes/api/public/moonshot.$action'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -104,6 +106,11 @@ const LaunchesRoute = LaunchesRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MoonshotRoute = MoonshotRouteImport.update({
+  id: '/moonshot',
+  path: '/moonshot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlayRoute = PlayRouteImport.update({
@@ -181,6 +188,11 @@ const ApiPublicTrackRoute = ApiPublicTrackRouteImport.update({
   path: '/api/public/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MoonshotCIdRoute = MoonshotCIdRouteImport.update({
+  id: '/moonshot_/c/$id',
+  path: '/moonshot/c/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCommerceWebhookRoute =
   ApiPublicCommerceWebhookRouteImport.update({
     id: '/api/public/commerce/webhook',
@@ -213,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/launch': typeof LaunchRoute
   '/launches': typeof LaunchesRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/moonshot': typeof MoonshotRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/predictions': typeof PredictionsRoute
@@ -228,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/settings/profile': typeof SettingsProfileRoute
   '/profile/': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/moonshot/c/$id': typeof MoonshotCIdRoute
   '/api/public/commerce/webhook': typeof ApiPublicCommerceWebhookRoute
   '/api/public/moonshot/$action': typeof ApiPublicMoonshotActionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -246,6 +260,7 @@ export interface FileRoutesByTo {
   '/launch': typeof LaunchRoute
   '/launches': typeof LaunchesRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/moonshot': typeof MoonshotRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/predictions': typeof PredictionsRoute
@@ -260,6 +275,7 @@ export interface FileRoutesByTo {
   '/settings/profile': typeof SettingsProfileRoute
   '/profile': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/moonshot/c/$id': typeof MoonshotCIdRoute
   '/api/public/commerce/webhook': typeof ApiPublicCommerceWebhookRoute
   '/api/public/moonshot/$action': typeof ApiPublicMoonshotActionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -279,6 +295,7 @@ export interface FileRoutesById {
   '/launch': typeof LaunchRoute
   '/launches': typeof LaunchesRoute
   '/leaderboard': typeof LeaderboardRoute
+  '/moonshot': typeof MoonshotRoute
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/predictions': typeof PredictionsRoute
@@ -294,6 +311,7 @@ export interface FileRoutesById {
   '/settings/profile': typeof SettingsProfileRoute
   '/profile/': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
+  '/moonshot_/c/$id': typeof MoonshotCIdRoute
   '/api/public/commerce/webhook': typeof ApiPublicCommerceWebhookRoute
   '/api/public/moonshot/$action': typeof ApiPublicMoonshotActionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -314,6 +332,7 @@ export interface FileRouteTypes {
     | '/launch'
     | '/launches'
     | '/leaderboard'
+    | '/moonshot'
     | '/play'
     | '/points'
     | '/predictions'
@@ -329,6 +348,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/profile/'
     | '/api/public/track'
+    | '/moonshot/c/$id'
     | '/api/public/commerce/webhook'
     | '/api/public/moonshot/$action'
     | '/api/public/payments/webhook'
@@ -347,6 +367,7 @@ export interface FileRouteTypes {
     | '/launch'
     | '/launches'
     | '/leaderboard'
+    | '/moonshot'
     | '/play'
     | '/points'
     | '/predictions'
@@ -361,6 +382,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/profile'
     | '/api/public/track'
+    | '/moonshot/c/$id'
     | '/api/public/commerce/webhook'
     | '/api/public/moonshot/$action'
     | '/api/public/payments/webhook'
@@ -379,6 +401,7 @@ export interface FileRouteTypes {
     | '/launch'
     | '/launches'
     | '/leaderboard'
+    | '/moonshot'
     | '/play'
     | '/points'
     | '/predictions'
@@ -394,6 +417,7 @@ export interface FileRouteTypes {
     | '/settings/profile'
     | '/profile/'
     | '/api/public/track'
+    | '/moonshot_/c/$id'
     | '/api/public/commerce/webhook'
     | '/api/public/moonshot/$action'
     | '/api/public/payments/webhook'
@@ -413,6 +437,7 @@ export interface RootRouteChildren {
   LaunchRoute: typeof LaunchRoute
   LaunchesRoute: typeof LaunchesRoute
   LeaderboardRoute: typeof LeaderboardRoute
+  MoonshotRoute: typeof MoonshotRoute
   PlayRoute: typeof PlayRoute
   PointsRoute: typeof PointsRoute
   PredictionsRoute: typeof PredictionsRoute
@@ -426,6 +451,7 @@ export interface RootRouteChildren {
   LaunchesNewRoute: typeof LaunchesNewRoute
   SettingsProfileRoute: typeof SettingsProfileRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
+  MoonshotCIdRoute: typeof MoonshotCIdRoute
   ApiPublicCommerceWebhookRoute: typeof ApiPublicCommerceWebhookRoute
   ApiPublicMoonshotActionRoute: typeof ApiPublicMoonshotActionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -522,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/moonshot': {
+      id: '/moonshot'
+      path: '/moonshot'
+      fullPath: '/moonshot'
+      preLoaderRoute: typeof MoonshotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/play': {
@@ -629,6 +662,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/moonshot_/c/$id': {
+      id: '/moonshot_/c/$id'
+      path: '/moonshot/c/$id'
+      fullPath: '/moonshot/c/$id'
+      preLoaderRoute: typeof MoonshotCIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/commerce/webhook': {
       id: '/api/public/commerce/webhook'
       path: '/api/public/commerce/webhook'
@@ -680,6 +720,7 @@ const rootRouteChildren: RootRouteChildren = {
   LaunchRoute: LaunchRoute,
   LaunchesRoute: LaunchesRoute,
   LeaderboardRoute: LeaderboardRoute,
+  MoonshotRoute: MoonshotRoute,
   PlayRoute: PlayRoute,
   PointsRoute: PointsRoute,
   PredictionsRoute: PredictionsRoute,
@@ -693,6 +734,7 @@ const rootRouteChildren: RootRouteChildren = {
   LaunchesNewRoute: LaunchesNewRoute,
   SettingsProfileRoute: SettingsProfileRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
+  MoonshotCIdRoute: MoonshotCIdRoute,
   ApiPublicCommerceWebhookRoute: ApiPublicCommerceWebhookRoute,
   ApiPublicMoonshotActionRoute: ApiPublicMoonshotActionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
