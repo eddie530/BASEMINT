@@ -77,7 +77,7 @@ const steal = await b.call("cash", { id: dup[0].data.id });
 check("other pilot cannot cash my round", steal.status === 404);
 
 // Fly all ten rounds (auto 1.5 banks or rugs server-side).
-let last;
+let last, paid = 0;
 for (let i = 0; i < 10; i++) {
   let r = i === 0 ? dup[0].data : (await a.call("start", { auto: 1.5, key: crypto.randomUUID() })).data;
   while (r.status === "flying") {
@@ -86,11 +86,11 @@ for (let i = 0; i < 10; i++) {
   }
   if (i === 0) check("seed revealed after resolution", typeof r.seed === "string" && r.seed.length === 64);
   last = r;
+  paid += r.payout;
 }
 const st = await a.call("state");
-const expected = 1000 - 1000 + 0; // payouts vary; check invariant below
 check("ten rounds used", st.data.daily.used === 10 && st.data.daily.completed === 10, JSON.stringify(st.data.daily));
-check("balance is 1000 - 10x100 + payouts", st.data.daily.balance === last.balance && st.data.daily.balance >= expected);
+check("balance is 1000 - 10x100 + payouts", st.data.daily.balance === paid, `${st.data.daily.balance} vs ${paid}`);
 const eleventh = await a.call("start", { auto: null, key: crypto.randomUUID() });
 check("eleventh ranked flight is refused", eleventh.status === 409, eleventh.data?.error);
 
