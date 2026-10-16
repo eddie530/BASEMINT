@@ -57,7 +57,7 @@ function ArcadePage() {
             <div className="grid size-10 place-items-center rounded-xl bg-blue-500/15 text-blue-300"><Rocket className="size-5" /></div>
             <div className="leading-tight">
               <p className="font-display text-sm font-black uppercase tracking-wider">MOONSHOT</p>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Daily flights · Play money · Live</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Daily flights · Live</p>
             </div>
           </div>
           <span className="font-mono text-[11px] uppercase tracking-widest text-blue-300">Play →</span>
