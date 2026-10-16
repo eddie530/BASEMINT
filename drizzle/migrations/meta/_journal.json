@@ -8,6 +8,13 @@
       "when": 1792125000921,
       "tag": "0000_moonshot_game",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792165192425,
+      "tag": "0001_lock_profiles_server_only",
+      "breakpoints": true
     }
   ]
 }
