@@ -7,8 +7,8 @@ import {
   type TransactionReceipt,
 } from "viem";
 import { base } from "viem/chains";
-import { PACK } from "./shared";
-import { GameError } from "./league.server";
+import { PACK } from "../shared";
+import { GameError } from "./errors";
 export const chainClient = createPublicClient({
   chain: base,
   transport: http(process.env.BASE_RPC_URL || "https://mainnet.base.org", {

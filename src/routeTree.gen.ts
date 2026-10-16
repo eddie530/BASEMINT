@@ -38,6 +38,7 @@ import { Route as ProfileAddressRouteImport } from './routes/profile.$address'
 import { Route as SettingsProfileRouteImport } from './routes/settings.profile'
 import { Route as ApiPublicTrackRouteImport } from './routes/api/public/track'
 import { Route as ApiPublicCommerceWebhookRouteImport } from './routes/api/public/commerce/webhook'
+import { Route as ApiPublicMoonshotActionRouteImport } from './routes/api/public/moonshot.$action'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -186,6 +187,11 @@ const ApiPublicCommerceWebhookRoute =
     path: '/api/public/commerce/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMoonshotActionRoute = ApiPublicMoonshotActionRouteImport.update({
+  id: '/api/public/moonshot/$action',
+  path: '/api/public/moonshot/$action',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/profile/': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/api/public/commerce/webhook': typeof ApiPublicCommerceWebhookRoute
+  '/api/public/moonshot/$action': typeof ApiPublicMoonshotActionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/api/public/commerce/webhook': typeof ApiPublicCommerceWebhookRoute
+  '/api/public/moonshot/$action': typeof ApiPublicMoonshotActionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/profile/': typeof ProfileIndexRoute
   '/api/public/track': typeof ApiPublicTrackRoute
   '/api/public/commerce/webhook': typeof ApiPublicCommerceWebhookRoute
+  '/api/public/moonshot/$action': typeof ApiPublicMoonshotActionRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -321,6 +330,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/api/public/track'
     | '/api/public/commerce/webhook'
+    | '/api/public/moonshot/$action'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/api/public/track'
     | '/api/public/commerce/webhook'
+    | '/api/public/moonshot/$action'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/profile/'
     | '/api/public/track'
     | '/api/public/commerce/webhook'
+    | '/api/public/moonshot/$action'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -415,6 +427,7 @@ export interface RootRouteChildren {
   SettingsProfileRoute: typeof SettingsProfileRoute
   ApiPublicTrackRoute: typeof ApiPublicTrackRoute
   ApiPublicCommerceWebhookRoute: typeof ApiPublicCommerceWebhookRoute
+  ApiPublicMoonshotActionRoute: typeof ApiPublicMoonshotActionRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -623,6 +636,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCommerceWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/moonshot/$action': {
+      id: '/api/public/moonshot/$action'
+      path: '/api/public/moonshot/$action'
+      fullPath: '/api/public/moonshot/$action'
+      preLoaderRoute: typeof ApiPublicMoonshotActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -674,6 +694,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsProfileRoute: SettingsProfileRoute,
   ApiPublicTrackRoute: ApiPublicTrackRoute,
   ApiPublicCommerceWebhookRoute: ApiPublicCommerceWebhookRoute,
+  ApiPublicMoonshotActionRoute: ApiPublicMoonshotActionRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport

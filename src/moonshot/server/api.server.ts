@@ -8,7 +8,7 @@ import { recoverMessageAddress, isAddress, type Hex } from "viem";
 import { createSiweMessage } from "viem/siwe";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { PACK, LOOKS, utcDay, weekStart, type Challenge, type Pilot } from "../shared";
-import { chainClient, paymentProof } from "./payments.server";
+import { chainClient, paymentProof } from "./payments";
 import { GameError } from "./errors";
 
 const db = () => supabaseAdmin as any; // moonshot tables are service-role only
