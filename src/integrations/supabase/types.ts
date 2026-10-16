@@ -86,6 +86,302 @@ export type Database = {
         }
         Relationships: []
       }
+      moonshot_days: {
+        Row: {
+          balance: number
+          completed: number
+          day: string
+          finished_at: string | null
+          pilot_id: string
+          used: number
+        }
+        Insert: {
+          balance?: number
+          completed?: number
+          day: string
+          finished_at?: string | null
+          pilot_id: string
+          used?: number
+        }
+        Update: {
+          balance?: number
+          completed?: number
+          day?: string
+          finished_at?: string | null
+          pilot_id?: string
+          used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moonshot_days_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moonshot_entitlements: {
+        Row: {
+          order_id: string
+          pack: string
+          pilot_id: string
+        }
+        Insert: {
+          order_id: string
+          pack: string
+          pilot_id: string
+        }
+        Update: {
+          order_id?: string
+          pack?: string
+          pilot_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moonshot_entitlements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "moonshot_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moonshot_entitlements_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moonshot_friends: {
+        Row: {
+          friend_id: string
+          pilot_id: string
+        }
+        Insert: {
+          friend_id: string
+          pilot_id: string
+        }
+        Update: {
+          friend_id?: string
+          pilot_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moonshot_friends_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moonshot_friends_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moonshot_limits: {
+        Row: {
+          count: number
+          expires_ms: number
+          key: string
+        }
+        Insert: {
+          count: number
+          expires_ms: number
+          key: string
+        }
+        Update: {
+          count?: number
+          expires_ms?: number
+          key?: string
+        }
+        Relationships: []
+      }
+      moonshot_nonces: {
+        Row: {
+          address: string
+          browser_hash: string
+          expires_at: string
+          id: string
+          message: string
+        }
+        Insert: {
+          address: string
+          browser_hash: string
+          expires_at: string
+          id: string
+          message: string
+        }
+        Update: {
+          address?: string
+          browser_hash?: string
+          expires_at?: string
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
+      moonshot_orders: {
+        Row: {
+          created_ms: number
+          expires_ms: number
+          id: string
+          payer: string
+          pilot_id: string
+          start_block: number
+          status: string
+          tx_hash: string | null
+        }
+        Insert: {
+          created_ms: number
+          expires_ms: number
+          id: string
+          payer: string
+          pilot_id: string
+          start_block: number
+          status?: string
+          tx_hash?: string | null
+        }
+        Update: {
+          created_ms?: number
+          expires_ms?: number
+          id?: string
+          payer?: string
+          pilot_id?: string
+          start_block?: number
+          status?: string
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moonshot_orders_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moonshot_pilots: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          equipped: string
+          fid: number | null
+          id: string
+          name: string
+          wallet: string | null
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          equipped?: string
+          fid?: number | null
+          id: string
+          name: string
+          wallet?: string | null
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          equipped?: string
+          fid?: number | null
+          id?: string
+          name?: string
+          wallet?: string | null
+        }
+        Relationships: []
+      }
+      moonshot_rounds: {
+        Row: {
+          auto: number | null
+          commitment: string
+          crash: number
+          day: string
+          id: string
+          multiplier: number | null
+          number: number
+          payout: number
+          pilot_id: string
+          request_key: string
+          secret: string
+          settled_at: string | null
+          start_ms: number
+          status: string
+        }
+        Insert: {
+          auto?: number | null
+          commitment: string
+          crash: number
+          day: string
+          id: string
+          multiplier?: number | null
+          number: number
+          payout?: number
+          pilot_id: string
+          request_key: string
+          secret: string
+          settled_at?: string | null
+          start_ms: number
+          status?: string
+        }
+        Update: {
+          auto?: number | null
+          commitment?: string
+          crash?: number
+          day?: string
+          id?: string
+          multiplier?: number | null
+          number?: number
+          payout?: number
+          pilot_id?: string
+          request_key?: string
+          secret?: string
+          settled_at?: string | null
+          start_ms?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moonshot_rounds_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moonshot_sessions: {
+        Row: {
+          expires_at: string
+          pilot_id: string
+          token_hash: string
+        }
+        Insert: {
+          expires_at: string
+          pilot_id: string
+          token_hash: string
+        }
+        Update: {
+          expires_at?: string
+          pilot_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moonshot_sessions_pilot_id_fkey"
+            columns: ["pilot_id"]
+            isOneToOne: false
+            referencedRelation: "moonshot_pilots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_events: {
         Row: {
           created_at: string
@@ -585,6 +881,83 @@ export type Database = {
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
+      }
+      moonshot__crash: { Args: { p_secret: string }; Returns: number }
+      moonshot__day: { Args: { p_ms: number }; Returns: string }
+      moonshot__mult: {
+        Args: { p_now: number; p_start: number }
+        Returns: number
+      }
+      moonshot__now_ms: { Args: never; Returns: number }
+      moonshot__settle: {
+        Args: { p_cash: boolean; p_id: string; p_now: number }
+        Returns: {
+          auto: number | null
+          commitment: string
+          crash: number
+          day: string
+          id: string
+          multiplier: number | null
+          number: number
+          payout: number
+          pilot_id: string
+          request_key: string
+          secret: string
+          settled_at: string | null
+          start_ms: number
+          status: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "moonshot_rounds"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      moonshot__view: {
+        Args: {
+          p_now: number
+          r: Database["public"]["Tables"]["moonshot_rounds"]["Row"]
+        }
+        Returns: Json
+      }
+      moonshot_create_order: {
+        Args: { p_payer: string; p_pilot: string; p_start_block: number }
+        Returns: Json
+      }
+      moonshot_daily_state: { Args: { p_pilot: string }; Returns: Json }
+      moonshot_farcaster_pilot: {
+        Args: { p_avatar: string; p_fid: number; p_name: string }
+        Returns: string
+      }
+      moonshot_hit_limit: {
+        Args: { p_key: string; p_max: number }
+        Returns: boolean
+      }
+      moonshot_leaderboard: {
+        Args: {
+          p_friends: boolean
+          p_from: string
+          p_pilot: string
+          p_to: string
+        }
+        Returns: Json
+      }
+      moonshot_read_round: {
+        Args: { p_cash: boolean; p_id: string; p_pilot: string }
+        Returns: Json
+      }
+      moonshot_settle_payment: {
+        Args: { p_hash: string; p_order: string; p_pilot: string }
+        Returns: boolean
+      }
+      moonshot_start_round: {
+        Args: { p_auto: number; p_key: string; p_pilot: string }
+        Returns: Json
+      }
+      moonshot_wallet_pilot: {
+        Args: { p_address: string; p_current: string }
+        Returns: string
       }
     }
     Enums: {

@@ -1,0 +1,1 @@
+- MOONSHOT game lives in src/moonshot (scoped CSS under .moonshot-root) and its API at /api/public/moonshot/$action; all ranked state is in service-role-only moonshot_* tables mutated through moonshot_* SQL functions — keeps scoring atomic and secrets server-side.

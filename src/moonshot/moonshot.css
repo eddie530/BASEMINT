@@ -1,0 +1,1331 @@
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource/instrument-serif/400.css";
+/* MOONSHOT styles — every selector scoped under .moonshot-root so BaseMint is unaffected. */
+.moonshot-root {
+  color-scheme: dark;
+  --bg: #080b12;
+  --surface: #101621;
+  --raised: #151e2c;
+  --ink: #edf2fc;
+  --muted: #8f9db2;
+  --line: #253044;
+  --accent: #4785ff;
+  --accent-ink: #fff;
+  --danger: #f58c91;
+  --font-mono: "IBM Plex Mono", monospace;
+  --font-display: "Instrument Serif", Georgia, serif;
+}
+.moonshot-root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f0f3f9;
+  --surface: #fff;
+  --raised: #e8eef8;
+  --ink: #172437;
+  --muted: #5f6f85;
+  --line: #ced7e6;
+  --accent: #265bc0;
+  --danger: #a7334a;
+}
+.moonshot-root[data-look="acid"] {
+  --accent: #d4fa59;
+  --accent-ink: #18200c;
+}
+.moonshot-root[data-look="ember"] {
+  --accent: #ff976b;
+  --accent-ink: #29170c;
+}
+.moonshot-root[data-look="violet"] {
+  --accent: #ba9cff;
+  --accent-ink: #211633;
+}
+.moonshot-root, .moonshot-root * {
+  box-sizing: border-box;
+}
+.moonshot-root,
+.moonshot-root {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+}
+.moonshot-root {
+  font: 13px/1.6 var(--font-mono);
+  text-rendering: optimizeLegibility;
+}
+.moonshot-root button,
+.moonshot-root input,
+.moonshot-root select {
+  font: inherit;
+}
+.moonshot-root button {
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.moonshot-root button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+.moonshot-root button:focus-visible,
+.moonshot-root a:focus-visible,
+.moonshot-root input:focus-visible,
+.moonshot-root select:focus-visible,
+.moonshot-root summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+.moonshot-root a {
+  color: inherit;
+}
+.moonshot-root button {
+  border: 0;
+  background: none;
+}
+.moonshot-root p,
+.moonshot-root h1,
+.moonshot-root h2,
+.moonshot-root h3 {
+  margin: 0;
+}
+.moonshot-root svg {
+  flex-shrink: 0;
+}
+.moonshot-root h2 {
+  font: italic 32px/1.15 var(--font-display);
+  letter-spacing: -0.5px;
+}
+.moonshot-root h3 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.moonshot-root input,
+.moonshot-root select {
+  min-height: 40px;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.moonshot-root input {
+  min-width: 0;
+}
+.moonshot-root select {
+  min-width: 112px;
+}
+.moonshot-root input::placeholder {
+  color: var(--muted);
+}
+.moonshot-root .moonshot-app {
+  max-width: 1272px;
+  margin: auto;
+  padding: 0 36px;
+  padding-top: var(--mini-top, 0px);
+}
+.moonshot-root .app-header {
+  height: 88px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  gap: 28px;
+}
+.moonshot-root .wordmark {
+  font: italic 39px/0.9 var(--font-display);
+  text-decoration: none;
+  letter-spacing: -1.3px;
+  white-space: nowrap;
+}
+.moonshot-root .brand-orbit {
+  font: 24px var(--font-mono);
+  display: inline-block;
+  color: var(--accent);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.moonshot-root .header-caption,
+.moonshot-root .eyebrow {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+}
+.moonshot-root .header-caption {
+  border-left: 1px solid var(--line);
+  padding-left: 26px;
+  letter-spacing: 1.6px;
+}
+.moonshot-root .header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.moonshot-root .icon-button {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+.moonshot-root .icon-button:hover {
+  background: var(--raised);
+}
+.moonshot-root .pilot-button {
+  border: 1px solid var(--line);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 11px;
+  max-width: 210px;
+}
+.moonshot-root .pilot-button span:not(.avatar) {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.moonshot-root .pilot-button .avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 9px;
+}
+.moonshot-root .masthead {
+  padding: 34px 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.moonshot-root .masthead h1 {
+  font: italic 60px/1.05 var(--font-display);
+  letter-spacing: -1.4px;
+  margin: 12px 0;
+}
+.moonshot-root .masthead p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.moonshot-root .live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.moonshot-root .live-dot.active {
+  box-shadow: 0 0 12px var(--accent);
+}
+.moonshot-root .reset-clock {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.moonshot-root .reset-clock strong {
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: 1px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.moonshot-root .reset-clock > span:last-child {
+  font-size: 10px;
+  color: var(--muted);
+}
+.moonshot-root .main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 26px;
+}
+.moonshot-root .play-column,
+.moonshot-root .side-column {
+  min-width: 0;
+}
+.moonshot-root .side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.moonshot-root .game-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+.moonshot-root .segmented {
+  display: inline-flex;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  gap: 3px;
+  background: var(--surface);
+}
+.moonshot-root .segmented button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.moonshot-root .segmented button[aria-pressed="true"] {
+  background: var(--raised);
+  color: var(--ink);
+  box-shadow: 0 1px 3px #0002;
+}
+.moonshot-root .segmented button span {
+  color: var(--muted);
+}
+.moonshot-root .subtle-button {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+  min-height: 36px;
+}
+.moonshot-root .subtle-button:hover,
+.moonshot-root .subtle-button.selected {
+  color: var(--ink);
+}
+.moonshot-root .game-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.moonshot-root .stage-meta {
+  padding: 16px 20px 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.8px;
+  gap: 12px;
+}
+.moonshot-root .flight-stage {
+  height: 365px;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+.moonshot-root .flight-stage canvas {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+.moonshot-root .multiplier {
+  position: absolute;
+  top: 30px;
+  left: 32px;
+  pointer-events: none;
+}
+.moonshot-root .multiplier > span {
+  font-size: 64px;
+  line-height: 1.1;
+  letter-spacing: -4px;
+  font-weight: 400;
+  display: block;
+  font-variant-numeric: tabular-nums;
+}
+.moonshot-root .multiplier p {
+  font-size: 10px;
+  margin-top: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1px;
+}
+.moonshot-root .multiplier.lost > span {
+  color: var(--danger);
+}
+.moonshot-root .stage-corner {
+  position: absolute;
+  right: 22px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--muted);
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: var(--bg);
+}
+.moonshot-root .stack-strip {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.moonshot-root .stack-strip > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.moonshot-root .stack-strip strong {
+  font-size: 25px;
+  line-height: 1.25;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.moonshot-root .stack-strip small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.moonshot-root .flight-dots {
+  display: flex;
+  gap: 5px;
+}
+.moonshot-root .flight-dots > span:not(.practice-mark) {
+  width: 7px;
+  height: 24px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.moonshot-root .flight-dots .complete {
+  background: var(--accent) !important;
+}
+.moonshot-root .flight-dots .in-flight {
+  border: 1px solid var(--accent);
+  background: transparent !important;
+}
+.moonshot-root .practice-mark {
+  font-size: 28px;
+  color: var(--muted);
+}
+.moonshot-root .flight-controls {
+  padding: 18px 22px 16px;
+}
+.moonshot-root .control-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 13px;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.moonshot-root .control-line label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.moonshot-root .chips {
+  display: flex;
+  gap: 5px;
+}
+.moonshot-root .chips button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  min-width: 44px;
+  min-height: 35px;
+  font-size: 11px;
+}
+.moonshot-root .chips button[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--raised);
+}
+.moonshot-root .fixed-stake {
+  font-size: 12px;
+  color: var(--ink);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 400;
+}
+.moonshot-root .launch-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  min-height: 55px;
+  padding: 14px 20px;
+  border-radius: 9px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: filter 0.15s;
+}
+.moonshot-root .launch-button:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.moonshot-root .bank-button {
+  box-shadow: 0 0 24px #4785ff22;
+}
+.moonshot-root .control-caption {
+  text-align: center;
+  font-size: 9px;
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.moonshot-root .below-game {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.moonshot-root .below-game > span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.moonshot-root .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  min-height: 32px;
+  text-align: left;
+  padding: 0;
+}
+.moonshot-root .text-button:hover {
+  color: var(--ink);
+}
+.moonshot-root .panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.moonshot-root .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.moonshot-root .section-heading > .lucide {
+  color: var(--muted);
+}
+.moonshot-root .section-heading h2 {
+  margin-top: 8px;
+}
+.moonshot-root .board-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 20px 0 10px;
+  gap: 8px;
+}
+.moonshot-root .compact button {
+  padding: 6px 10px;
+  font-size: 10px;
+}
+.moonshot-root .fine {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.moonshot-root .board-table {
+  margin-top: 16px;
+}
+.moonshot-root .board-head {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 9px;
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.9px;
+}
+.moonshot-root .board-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 10px;
+}
+.moonshot-root .board-row.you {
+  color: var(--accent);
+}
+.moonshot-root .rank {
+  color: var(--muted);
+  width: 18px;
+}
+.moonshot-root .avatar {
+  height: 29px;
+  width: 29px;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  background: var(--raised);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.moonshot-root .pilot-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.moonshot-root .pilot-name small {
+  font-size: 8px;
+  margin-left: 5px;
+  color: var(--muted);
+}
+.moonshot-root .board-row strong {
+  font-weight: 500;
+}
+.moonshot-root .empty-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 8px 22px;
+  text-align: center;
+  color: var(--muted);
+  gap: 10px;
+}
+.moonshot-root .empty-board strong {
+  font-size: 11px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.moonshot-root .empty-board p {
+  font-size: 10px;
+  line-height: 1.7;
+  max-width: 240px;
+}
+.moonshot-root .empty-board .lucide {
+  stroke-width: 1.2;
+  margin-bottom: 3px;
+}
+.moonshot-root .board-bottom {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding-top: 13px;
+  color: var(--muted);
+  font-size: 8px;
+}
+.moonshot-root .friends-panel {
+  padding-top: 18px;
+  padding-bottom: 16px;
+}
+.moonshot-root .friends-panel > .fine {
+  margin: 8px 0 10px;
+}
+.moonshot-root .friend-form {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  padding-right: 4px;
+}
+.moonshot-root .friend-form input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  font-size: 10px;
+  background: none;
+}
+.moonshot-root .friend-row {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  font-size: 10px;
+  margin-top: 8px;
+}
+.moonshot-root .friend-row > span:not(.avatar) {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.moonshot-root .friends-panel > .text-button {
+  margin-top: 8px;
+}
+.moonshot-root .panel-description {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 12px 0 18px;
+  line-height: 1.8;
+}
+.moonshot-root .look-preview {
+  position: relative;
+  background: var(--bg);
+  padding: 14px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  height: 140px;
+  overflow: hidden;
+}
+.moonshot-root .look-preview > span:first-child {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  color: var(--preview-color);
+}
+.moonshot-root .look-preview svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  bottom: -6px;
+}
+.moonshot-root .preview-grid {
+  stroke: var(--line);
+  stroke-width: 0.5;
+  fill: none;
+}
+.moonshot-root .preview-glow {
+  stroke: var(--preview-color);
+  stroke-width: 7;
+  opacity: 0.15;
+  fill: none;
+}
+.moonshot-root .preview-line {
+  stroke: var(--preview-color);
+  stroke-width: 2;
+  fill: none;
+}
+.moonshot-root .look-preview circle {
+  fill: var(--preview-color);
+}
+.moonshot-root .preview-label {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.moonshot-root .look-swatches {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 14px 0;
+}
+.moonshot-root .look-swatches button {
+  height: 27px;
+  width: 27px;
+  border-radius: 50%;
+  position: relative;
+  padding: 4px;
+  border: 1px solid transparent;
+}
+.moonshot-root .look-swatches button[aria-pressed="true"] {
+  border-color: var(--swatch);
+}
+.moonshot-root .look-swatches button > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 50%;
+  background: var(--swatch);
+}
+.moonshot-root .look-swatches button svg {
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  color: #080b12;
+}
+.moonshot-root .look-swatches > span {
+  font-size: 9px;
+  color: var(--muted);
+  margin-left: auto;
+}
+.moonshot-root .secondary-button {
+  border: 1px solid var(--line);
+  background: var(--raised);
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 11px;
+  min-height: 42px;
+}
+.moonshot-root .secondary-button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+.moonshot-root .full {
+  width: 100%;
+}
+.moonshot-root .centered {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 9px;
+}
+.moonshot-root .personal-stats {
+  display: flex;
+  gap: 30px;
+  margin: 14px 0;
+}
+.moonshot-root .personal-stats > div {
+  display: flex;
+  flex-direction: column;
+}
+.moonshot-root .personal-stats strong {
+  font-size: 23px;
+  font-weight: 400;
+}
+.moonshot-root .personal-stats span {
+  font-size: 9px;
+  color: var(--muted);
+}
+.moonshot-root .badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.moonshot-root .badge-row > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-size: 8px;
+  color: var(--muted);
+  opacity: 0.5;
+}
+.moonshot-root .badge-row .earned {
+  color: var(--accent);
+  opacity: 1;
+}
+.moonshot-root .history {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  overflow: hidden;
+  padding: 16px 0 0;
+  white-space: nowrap;
+  font-size: 10px;
+  color: var(--muted);
+}
+.moonshot-root .history > span:first-child {
+  font-size: 8px;
+  letter-spacing: 0.8px;
+}
+.moonshot-root .history .positive {
+  color: var(--ink);
+}
+.moonshot-root .result-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.moonshot-root .result-card h3 {
+  font: italic 27px var(--font-display);
+  margin: 5px 0;
+}
+.moonshot-root .result-card p {
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.moonshot-root .round-proof {
+  width: 100%;
+  font-size: 9px;
+  color: var(--muted);
+}
+.moonshot-root .round-proof summary {
+  cursor: pointer;
+  min-height: 24px;
+  display: list-item;
+}
+.moonshot-root .round-proof p {
+  margin: 12px 0;
+}
+.moonshot-root .round-proof code {
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+  display: block;
+  padding: 10px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+.moonshot-root .finished-card {
+  display: flex;
+  gap: 14px;
+  padding: 20px;
+  margin-top: 16px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.moonshot-root .finished-card > .lucide {
+  color: var(--accent);
+}
+.moonshot-root .finished-card > div {
+  flex: 1;
+  min-width: 180px;
+}
+.moonshot-root .finished-card p {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.moonshot-root .challenge-banner {
+  padding: 16px 20px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: var(--surface);
+}
+.moonshot-root .challenge-banner > div {
+  flex: 1;
+}
+.moonshot-root .challenge-banner strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.moonshot-root .challenge-banner p {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.moonshot-root .app-footer {
+  margin-top: 32px;
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  color: var(--muted);
+}
+.moonshot-root .footer-dot {
+  padding: 0 8px;
+}
+.moonshot-root .feedback {
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.moonshot-root .feedback.error {
+  border-color: #f58c9166;
+  color: var(--danger);
+}
+.moonshot-root .feedback.error > span {
+  flex: 1;
+}
+.moonshot-root .feedback.success {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+.moonshot-root .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #02050bcc;
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.moonshot-root .modal {
+  width: 100%;
+  max-width: 510px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  padding: 26px;
+  box-shadow: 0 28px 100px #0005;
+}
+.moonshot-root .modal:focus {
+  outline: none;
+}
+.moonshot-root .modal h2 {
+  font-size: 35px;
+}
+.moonshot-root .modal p {
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+  margin: 18px 0;
+}
+.moonshot-root .modal .secondary-button {
+  margin: 8px 0;
+}
+.moonshot-root .modal .launch-button {
+  margin-top: 18px;
+}
+.moonshot-root .modal .inline-error {
+  color: var(--danger);
+  border: 1px solid #f58c9155;
+  padding: 10px;
+  border-radius: 8px;
+}
+.moonshot-root .identity-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: 8px;
+}
+.moonshot-root .identity-card div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.moonshot-root .identity-card p {
+  margin: 4px 0 0;
+  font-size: 9px;
+}
+.moonshot-root .rules-list {
+  padding-left: 22px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.9;
+  margin: 22px 0;
+}
+.moonshot-root .rules-list li {
+  padding: 5px 0 5px 4px;
+}
+.moonshot-root .rules-list strong {
+  color: var(--ink);
+}
+.moonshot-root .checkout-details {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.moonshot-root .checkout-details > div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  padding: 6px 0;
+}
+.moonshot-root .checkout-details label {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  margin: 14px 0 5px;
+}
+.moonshot-root .checkout-details code {
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.moonshot-root .field-label {
+  display: block;
+  font-size: 10px;
+  margin: 18px 0 8px;
+  color: var(--muted);
+}
+.moonshot-root .full-input {
+  width: 100%;
+  font-size: 10px;
+}
+.moonshot-root .mobile-tabs {
+  display: none;
+}
+.moonshot-root .sr-only {
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+@media (min-width: 1100px) {
+  .moonshot-root .flight-stage {
+    height: 400px;
+  }
+  .moonshot-root .side-column .league-panel {
+    margin-top: 62px;
+  }
+}
+@media (max-width: 1000px) {
+  .moonshot-root .moonshot-app {
+    padding: 0 24px;
+  }
+  .moonshot-root .main-grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 20px;
+  }
+  .moonshot-root .header-caption {
+    display: none;
+  }
+  .moonshot-root .panel {
+    padding: 18px;
+  }
+  .moonshot-root .multiplier > span {
+    font-size: 54px;
+  }
+  .moonshot-root .masthead h1 {
+    font-size: 52px;
+  }
+  .moonshot-root .below-game {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 760px) {
+  .moonshot-root .moonshot-app {
+    padding: 0 16px;
+    padding-top: var(--mini-top, 0px);
+  }
+  .moonshot-root .app-header {
+    height: 72px;
+    gap: 8px;
+  }
+  .moonshot-root .wordmark {
+    font-size: 33px;
+  }
+  .moonshot-root .brand-orbit {
+    font-size: 18px;
+    margin-left: 3px;
+  }
+  .moonshot-root .header-actions {
+    gap: 2px;
+  }
+  .moonshot-root .pilot-button {
+    font-size: 9px;
+    padding: 6px 9px;
+    max-width: 140px;
+  }
+  .moonshot-root .pilot-button .avatar {
+    width: 21px;
+    height: 21px;
+  }
+  .moonshot-root .icon-button {
+    width: 32px;
+    height: 36px;
+  }
+  .moonshot-root .logout {
+    display: none;
+  }
+  .moonshot-root .masthead {
+    padding: 23px 0 20px;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .moonshot-root .masthead h1 {
+    font-size: 43px;
+    margin: 9px 0 8px;
+  }
+  .moonshot-root .masthead > .reset-clock {
+    display: none;
+  }
+  .moonshot-root .masthead .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .moonshot-root .masthead p {
+    font-size: 10px;
+    max-width: 270px;
+  }
+  .moonshot-root .mobile-tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 20px;
+  }
+  .moonshot-root .mobile-tabs button {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 0 6px 12px;
+    font-size: 11px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+  }
+  .moonshot-root .mobile-tabs button[aria-current="page"] {
+    color: var(--ink);
+    border-color: var(--accent);
+  }
+  .moonshot-root .main-grid {
+    display: block;
+  }
+  .moonshot-root .mobile-hidden {
+    display: none !important;
+  }
+  .moonshot-root .game-toolbar {
+    margin-bottom: 12px;
+  }
+  .moonshot-root .segmented button {
+    padding: 7px 10px;
+    font-size: 10px;
+    gap: 7px;
+  }
+  .moonshot-root .subtle-button {
+    font-size: 9px;
+    gap: 4px;
+  }
+  .moonshot-root .stage-meta {
+    padding: 14px 15px 0;
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  .moonshot-root .flight-stage {
+    height: 290px;
+  }
+  .moonshot-root .multiplier {
+    top: 25px;
+    left: 24px;
+  }
+  .moonshot-root .multiplier > span {
+    font-size: 54px;
+  }
+  .moonshot-root .multiplier p {
+    font-size: 9px;
+    max-width: 245px;
+  }
+  .moonshot-root .stack-strip {
+    padding: 15px 18px;
+  }
+  .moonshot-root .stack-strip strong {
+    font-size: 23px;
+  }
+  .moonshot-root .stack-strip .eyebrow {
+    font-size: 8px;
+  }
+  .moonshot-root .flight-controls {
+    padding: 16px 18px 13px;
+  }
+  .moonshot-root .control-line {
+    font-size: 10px;
+    margin-bottom: 12px;
+  }
+  .moonshot-root .control-line label .fine {
+    font-size: 9px;
+  }
+  .moonshot-root .control-caption {
+    font-size: 8px;
+  }
+  .moonshot-root .launch-button {
+    font-size: 13px;
+    min-height: 53px;
+    padding: 14px 16px;
+  }
+  .moonshot-root .flight-dots {
+    gap: 4px;
+  }
+  .moonshot-root .flight-dots > span:not(.practice-mark) {
+    width: 6px;
+    height: 21px;
+  }
+  .moonshot-root .below-game {
+    padding-top: 12px;
+    font-size: 8px;
+    align-items: center;
+  }
+  .moonshot-root .below-game .text-button {
+    font-size: 8px;
+  }
+  .moonshot-root .side-column {
+    gap: 16px;
+  }
+  .moonshot-root .panel {
+    padding: 22px;
+  }
+  .moonshot-root .app-footer {
+    margin-top: 20px;
+    padding: 20px 0;
+    font-size: 8px;
+    gap: 10px;
+  }
+  .moonshot-root .app-footer .text-button {
+    font-size: 8px;
+  }
+  .moonshot-root .challenge-banner {
+    padding: 12px;
+  }
+  .moonshot-root .challenge-banner strong {
+    font-size: 10px;
+  }
+  .moonshot-root .challenge-banner p {
+    font-size: 9px;
+  }
+  .moonshot-root .modal-backdrop {
+    padding: 14px;
+  }
+  .moonshot-root .modal {
+    padding: 21px;
+    max-height: 88dvh;
+  }
+  .moonshot-root .modal h2 {
+    font-size: 30px;
+  }
+  .moonshot-root .result-card {
+    padding: 16px;
+  }
+  .moonshot-root .result-card h3 {
+    font-size: 25px;
+  }
+  .moonshot-root .feedback {
+    font-size: 10px;
+  }
+  .moonshot-root .look-preview {
+    height: 165px;
+  }
+  .moonshot-root .reset-clock strong {
+    font-size: 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .moonshot-root, .moonshot-root * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.moonshot-root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.moonshot-root .back-to-arcade {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  margin-right: 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.moonshot-root .back-to-arcade:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}

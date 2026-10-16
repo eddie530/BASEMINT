@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MiniAppShell } from "@/components/MiniAppShell";
-import { Gamepad2, Zap, Trophy, Sparkles } from "lucide-react";
+import { Gamepad2, Zap, Trophy, Sparkles, Rocket } from "lucide-react";
 
 export const Route = createFileRoute("/arcade")({
   head: () => ({
@@ -49,6 +49,19 @@ function ArcadePage() {
       <section className="space-y-3">
         <h2 className="font-display text-lg font-bold uppercase tracking-widest">Games</h2>
         <GameLink to="/play" icon={<Sparkles className="size-5" />} label="SpinBase" hint="Spin to win · Live" tone="cyan" live />
+        <Link
+          to="/moonshot"
+          className="flex items-center justify-between rounded-2xl border border-blue-500/40 bg-gradient-to-br from-blue-600/15 via-black to-slate-900 px-4 py-4 transition hover:bg-white/5"
+        >
+          <div className="flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-xl bg-blue-500/15 text-blue-300"><Rocket className="size-5" /></div>
+            <div className="leading-tight">
+              <p className="font-display text-sm font-black uppercase tracking-wider">MOONSHOT</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Daily flights · Live</p>
+            </div>
+          </div>
+          <span className="font-mono text-[11px] uppercase tracking-widest text-blue-300">Play →</span>
+        </Link>
         <a
           href="https://base-arcade-quest.lovable.app/"
           target="_blank"

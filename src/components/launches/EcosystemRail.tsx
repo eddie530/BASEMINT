@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Gamepad2,
   Radio,
+  Rocket,
   Sparkles,
   Wallet,
   type LucideIcon,
@@ -41,6 +42,7 @@ const CARDS: EcoCard[] = [
   },
   { label: "SIGNAL-001", blurb: "Genesis release", icon: Sparkles, status: "soon", to: "/launches" },
   { label: "Creator Coins", blurb: "Live on Base", icon: Coins, status: "active", to: "/discover" },
+  { label: "MOONSHOT", blurb: "Daily flight game", icon: Rocket, status: "live", to: "/moonshot" },
   { label: "Mini Apps", blurb: "Arcade & games", icon: Gamepad2, status: "active", to: "/arcade" },
   { label: "Vault", blurb: "Assets & rewards", icon: Wallet, status: "active", to: "/vault" },
 ];

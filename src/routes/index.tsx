@@ -15,6 +15,7 @@ import { CollectionRail } from "@/components/launches/CollectionRail";
 import { LaunchMetrics } from "@/components/launches/LaunchMetrics";
 import { EcosystemRoadmap } from "@/components/launches/EcosystemRoadmap";
 import { EcosystemStatsBar } from "@/components/launches/EcosystemStatsBar";
+import { EcosystemRail } from "@/components/launches/EcosystemRail";
 import { CrossChainNote } from "@/components/launches/CrossChainNote";
 import { CommunityTokenTeaser } from "@/components/launches/CommunityTokenTeaser";
 import { GenesisPassCard } from "@/components/launches/GenesisPassCard";
@@ -124,6 +125,8 @@ function FeedPage() {
       <ReleaseCountdown />
 
       <EcosystemRoadmap />
+
+      <EcosystemRail />
 
       <CrossChainNote />
 
