@@ -1,1 +1,2 @@
 - MOONSHOT game lives in src/moonshot (scoped CSS under .moonshot-root) and its API at /api/public/moonshot/$action; all ranked state is in service-role-only moonshot_* tables mutated through moonshot_* SQL functions — keeps scoring atomic and secrets server-side.
+- MOONSHOT share cards are rasterized to PNG by the dependency-free src/moonshot/server/png.ts (CompressionStream + bitmap font) and challenge meta/fc:miniapp tags are built from the request/MOONSHOT_APP_ORIGIN origin — workerd can't run native image renderers and previews must not point at production.
