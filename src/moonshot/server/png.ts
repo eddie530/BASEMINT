@@ -96,11 +96,11 @@ function chunk(type: string, data: Uint8Array) {
   return out;
 }
 async function deflate(raw: Uint8Array) {
-  const stream = new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate"));
+  const stream = new Blob([raw as Uint8Array<ArrayBuffer>]).stream().pipeThrough(new CompressionStream("deflate"));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 export async function encodePng(c: Canvas) {
-  const raw = new Uint8Array((c.w * 3 + 1) * c.h);
+  const raw: Uint8Array<ArrayBuffer> = new Uint8Array((c.w * 3 + 1) * c.h);
   for (let y = 0; y < c.h; y++) {
     raw[y * (c.w * 3 + 1)] = 0;
     raw.set(c.px.subarray(y * c.w * 3, (y + 1) * c.w * 3), y * (c.w * 3 + 1) + 1);

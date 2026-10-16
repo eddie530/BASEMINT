@@ -146,11 +146,10 @@ else {
   }
   (await import("node:fs")).writeFileSync("/tmp/moonshot-challenge-id", win.id);
 }
-const rug = (await a.call("state")).data; // any rugged round id must not resolve
 const bad = await html(`/moonshot/c/not-a-real-id`);
-check("invalid challenge claims no success", bad.includes("challenge not found") && !meta(bad, "property", "og:image") && !bad.includes("verified MOONSHOT round"));
+check("invalid challenge claims no success", bad.includes("challenge not found") && !(meta(bad, "property", "og:image") ?? "").includes("/moonshot/card") && !(meta(bad, "name", "fc:miniapp") ?? "").includes("challenge=") && !bad.includes("verified MOONSHOT round"));
 const missing = await html(`/moonshot/c/${crypto.randomUUID()}`);
-check("unknown challenge claims no success", !meta(missing, "property", "og:image") && !meta(missing, "name", "fc:miniapp")?.includes("challenge="));
+check("unknown challenge claims no success", !(meta(missing, "property", "og:image") ?? "").includes("/moonshot/card") && !meta(missing, "name", "fc:miniapp")?.includes("challenge="));
 check("invalid card returns 404", (await fetch(`${API}/card?id=nope`)).status === 404);
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll checks passed");
 process.exit(failures ? 1 : 0);

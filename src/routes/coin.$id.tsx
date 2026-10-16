@@ -46,7 +46,7 @@ export const Route = createFileRoute("/coin/$id")({
   ),
   errorComponent: ({ error }) => (
     <MiniAppShell>
-      <p className="text-destructive text-sm">{error.message}</p>
+      <p className="text-destructive text-sm">{error instanceof Error ? error.message : String(error)}</p>
     </MiniAppShell>
   ),
   component: DetailPage,
