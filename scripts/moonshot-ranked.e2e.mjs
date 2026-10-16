@@ -78,6 +78,7 @@ check("other pilot cannot cash my round", steal.status === 404);
 
 // Fly all ten rounds (auto 1.5 banks or rugs server-side).
 let last, paid = 0;
+const cashed = [];
 for (let i = 0; i < 10; i++) {
   let r = i === 0 ? dup[0].data : (await a.call("start", { auto: 1.5, key: crypto.randomUUID() })).data;
   while (r.status === "flying") {
@@ -86,6 +87,7 @@ for (let i = 0; i < 10; i++) {
   }
   if (i === 0) check("seed revealed after resolution", typeof r.seed === "string" && r.seed.length === 64);
   last = r;
+  if (r.status === "cash" && r.multiplier > 1) cashed.push(r);
   paid += r.payout;
 }
 const st = await a.call("state");
@@ -117,5 +119,37 @@ await sleep(4500);
 const rec = await fresh.call("state");
 check("abandoned flight auto-settles on return", rec.data.daily.active === null && rec.data.daily.completed === 1);
 
+// Record disposable pilots so cleanup only ever touches these exact IDs.
+const created = [];
+for (const c of [a, b, fresh]) created.push((await c.call("state")).data.pilot.id);
+(await import("node:fs")).writeFileSync("/tmp/moonshot-test-pilots.json", JSON.stringify(created));
+console.log("disposable pilots:", created.join(","));
+
+// Sharing: successful challenge HTML, PNG, invalid IDs.
+const html = async (path) => (await fetch(`${BASE}${path}`)).text();
+const meta = (h, attr, key) => h.match(new RegExp(`<meta[^>]*${attr}="${key}"[^>]*content="([^"]*)"`))?.[1]?.replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+if (!cashed.length) check("had a successful flight to share", false);
+else {
+  const win = cashed[0];
+  const h = await html(`/moonshot/c/${win.id}`);
+  const og = meta(h, "property", "og:image");
+  check("challenge og:image is PNG card on current origin", og === `${BASE}/api/public/moonshot/card?id=${win.id}`, og);
+  const fc = JSON.parse(meta(h, "name", "fc:miniapp") ?? "null");
+  check("fc:miniapp launches /moonshot?challenge=id", fc?.button?.action?.url === `${BASE}/moonshot?challenge=${win.id}` && fc.button.action.type === "launch_miniapp", JSON.stringify(fc?.button?.action));
+  check("fc:miniapp image is 3:2 embed card", fc?.imageUrl === `${BASE}/api/public/moonshot/card?id=${win.id}&format=embed`);
+  check("challenge title shows banked multiplier", h.includes(`Beat ${win.multiplier.toFixed(2)}×`));
+  for (const [q, hgt] of [["", 630], ["&format=embed", 800]]) {
+    const r = await fetch(`${API}/card?id=${win.id}${q}`);
+    const buf = new Uint8Array(await r.arrayBuffer());
+    const dv = new DataView(buf.buffer);
+    check(`card${q} is image/png 1200x${hgt}`, r.headers.get("content-type") === "image/png" && buf[1] === 80 && dv.getUint32(16) === 1200 && dv.getUint32(20) === hgt);
+  }
+  (await import("node:fs")).writeFileSync("/tmp/moonshot-challenge-id", win.id);
+}
+const bad = await html(`/moonshot/c/not-a-real-id`);
+check("invalid challenge claims no success", bad.includes("challenge not found") && !(meta(bad, "property", "og:image") ?? "").includes("/moonshot/card") && !(meta(bad, "name", "fc:miniapp") ?? "").includes("challenge=") && !bad.includes("verified MOONSHOT round"));
+const missing = await html(`/moonshot/c/${crypto.randomUUID()}`);
+check("unknown challenge claims no success", !(meta(missing, "property", "og:image") ?? "").includes("/moonshot/card") && !meta(missing, "name", "fc:miniapp")?.includes("challenge="));
+check("invalid card returns 404", (await fetch(`${API}/card?id=nope`)).status === 404);
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll checks passed");
 process.exit(failures ? 1 : 0);

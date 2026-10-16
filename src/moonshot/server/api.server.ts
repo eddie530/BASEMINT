@@ -129,7 +129,7 @@ async function limit(key: string, max: number) {
 }
 
 export async function publicChallenge(id: string, origin: string): Promise<Challenge> {
-  if (!/^[a-f0-9-]{36}$/.test(id)) throw new GameError("Challenge not found.", 404);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)) throw new GameError("Challenge not found.", 404);
   const { data: r } = await db()
     .from("moonshot_rounds")
     .select("id,day,multiplier,pilot_id,status")
@@ -258,9 +258,10 @@ export async function handle(req: Request, action: string): Promise<Response> {
         return json(await publicChallenge(url.searchParams.get("id") ?? "", originOf(req)));
       if (action === "card") {
         const c = await publicChallenge(url.searchParams.get("id") ?? "", originOf(req));
-        const { shareCardSvg } = await import("./card.server");
-        return new Response(shareCardSvg(c), {
-          headers: { "content-type": "image/svg+xml", "cache-control": "public,max-age=86400" },
+        const { shareCardPng } = await import("./png");
+        const png = await shareCardPng(c, url.searchParams.get("format") === "embed" ? "embed" : "og");
+        return new Response(png, {
+          headers: { "content-type": "image/png", "content-length": String(png.length), "cache-control": "public,max-age=86400" },
         });
       }
       if (!p) throw new GameError("Sign in to save ranked flights.", 401);

@@ -45,3 +45,27 @@ describe("payment proof guard", () => {
   it("rejects wrong recipient", () => expect(run(receipt(5_000_000n, payer))).toThrow());
   it("rejects reverted tx", () => expect(run(receipt(5_000_000n, PACK.recipient, "reverted"))).toThrow());
 });
+
+import { weekStart, utcDay } from "./shared";
+import { shareCardPng, cardText } from "./server/png";
+describe("weekly board window", () => {
+  it("weeks start Monday UTC", () => {
+    expect(weekStart(Date.parse("2026-10-18T23:59:59Z"))).toBe("2026-10-12"); // Sunday
+    expect(weekStart(Date.parse("2026-10-19T00:00:00Z"))).toBe("2026-10-19"); // Monday
+    expect(weekStart(Date.parse("2026-10-16T15:00:00Z"))).toBe("2026-10-12"); // Friday
+    expect(utcDay(Date.parse("2026-10-16T23:59:59-02:00"))).toBe("2026-10-17");
+  });
+});
+describe("share card PNG", () => {
+  const ch = { id: "x", name: "Pilot é<b>", avatar: null, multiplier: 2.5, day: "2026-10-16", url: "" };
+  it("encodes a real PNG at og and 3:2 embed sizes", async () => {
+    for (const [f, h] of [["og", 630], ["embed", 800]] as const) {
+      const b = await shareCardPng(ch, f);
+      expect([...b.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+      const v = new DataView(b.buffer);
+      expect(v.getUint32(16)).toBe(1200);
+      expect(v.getUint32(20)).toBe(h);
+    }
+  });
+  it("sanitises names for the bitmap font", () => expect(cardText("Pilot é<b>")).toBe("PILOT E?B?"));
+});

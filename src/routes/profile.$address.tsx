@@ -60,7 +60,7 @@ export const Route = createFileRoute("/profile/$address")({
   ),
   errorComponent: ({ error }) => (
     <MiniAppShell>
-      <p className="text-destructive text-sm">{error.message}</p>
+      <p className="text-destructive text-sm">{error instanceof Error ? error.message : String(error)}</p>
     </MiniAppShell>
   ),
   component: ProfilePage,
