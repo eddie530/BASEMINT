@@ -1,4 +1,5 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 /** Shareable challenge link. Social crawlers read the meta tags; people are sent into the game. */
 export const Route = createFileRoute("/moonshot_/c/$id")({
@@ -17,20 +18,18 @@ export const Route = createFileRoute("/moonshot_/c/$id")({
       ],
     };
   },
-  beforeLoad: ({ params }) => {
-    if (typeof window !== "undefined")
-      throw redirect({ to: "/moonshot", search: { challenge: params.id } as never });
-  },
   component: ChallengeLink,
 });
 
 function ChallengeLink() {
   const { id } = Route.useParams();
+  const href = `/moonshot?challenge=${encodeURIComponent(id)}`;
+  useEffect(() => {
+    window.location.replace(href);
+  }, [href]);
   return (
-    <div style={{ padding: 40, textAlign: "center" }}>
-      <Link to="/moonshot" search={{ challenge: id } as never}>
-        Open this MOONSHOT challenge →
-      </Link>
+    <div className="p-10 text-center">
+      <a href={href}>Open this MOONSHOT challenge →</a>
     </div>
   );
 }
