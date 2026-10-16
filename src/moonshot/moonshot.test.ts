@@ -26,14 +26,14 @@ describe("MOONSHOT rules", () => {
 
 describe("payment proof guard", () => {
   const payer = "0x1111111111111111111111111111111111111111";
-  const receipt = (value: bigint, to = PACK.recipient, status: "success" | "reverted" = "success") =>
+  const receipt = (value: bigint, to: string = PACK.recipient, status: "success" | "reverted" = "success") =>
     ({
       status,
       blockNumber: 100n,
       logs: [
         {
           address: PACK.token,
-          topics: encodeEventTopics({ abi: erc20Abi, eventName: "Transfer", args: { from: payer, to } }),
+          topics: encodeEventTopics({ abi: erc20Abi, eventName: "Transfer", args: { from: payer, to: to as `0x${string}` } }),
           data: encodeAbiParameters([{ type: "uint256" }], [value]),
         },
       ],
