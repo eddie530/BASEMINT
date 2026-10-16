@@ -60,6 +60,7 @@ const light: Palette = {
 export const THEME_KEY = "moonshot-theme";
 
 let active: Palette = dark;
+const msRoot = () => document.querySelector<HTMLElement>(".moonshot-root");
 let cosmetic = "base";
 export function setCosmetic(look: string) { cosmetic=look; }
 const accents: Record<string,string> = {base:"#4785ff",acid:"#d4fa59",ember:"#ff976b",violet:"#ba9cff"};
@@ -81,15 +82,16 @@ export function readTheme(): ThemeName {
   } catch {
     /* private mode */
   }
-  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  return "dark";
 }
 
 export function applyTheme(next: ThemeName): void {
   setDrawTheme(next);
-  document.documentElement.dataset.theme = next;
-  document.documentElement.style.colorScheme = next;
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", next === "light" ? "#f3f6fb" : "#05060a");
+  const root = msRoot();
+  if (root) {
+    root.dataset.theme = next;
+    root.style.colorScheme = next;
+  }
   try {
     window.localStorage.setItem(THEME_KEY, next);
   } catch {

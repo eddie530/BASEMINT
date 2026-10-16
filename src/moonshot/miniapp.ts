@@ -24,8 +24,8 @@ export async function bootMiniApp(): Promise<MiniSession> {
     const ctx = await sdk.context;
     const insets = ctx.client.safeAreaInsets;
     if (insets) {
-      document.documentElement.style.setProperty("--mini-top", `${insets.top}px`);
-      document.documentElement.style.setProperty("--mini-bottom", `${insets.bottom}px`);
+      (document.querySelector<HTMLElement>(".moonshot-root") ?? document.documentElement).style.setProperty("--mini-top", `${insets.top}px`);
+      (document.querySelector<HTMLElement>(".moonshot-root") ?? document.documentElement).style.setProperty("--mini-bottom", `${insets.bottom}px`);
     }
     return {
       inApp: true,

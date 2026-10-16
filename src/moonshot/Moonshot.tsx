@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { renderFrame } from "@/moonshot/game/draw";
 import { createRuntime, launch, cash, restack, step, stepParticles, formatMult } from "@/moonshot/game/sim";
 import { applySave, loadSave, persist } from "@/moonshot/game/save";
@@ -269,7 +270,8 @@ export function Moonshot() {
   }, []);
   useEffect(() => {
     setCosmetic(look);
-    document.documentElement.dataset.look = look;
+    const root = document.querySelector<HTMLElement>(".moonshot-root");
+    if (root) root.dataset.look = look;
   }, [look]);
   useEffect(() => {
     if (!notice) return;
@@ -749,9 +751,13 @@ export function Moonshot() {
     </>
   );
   return (
+    <div className="moonshot-root" data-theme="dark">
     <main className="moonshot-app">
       <header className="app-header">
-        <a className="wordmark" href="/" aria-label="MOONSHOT home">
+        <Link to="/arcade" className="back-to-arcade" aria-label="Back to Neon Arcade Hub">
+          ← Arcade
+        </Link>
+        <a className="wordmark" href="/moonshot" aria-label="MOONSHOT home">
           moonshot<span className="brand-orbit">↗</span>
         </a>
         <span className="header-caption">THE DAILY FLIGHT CLUB</span>
