@@ -1307,3 +1307,25 @@
     transition: none !important;
   }
 }
+.moonshot-root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.moonshot-root .back-to-arcade {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  margin-right: 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font: 500 11px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.moonshot-root .back-to-arcade:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
