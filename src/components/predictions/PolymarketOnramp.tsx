@@ -35,7 +35,7 @@ export function PolymarketOnramp() {
   const contracts = useMemo(() => {
     if (!address) return [];
     return [
-      { address: USDC_E, abi: USDC_ABI, functionName: "balanceOf", args: [address] as const, chainId: POLYGON_CHAIN_ID },
+      { address: USDC_E, abi: USDC_ABI, functionName: "balanceOf" as const, args: [address] as const, chainId: POLYGON_CHAIN_ID },
       ...POLYMARKET_OPERATORS.map((op) => ({
         address: USDC_E,
         abi: USDC_ABI,
@@ -54,7 +54,7 @@ export function PolymarketOnramp() {
   }, [address]);
 
   const { data: reads, refetch, isFetching } = useReadContracts({
-    contracts: contracts as never,
+    contracts,
     query: { enabled: !!address, refetchInterval: 15_000 },
   });
 
