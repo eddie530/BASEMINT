@@ -16,6 +16,8 @@ export const Route = createFileRoute("/arcade")({
         property: "og:description",
         content: "Play, compete, and earn onchain rewards on Base.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ArcadePage,
@@ -71,8 +73,8 @@ function ArcadePage() {
           <div className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-xl bg-white/5 text-fuchsia-300"><Gamepad2 className="size-5" /></div>
             <div className="leading-tight">
-              <p className="font-display text-sm font-black uppercase tracking-wider">Base Arcade</p>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Quests · Live</p>
+              <p className="font-display text-sm font-black uppercase tracking-wider">Neon Arcade Hub</p>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-white/40">Base Arcade · Quests</p>
             </div>
           </div>
           <span className="font-mono text-[11px] uppercase tracking-widest text-fuchsia-300">Play →</span>
