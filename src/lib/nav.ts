@@ -21,7 +21,7 @@ export const RESIDENT_NAV: NavItem[] = [
   { to: "/genesis", label: "Genesis", icon: BadgeCheck, hint: "GENESIS PASS mint" },
   { to: "/community", label: "Community", icon: Users, hint: "$RSIG & ecosystem" },
   { to: "/play", label: "Play", icon: Gamepad2, hint: "SpinBase" },
-  { to: "/arcade", label: "Arcade", icon: Joystick, hint: "Neon Arcade Hub" },
+  { to: "/arcade", label: "Neon Arcade Hub", icon: Joystick, hint: "All games" },
   { to: "/moonshot", label: "Moonshot", icon: Orbit, hint: "Daily flight game" },
   { to: "/predictions", label: "Predict", icon: TrendingUp, hint: "Trade YES/NO" },
   { to: "/vault", label: "Vault", icon: Wallet, hint: "Assets & rewards" },

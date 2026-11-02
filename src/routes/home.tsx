@@ -63,6 +63,8 @@ export const Route = createFileRoute("/home")({
         property: "og:description",
         content: "Discover, create, play, and earn across the Base ecosystem.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   loader: ({ context }) => {
@@ -222,6 +224,20 @@ function HomePage() {
           <p className="text-[11px] font-mono text-white/50">{message}</p>
         ) : null}
       </header>
+
+      <Link
+        to="/arcade"
+        className="flex items-center justify-between gap-3 rounded-lg border border-accent/30 bg-accent/10 p-4 transition hover:border-accent/60"
+      >
+        <div className="flex min-w-0 items-center gap-3">
+          <Gamepad2 className="size-6 shrink-0 text-accent" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="font-display text-sm font-bold uppercase">Neon Arcade Hub</p>
+            <p className="text-[11px] text-muted-foreground">SpinBase · MOONSHOT · Resident Slots</p>
+          </div>
+        </div>
+        <ArrowRight className="size-5 shrink-0 text-accent" aria-hidden="true" />
+      </Link>
 
       {/* Universal search */}
       <UniversalSearch />
