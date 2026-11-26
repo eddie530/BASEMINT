@@ -32,4 +32,9 @@ for i in {1..20}; do
   sleep 1
 done
 curl --noproxy '*' -u "preview:$password" -fsS http://127.0.0.1:4179/ | grep -q "Simulated order recorded"
-echo "Independent build and synthetic loopback checks complete; no deployment."
+# Install browser tooling outside the app dependency graph.
+mkdir "$work/browser-tools"
+clean npm install --prefix "$work/browser-tools" --ignore-scripts --no-audit --no-fund playwright@1.56.1
+clean node "$work/browser-tools/node_modules/playwright/cli.js" install chromium
+clean env NODE_PATH="$work/browser-tools/node_modules" RESIDENT_PREVIEW_PASSWORD="$password" node preview/browser.cjs
+echo "Independent build and synthetic loopback/browser checks complete; no deployment."
