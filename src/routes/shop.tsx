@@ -1,7 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bitcoin, Check, Crown, Loader2, Settings, Sparkles, Zap, X, ArrowUpRight, TrendingUp } from "lucide-react";
+import {
+  Bitcoin,
+  Check,
+  Crown,
+  Loader2,
+  Settings,
+  Sparkles,
+  Zap,
+  X,
+  ArrowUpRight,
+  TrendingUp,
+} from "lucide-react";
+import { ResidentProPanel } from "@/components/ResidentProPanel";
 import { MiniAppShell } from "@/components/MiniAppShell";
 import { Button } from "@/components/ui/button";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
@@ -35,6 +47,8 @@ export const Route = createFileRoute("/shop")({
         property: "og:description",
         content: "Membership, boosters, and quick-buy Base tokens in one place.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ShopPage,
@@ -117,7 +131,6 @@ function ShopPage() {
     staleTime: 60_000,
   });
 
-
   const entitlements = useQuery({
     queryKey: ["shop", "entitlements", userId ?? "anon"],
     queryFn: () => getMyEntitlements(),
@@ -187,11 +200,12 @@ function ShopPage() {
     if (!requireAuth() || !userId) return;
     try {
       setCryptoLoading(priceId);
-      const sessionId = (crypto.randomUUID?.() ?? `sid-${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^a-zA-Z0-9-]/g, "");
+      const sessionId = (
+        crypto.randomUUID?.() ?? `sid-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      ).replace(/[^a-zA-Z0-9-]/g, "");
       const result = await createCommerceCharge({
         data: {
           priceId,
-
 
           sessionId,
           origin: window.location.origin,
@@ -224,168 +238,31 @@ function ShopPage() {
     <MiniAppShell>
       <PaymentTestModeBanner />
 
-      {/* Resident Pro */}
-      <section className="rounded-3xl border border-border bg-card/60 p-6 space-y-6">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-primary">
-              <Crown className="size-3" /> Membership
-            </span>
-            <h1 className="mt-3 text-3xl font-black tracking-tight">Resident Pro</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              $9.99 / month · cancel anytime
-            </p>
-          </div>
-          {isPro && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 text-primary px-2.5 py-1 text-xs font-semibold">
-              <Sparkles className="size-3" /> Active
-            </span>
-          )}
-        </header>
+      <ResidentProPanel />
 
-        <ul className="space-y-2">
-          {PERKS.map((perk) => (
-            <li key={perk} className="flex items-start gap-2 text-sm">
-              <Check className="size-4 mt-0.5 text-primary shrink-0" />
-              <span>{perk}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex flex-wrap gap-2">
-          {loading ? (
-            <Button disabled><Loader2 className="size-4 animate-spin" /></Button>
-          ) : isPro ? (
-            <>
-              <Button variant="secondary" disabled>
-                <Crown className="size-4" /> You're a Resident Pro
-              </Button>
-              {(subEnvironment === "sandbox" || subEnvironment === "live") && (
-                <Button variant="outline" onClick={handleManage} disabled={portalLoading}>
-                  {portalLoading ? <Loader2 className="size-4 animate-spin" /> : <Settings className="size-4" />}
-                  Manage subscription
-                </Button>
-              )}
-            </>
-          ) : (
-            <>
-              <Button onClick={handleUpgrade} size="lg">
-                <Zap className="size-4" /> Upgrade with card
-              </Button>
-              <Button
-                onClick={() => handlePayWithCrypto("resident_pro_monthly")}
-                size="lg"
-                variant="outline"
-                disabled={cryptoLoading === "resident_pro_monthly"}
-              >
-                {cryptoLoading === "resident_pro_monthly" ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Bitcoin className="size-4" />
-                )}
-                Pay with Commerce
-              </Button>
-            </>
-          )}
-          {subscription && !isPro && (
-            <p className="text-xs text-muted-foreground w-full">
-              Previous status: {subscription.status}
-            </p>
-          )}
-        </div>
-
-        {/* Membership details for crypto / USDC members — the Stripe Billing
-            Portal doesn't apply to one-time on-chain payments, so we show the
-            renewal date and a Renew now CTA inline instead. */}
-        {isPro && (subEnvironment === "crypto" || subEnvironment === "usdc") && (
-          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
-            <div>
-              <p className="text-xs font-mono uppercase tracking-widest text-primary">
-                Membership · {subEnvironment === "usdc" ? "USDC on Base" : "Coinbase Commerce"}
-              </p>
-              <p className="text-sm font-bold mt-1">
-                {subscription?.current_period_end
-                  ? `Active until ${new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`
-                  : "Active membership"}
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                One-time payments don't auto-renew, so there's nothing to cancel.
-                Renew before expiry to extend by 30 days.
-              </p>
-            </div>
-            {subEnvironment === "usdc" ? (
-              <UsdcPayButton />
-            ) : (
-              <Button
-                onClick={() => handlePayWithCrypto("resident_pro_monthly")}
-                variant="outline"
-                disabled={cryptoLoading === "resident_pro_monthly"}
-              >
-                {cryptoLoading === "resident_pro_monthly" ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Bitcoin className="size-4" />
-                )}
-                Renew via Commerce
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Entitlements the user has purchased (persisted server-side). */}
-        {entitlements.data && (entitlements.data.launch_credits > 0 || entitlements.data.booster_active) && (
-          <div className="rounded-2xl border border-border bg-background/50 p-4 space-y-1 text-sm">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Your perks
-            </p>
+      {isPro && (subEnvironment === "sandbox" || subEnvironment === "live") && (
+        <section className="space-y-3 border-b border-border pb-5">
+          <h2 className="font-semibold">Existing card membership</h2>
+          <Button variant="outline" onClick={handleManage} disabled={portalLoading}>
+            <Settings className="size-4" /> Manage existing subscription
+          </Button>
+        </section>
+      )}
+      {entitlements.data &&
+        (entitlements.data.launch_credits > 0 || entitlements.data.booster_active) && (
+          <section className="space-y-2 border-b border-border pb-5 text-sm">
+            <h2 className="font-semibold">Your existing perks</h2>
             {entitlements.data.launch_credits > 0 && (
-              <p>
-                <span className="font-bold">{entitlements.data.launch_credits}</span>{" "}
-                Featured Launch credit{entitlements.data.launch_credits === 1 ? "" : "s"} available
-              </p>
+              <p>{entitlements.data.launch_credits} Featured Launch credits available</p>
             )}
             {entitlements.data.booster_active && entitlements.data.booster_expires_at && (
               <p>
                 2× Points booster active until{" "}
-                <span className="font-bold">
-                  {new Date(entitlements.data.booster_expires_at).toLocaleString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
+                {new Date(entitlements.data.booster_expires_at).toLocaleString()}
               </p>
             )}
-          </div>
+          </section>
         )}
-
-        {!isPro && !loading && (
-          <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-mono uppercase tracking-widest text-primary">
-                  Native · Base
-                </p>
-                <p className="text-sm font-bold mt-1">Pay 10 USDC on Base → 30 days Pro</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Direct on-chain payment · webhook verifies · Pro unlocks instantly
-                </p>
-              </div>
-            </div>
-            <UsdcPayButton />
-          </div>
-        )}
-
-        {checkoutOpen && !isPro && (
-          <div className="rounded-2xl border border-border bg-background p-2">
-            <StripeEmbeddedCheckout
-              priceId="resident_pro_monthly_v2"
-              returnUrl={`${window.location.origin}/checkout/return?kind=subscription&session_id={CHECKOUT_SESSION_ID}`}
-            />
-          </div>
-        )}
-      </section>
 
       {/* Digital goods */}
       <section className="space-y-4">
@@ -457,18 +334,19 @@ function ShopPage() {
           ))}
         </div>
 
-        {activePriceId && (() => {
-          const product = PRODUCTS.find((p) => p.priceId === activePriceId);
-          if (!product) return null;
-          return (
-            <div className="rounded-2xl border border-border bg-background p-2">
-              <StripeEmbeddedCheckout
-                priceId={activePriceId}
-                returnUrl={`${window.location.origin}${product.returnPath}`}
-              />
-            </div>
-          );
-        })()}
+        {activePriceId &&
+          (() => {
+            const product = PRODUCTS.find((p) => p.priceId === activePriceId);
+            if (!product) return null;
+            return (
+              <div className="rounded-2xl border border-border bg-background p-2">
+                <StripeEmbeddedCheckout
+                  priceId={activePriceId}
+                  returnUrl={`${window.location.origin}${product.returnPath}`}
+                />
+              </div>
+            );
+          })()}
       </section>
 
       {/* Trending Base tokens quick-buy */}

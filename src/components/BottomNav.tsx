@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { MoreHorizontal, Rocket } from "lucide-react";
 import { useState } from "react";
@@ -45,10 +46,7 @@ export function BottomNav() {
               className={`flex flex-col items-center gap-1 transition-opacity ${active ? "opacity-100" : "opacity-40"}`}
               aria-current={active ? "page" : undefined}
             >
-              <item.icon
-                className={`size-5 ${active ? "text-accent" : ""}`}
-                strokeWidth={2.4}
-              />
+              <item.icon className={`size-5 ${active ? "text-accent" : ""}`} strokeWidth={2.4} />
               <span
                 className={`text-[10px] font-bold uppercase tracking-tighter ${active ? "text-accent" : ""}`}
               >
@@ -59,7 +57,8 @@ export function BottomNav() {
           );
         })}
 
-        <button
+        <Button
+          variant="ghost"
           type="button"
           onClick={() => setMoreOpen(true)}
           className="flex flex-col items-center gap-1 opacity-40 hover:opacity-100"
@@ -67,7 +66,7 @@ export function BottomNav() {
         >
           <MoreHorizontal className="size-5" strokeWidth={2.4} />
           <span className="text-[10px] font-bold uppercase tracking-tighter">More</span>
-        </button>
+        </Button>
       </nav>
 
       {moreOpen ? (
@@ -78,7 +77,7 @@ export function BottomNav() {
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] rounded-t-3xl border-t border-white/10 bg-[#0a0a0a] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-t-lg border-t border-border bg-background p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-white/20" />
@@ -105,12 +104,13 @@ export function BottomNav() {
                 </Link>
               ))}
             </div>
-            <button
+            <Button
+              variant="outline"
               onClick={() => setMoreOpen(false)}
               className="mt-4 w-full rounded-lg border border-white/10 px-3 py-2 text-xs uppercase tracking-widest text-white/60 hover:bg-white/5"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

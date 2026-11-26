@@ -1,4 +1,19 @@
-import { BadgeCheck, Compass, Flame, Gamepad2, Home, Joystick, Orbit, Rocket, ShoppingBag, Sparkles, TrendingUp, User, Users, Wallet } from "lucide-react";
+import {
+  BadgeCheck,
+  Compass,
+  Flame,
+  Gamepad2,
+  Home,
+  Joystick,
+  Orbit,
+  Rocket,
+  ShoppingBag,
+  Sparkles,
+  TrendingUp,
+  User,
+  Users,
+  Wallet,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -25,6 +40,8 @@ export const RESIDENT_NAV: NavItem[] = [
   { to: "/moonshot", label: "Moonshot", icon: Orbit, hint: "Daily flight game" },
   { to: "/predictions", label: "Predict", icon: TrendingUp, hint: "Trade YES/NO" },
   { to: "/vault", label: "Vault", icon: Wallet, hint: "Assets & rewards" },
+  { to: "/pro", label: "Resident Pro", icon: BadgeCheck, hint: "4.99 USDC · simulation" },
+  { to: "/radar", label: "Token Radar", icon: TrendingUp, hint: "Base markets" },
   { to: "/shop", label: "Shop", icon: ShoppingBag, hint: "Resident Pro & more" },
   { to: "/ai", label: "AI", icon: Sparkles, hint: "Resident AI" },
   { to: "/profile", label: "Profile", icon: User, hint: "Resident ID" },
@@ -37,6 +54,17 @@ export const MOBILE_PRIMARY: NavItem[] = RESIDENT_NAV.filter((n) =>
 
 /** Items surfaced only in the mobile "More" sheet. */
 export const MOBILE_SECONDARY: NavItem[] = RESIDENT_NAV.filter((n) =>
-  ["/launches", "/genesis", "/play", "/arcade", "/moonshot", "/predictions", "/shop", "/ai", "/profile"].includes(n.to),
+  [
+    "/launches",
+    "/genesis",
+    "/play",
+    "/arcade",
+    "/moonshot",
+    "/predictions",
+    "/shop",
+    "/pro",
+    "/radar",
+    "/ai",
+    "/profile",
+  ].includes(n.to),
 );
-

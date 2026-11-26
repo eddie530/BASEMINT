@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type SubscriptionRow = {
   id: string;
@@ -15,11 +15,11 @@ type SubscriptionRow = {
 };
 
 function computeActive(sub: SubscriptionRow | null): boolean {
-  if (!sub) return false;
+  if (!sub || sub.environment === "resident_v3_simulation") return false;
   const end = sub.current_period_end ? new Date(sub.current_period_end).getTime() : null;
   const future = end === null || end > Date.now();
-  if (['active', 'trialing', 'past_due'].includes(sub.status) && future) return true;
-  if (sub.status === 'canceled' && end && end > Date.now()) return true;
+  if (["active", "trialing", "past_due"].includes(sub.status) && future) return true;
+  if (sub.status === "canceled" && end && end > Date.now()) return true;
   return false;
 }
 
@@ -35,13 +35,13 @@ export function useSubscription() {
       // Query across all environments (stripe sandbox/live + crypto) and pick
       // the most recently updated active row.
       const { data } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', uid)
-        .order('current_period_end', { ascending: false, nullsFirst: false })
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", uid)
+        .order("current_period_end", { ascending: false, nullsFirst: false })
         .limit(5);
       if (cancelled) return;
-      const rows = ((data as SubscriptionRow[] | null) ?? []);
+      const rows = (data as SubscriptionRow[] | null) ?? [];
       const active = rows.find(computeActive) ?? rows[0] ?? null;
       setSubscription(active);
       setLoading(false);
@@ -75,16 +75,16 @@ export function useSubscription() {
     const channel = supabase
       .channel(`subscriptions:${userId}`)
       .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'subscriptions', filter: `user_id=eq.${userId}` },
+        "postgres_changes",
+        { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
         async () => {
           const { data } = await supabase
-            .from('subscriptions')
-            .select('*')
-            .eq('user_id', userId)
-            .order('current_period_end', { ascending: false, nullsFirst: false })
+            .from("subscriptions")
+            .select("*")
+            .eq("user_id", userId)
+            .order("current_period_end", { ascending: false, nullsFirst: false })
             .limit(5);
-          const rows = ((data as SubscriptionRow[] | null) ?? []);
+          const rows = (data as SubscriptionRow[] | null) ?? [];
           const active = rows.find(computeActive) ?? rows[0] ?? null;
           setSubscription(active);
         },
@@ -96,8 +96,7 @@ export function useSubscription() {
   }, [userId]);
 
   const pricePro = subscription?.price_id;
-  const isProPrice =
-    pricePro === "resident_pro_monthly" || pricePro === "resident_pro_monthly_v2";
+  const isProPrice = pricePro === "resident_pro_monthly" || pricePro === "resident_pro_monthly_v2";
 
   return {
     subscription,

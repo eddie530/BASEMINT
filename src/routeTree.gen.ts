@@ -26,11 +26,14 @@ import { Route as MoonshotRouteImport } from './routes/moonshot'
 import { Route as PlayRouteImport } from './routes/play'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as PredictionsRouteImport } from './routes/predictions'
+import { Route as ProRouteImport } from './routes/pro'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as RadarRouteImport } from './routes/radar'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as VaultRouteImport } from './routes/vault'
+import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as CoinIdRouteImport } from './routes/coin.$id'
 import { Route as LaunchesNewRouteImport } from './routes/launches_.new'
@@ -128,9 +131,19 @@ const PredictionsRoute = PredictionsRouteImport.update({
   path: '/predictions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProRoute = ProRouteImport.update({
+  id: '/pro',
+  path: '/pro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadarRoute = RadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -151,6 +164,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
   path: '/vault',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/admin/revenue',
+  path: '/admin/revenue',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
@@ -229,11 +247,14 @@ export interface FileRoutesByFullPath {
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/predictions': typeof PredictionsRoute
+  '/pro': typeof ProRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/radar': typeof RadarRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
   '/launches/new': typeof LaunchesNewRoute
@@ -264,10 +285,13 @@ export interface FileRoutesByTo {
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/predictions': typeof PredictionsRoute
+  '/pro': typeof ProRoute
+  '/radar': typeof RadarRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
   '/launches/new': typeof LaunchesNewRoute
@@ -299,11 +323,14 @@ export interface FileRoutesById {
   '/play': typeof PlayRoute
   '/points': typeof PointsRoute
   '/predictions': typeof PredictionsRoute
+  '/pro': typeof ProRoute
   '/profile': typeof ProfileRouteWithChildren
+  '/radar': typeof RadarRoute
   '/search': typeof SearchRoute
   '/shop': typeof ShopRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/vault': typeof VaultRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/coin/$id': typeof CoinIdRoute
   '/launches_/new': typeof LaunchesNewRoute
@@ -336,11 +363,14 @@ export interface FileRouteTypes {
     | '/play'
     | '/points'
     | '/predictions'
+    | '/pro'
     | '/profile'
+    | '/radar'
     | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/vault'
+    | '/admin/revenue'
     | '/checkout/return'
     | '/coin/$id'
     | '/launches/new'
@@ -371,10 +401,13 @@ export interface FileRouteTypes {
     | '/play'
     | '/points'
     | '/predictions'
+    | '/pro'
+    | '/radar'
     | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/vault'
+    | '/admin/revenue'
     | '/checkout/return'
     | '/coin/$id'
     | '/launches/new'
@@ -405,11 +438,14 @@ export interface FileRouteTypes {
     | '/play'
     | '/points'
     | '/predictions'
+    | '/pro'
     | '/profile'
+    | '/radar'
     | '/search'
     | '/shop'
     | '/sitemap.xml'
     | '/vault'
+    | '/admin/revenue'
     | '/checkout/return'
     | '/coin/$id'
     | '/launches_/new'
@@ -441,11 +477,14 @@ export interface RootRouteChildren {
   PlayRoute: typeof PlayRoute
   PointsRoute: typeof PointsRoute
   PredictionsRoute: typeof PredictionsRoute
+  ProRoute: typeof ProRoute
   ProfileRoute: typeof ProfileRouteWithChildren
+  RadarRoute: typeof RadarRoute
   SearchRoute: typeof SearchRoute
   ShopRoute: typeof ShopRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VaultRoute: typeof VaultRoute
+  AdminRevenueRoute: typeof AdminRevenueRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   CoinIdRoute: typeof CoinIdRoute
   LaunchesNewRoute: typeof LaunchesNewRoute
@@ -578,11 +617,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PredictionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pro': {
+      id: '/pro'
+      path: '/pro'
+      fullPath: '/pro'
+      preLoaderRoute: typeof ProRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radar': {
+      id: '/radar'
+      path: '/radar'
+      fullPath: '/radar'
+      preLoaderRoute: typeof RadarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -611,6 +664,13 @@ declare module '@tanstack/react-router' {
       path: '/vault'
       fullPath: '/vault'
       preLoaderRoute: typeof VaultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/admin/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/return': {
@@ -724,11 +784,14 @@ const rootRouteChildren: RootRouteChildren = {
   PlayRoute: PlayRoute,
   PointsRoute: PointsRoute,
   PredictionsRoute: PredictionsRoute,
+  ProRoute: ProRoute,
   ProfileRoute: ProfileRouteWithChildren,
+  RadarRoute: RadarRoute,
   SearchRoute: SearchRoute,
   ShopRoute: ShopRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VaultRoute: VaultRoute,
+  AdminRevenueRoute: AdminRevenueRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   CoinIdRoute: CoinIdRoute,
   LaunchesNewRoute: LaunchesNewRoute,

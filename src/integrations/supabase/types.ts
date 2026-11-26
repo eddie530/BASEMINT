@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       cdp_wallets: {
@@ -659,6 +654,51 @@ export type Database = {
           },
         ]
       }
+      resident_admin_roles: {
+        Row: {
+          created_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resident_ai_usage: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          tier: string
+          usage_day: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          status?: string
+          tier: string
+          usage_day?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          tier?: string
+          usage_day?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       resident_launches: {
         Row: {
           address: string | null
@@ -707,6 +747,39 @@ export type Database = {
           tags?: string[]
           ticker?: string
           tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      resident_simulation_orders: {
+        Row: {
+          amount_usdc: number
+          completed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          request_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_usdc?: number
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          request_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_usdc?: number
+          completed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          request_id?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -959,6 +1032,14 @@ export type Database = {
         Args: { p_address: string; p_current: string }
         Returns: string
       }
+      resident_reserve_ai: {
+        Args: { p_request: string; p_user: string }
+        Returns: Json
+      }
+      resident_simulation_checkout: {
+        Args: { p_confirm?: boolean; p_request: string; p_user: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
@@ -1091,3 +1172,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
