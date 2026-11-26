@@ -14,12 +14,22 @@ clean bun install --frozen-lockfile --ignore-scripts
 clean bun x --no-install vitest run --config vitest.independent.config.ts
 clean bun x --no-install vite build --config vite.independent.config.ts
 # Start only the synthetic loopback server, never the application runtime.
-env -i PATH="$PATH" HOME="$work/.isolated-home" CI=true bun preview/isolated-server.ts > "$work/preview.log" 2>&1 &
+password="$(node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))')"
+env -i PATH="$PATH" HOME="$work/.isolated-home" CI=true RESIDENT_PREVIEW_PASSWORD="$password" bun preview/isolated-server.ts > "$work/preview.log" 2>&1 &
 pid=$!
 trap 'kill "$pid" 2>/dev/null || true; rm -rf "$work"' EXIT
 for i in {1..20}; do
-  if curl --noproxy '*' -fsS http://127.0.0.1:4179/ >/dev/null; then break; fi
+  if curl --noproxy '*' -u "preview:$password" -fsS http://127.0.0.1:4179/ >/dev/null; then break; fi
   sleep 1
 done
-clean bun preview/smoke.ts
+clean env RESIDENT_PREVIEW_PASSWORD="$password" bun preview/smoke.ts
+kill "$pid"
+wait "$pid" || true
+env -i PATH="$PATH" HOME="$work/.isolated-home" CI=true RESIDENT_PREVIEW_PASSWORD="$password" bun preview/isolated-server.ts > "$work/preview.log" 2>&1 &
+pid=$!
+for i in {1..20}; do
+  if curl --noproxy '*' -u "preview:$password" -fsS http://127.0.0.1:4179/ | grep -q "Simulated order recorded"; then break; fi
+  sleep 1
+done
+curl --noproxy '*' -u "preview:$password" -fsS http://127.0.0.1:4179/ | grep -q "Simulated order recorded"
 echo "Independent build and synthetic loopback checks complete; no deployment."
