@@ -1,7 +1,8 @@
-const { chromium } = require("playwright");
+const { chromium, webkit } = require("playwright");
 const assert = require("node:assert/strict");
 (async () => {
- const browser = await chromium.launch({headless:true});
+ for (const engine of [chromium, webkit]) {
+ const browser = await engine.launch({headless:true});
  try {
   for (const viewport of [{width:1280,height:800},{width:390,height:844}]) {
    const context = await browser.newContext({viewport,httpCredentials:{username:"preview",password:process.env.RESIDENT_PREVIEW_PASSWORD},serviceWorkers:"block"});
@@ -20,5 +21,6 @@ const assert = require("node:assert/strict");
    await context.close();
   }
  } finally { await browser.close(); }
- console.log("Desktop and mobile Chromium viewport checks passed");
+ console.log("Desktop and mobile " + engine.name() + " viewport checks passed");
+ }
 })().catch(error=>{console.error(error);process.exitCode=1});
