@@ -1,4 +1,5 @@
 import "./lib/error-capture";
+import { independentPreviewRuntimeAllowed } from "./lib/independent-preview-policy";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
@@ -56,6 +57,9 @@ function applyWalletPopupHeaders(response: Response): Response {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    if (!independentPreviewRuntimeAllowed()) {
+      return new Response("Independent preview locked pending payment and backend isolation.", { status: 503, headers: { "Cache-Control": "no-store" } });
+    }
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
