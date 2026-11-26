@@ -4,6 +4,6 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: "node",
-    include: ["src/lib/resident-pro.test.ts", "src/lib/independent-preview-policy.test.ts", "src/lib/resident-independent-ai.test.ts"],
+    include: ["src/lib/resident-pro.test.ts", "src/lib/independent-preview-policy.test.ts", "src/lib/resident-independent-ai.test.ts", "src/lib/independent-mocks.test.ts"],
   },
 });
