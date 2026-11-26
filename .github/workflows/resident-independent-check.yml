@@ -19,3 +19,5 @@ jobs:
         with:
           bun-version: '1.3.5'
       - run: bash scripts/independence-check.sh
+        env:
+          RESIDENT_CI_INSTALL_BROWSER_DEPS: '1'
