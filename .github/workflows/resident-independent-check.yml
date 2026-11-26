@@ -8,10 +8,10 @@ permissions:
 jobs:
   check:
     if: github.head_ref == 'resident-v3-independence' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
