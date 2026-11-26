@@ -35,6 +35,10 @@ curl --noproxy '*' -u "preview:$password" -fsS http://127.0.0.1:4179/ | grep -q 
 # Install browser tooling outside the app dependency graph.
 mkdir "$work/browser-tools"
 clean npm install --prefix "$work/browser-tools" --ignore-scripts --no-audit --no-fund playwright@1.56.1
+# System dependencies are installed only on the disposable GitHub runner.
+if [[ "${RESIDENT_CI_INSTALL_BROWSER_DEPS:-}" == "1" ]]; then
+  clean node "$work/browser-tools/node_modules/playwright/cli.js" install-deps chromium
+fi
 clean node "$work/browser-tools/node_modules/playwright/cli.js" install chromium
 clean env NODE_PATH="$work/browser-tools/node_modules" RESIDENT_PREVIEW_PASSWORD="$password" node preview/browser.cjs
 echo "Independent build and synthetic loopback/browser checks complete; no deployment."
