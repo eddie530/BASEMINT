@@ -11,6 +11,6 @@ mkdir -p "$work/.isolated-home"
 # No inherited cloud credentials, production URLs, or package tokens.
 clean() { env -i PATH="$PATH" HOME="$work/.isolated-home" CI=true "$@"; }
 clean bun install --frozen-lockfile --ignore-scripts
-clean bun x --no-install vitest run
-clean bun run build
+clean bun x --no-install vitest run --config vitest.independent.config.ts
+clean bun x --no-install vite build --config vite.independent.config.ts
 echo "Build-only check complete; no deployment or runtime started."
