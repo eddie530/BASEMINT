@@ -1,0 +1,25 @@
+# TEMPLATE ONLY. Do not install until approved.
+[Unit]
+Description=Resident synthetic preview
+After=network.target
+[Service]
+Type=simple
+User=resident-preview
+Group=resident-preview
+WorkingDirectory=/opt/resident-preview
+EnvironmentFile=/etc/resident-preview/preview.env
+Environment=RESIDENT_PREVIEW_STATE_DIR=/var/lib/resident-preview
+ExecStart=/usr/local/bin/bun /opt/resident-preview/preview/isolated-server.ts
+StateDirectory=resident-preview
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost
+Restart=no
