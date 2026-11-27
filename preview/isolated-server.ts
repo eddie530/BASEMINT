@@ -25,7 +25,8 @@ const html = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="v
 const server = createServer((req,res) => {
   res.setHeader("Cache-Control","no-store");
   res.setHeader("X-Robots-Tag","noindex, nofollow, noarchive");
-  res.setHeader("Referrer-Policy","no-referrer");
+  // Preserve same-origin form POST Origin; no referrer is sent cross-origin.
+  res.setHeader("Referrer-Policy","same-origin");
   if (origin.protocol === "https:") res.setHeader("Strict-Transport-Security","max-age=86400");
   res.setHeader("Content-Security-Policy","default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
   res.setHeader("X-Content-Type-Options","nosniff");
