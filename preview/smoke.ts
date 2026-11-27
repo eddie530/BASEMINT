@@ -15,4 +15,9 @@ for (const path of ["/sign","/send","/api/payments","/api/auth","/api/mint"]) {
   assert.equal((await fetch(base+path,{method:"POST",headers:{Authorization,Origin:base}})).status,403);
 }
 assert.equal((await fetch(base+"/checkout",{method:"POST",headers:{Authorization,Origin:"https://example.com"}})).status,403);
+assert.equal(home.headers.get("referrer-policy"),"same-origin");
+assert.equal((await fetch(base+"/checkout",{method:"POST",headers:{Authorization}})).status,403);
+assert.equal((await fetch(base+"/checkout",{method:"POST",headers:{Authorization,Origin:"null"}})).status,403);
+assert.equal((await fetch(base+"/checkout",{method:"POST",headers:{Origin:base}})).status,401);
+assert.equal((await fetch(base,{headers:{Authorization:"Basic invalid"}})).status,401);
 console.log("Isolated HTTP smoke checks passed");
